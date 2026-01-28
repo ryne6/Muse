@@ -155,10 +155,22 @@ describe('FileExplorer', () => {
     })
 
     it('should show loading state initially', async () => {
+      // Make listFiles slow to capture loading state
+      mockWindowApi.fs.listFiles.mockImplementationOnce(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100))
+        return {
+          files: [
+            { name: 'file1.ts', path: '/test/workspace/file1.ts', isDirectory: false, size: 1024, modifiedTime: Date.now() }
+          ]
+        }
+      })
+
       render(<FileExplorer />)
 
-      // Should show loading initially
-      expect(screen.getByText('Loading...')).toBeInTheDocument()
+      // Wait for workspace to load, then check for loading state
+      await waitFor(() => {
+        expect(screen.getByText('Loading...')).toBeInTheDocument()
+      })
 
       // Wait for loading to complete
       await waitFor(() => {
@@ -221,13 +233,13 @@ describe('FileExplorer', () => {
       const user = userEvent.setup()
       render(<FileExplorer />)
 
-      // Wait for initial load
+      // Wait for initial load and file tree to render
       await waitFor(() => {
-        expect(mockWindowApi.fs.listFiles).toHaveBeenCalledTimes(1)
+        expect(screen.getByTestId('file-tree')).toBeInTheDocument()
       })
 
-      // Click refresh button
-      const refreshButton = screen.getByRole('button')
+      // Find refresh button by aria-label
+      const refreshButton = screen.getByRole('button', { name: 'Refresh file tree' })
       await user.click(refreshButton)
 
       // Should call listFiles again
@@ -237,10 +249,26 @@ describe('FileExplorer', () => {
     })
 
     it('should disable refresh button while loading', async () => {
+      // Make listFiles slow
+      mockWindowApi.fs.listFiles.mockImplementationOnce(async () => {
+        await new Promise(resolve => setTimeout(resolve, 100))
+        return {
+          files: [
+            { name: 'file1.ts', path: '/test/workspace/file1.ts', isDirectory: false, size: 1024, modifiedTime: Date.now() }
+          ]
+        }
+      })
+
       render(<FileExplorer />)
 
-      // During initial load, button should be disabled
-      const refreshButton = screen.getByRole('button')
+      // Wait for workspace to load and header to render
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: 'Refresh file tree' })).toBeInTheDocument()
+      })
+
+      // Button should be disabled during loading
+      const refreshButton = screen.getByRole('button', { name: 'Refresh file tree' })
+      expect(refreshButton).toBeDisabled()
 
       // Wait for loading to complete
       await waitFor(() => {

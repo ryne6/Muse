@@ -145,6 +145,7 @@ export function FileExplorer() {
           className="h-7 w-7 flex-shrink-0"
           onClick={handleRefresh}
           disabled={isLoading}
+          aria-label="Refresh file tree"
         >
           <RefreshCw className={cn('w-3 h-3', isLoading && 'animate-spin')} />
         </Button>

@@ -25,7 +25,7 @@ vi.mock('react-syntax-highlighter', () => ({
 }))
 
 vi.mock('react-syntax-highlighter/dist/esm/styles/prism', () => ({
-  oneDark: {}
+  oneLight: {}
 }))
 
 describe('MarkdownRenderer', () => {

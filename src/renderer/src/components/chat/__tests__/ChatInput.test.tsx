@@ -149,14 +149,14 @@ describe('ChatInput', () => {
     it('should render input textarea', () => {
       render(<ChatInput />)
 
-      const textarea = screen.getByPlaceholderText(/Type a message/i)
+      const textarea = screen.getByLabelText('Message input')
       expect(textarea).toBeInTheDocument()
     })
 
     it('should render send button', () => {
       render(<ChatInput />)
 
-      const sendButton = screen.getByRole('button')
+      const sendButton = screen.getByRole('button', { name: 'Send message' })
       expect(sendButton).toBeInTheDocument()
     })
 
@@ -180,7 +180,7 @@ describe('ChatInput', () => {
       const user = userEvent.setup()
       render(<ChatInput />)
 
-      const textarea = screen.getByPlaceholderText(/Type a message/i)
+      const textarea = screen.getByLabelText('Message input')
       await user.type(textarea, 'Hello, world!')
 
       expect(textarea).toHaveValue('Hello, world!')
@@ -197,8 +197,8 @@ describe('ChatInput', () => {
 
       render(<ChatInput />)
 
-      const textarea = screen.getByPlaceholderText(/Type a message/i)
-      const sendButton = screen.getByRole('button')
+      const textarea = screen.getByLabelText('Message input')
+      const sendButton = screen.getByRole('button', { name: 'Send message' })
 
       await user.type(textarea, 'Test message')
       await user.click(sendButton)
@@ -213,7 +213,7 @@ describe('ChatInput', () => {
     it('should disable send button when input is empty', () => {
       render(<ChatInput />)
 
-      const sendButton = screen.getByRole('button')
+      const sendButton = screen.getByRole('button', { name: 'Send message' })
       expect(sendButton).toBeDisabled()
     })
 
@@ -221,8 +221,8 @@ describe('ChatInput', () => {
       const user = userEvent.setup()
       render(<ChatInput />)
 
-      const textarea = screen.getByPlaceholderText(/Type a message/i)
-      const sendButton = screen.getByRole('button')
+      const textarea = screen.getByLabelText('Message input')
+      const sendButton = screen.getByRole('button', { name: 'Send message' })
 
       await user.type(textarea, '   ')
       expect(sendButton).toBeDisabled()
@@ -232,8 +232,8 @@ describe('ChatInput', () => {
       const user = userEvent.setup()
       render(<ChatInput />)
 
-      const textarea = screen.getByPlaceholderText(/Type a message/i)
-      const sendButton = screen.getByRole('button')
+      const textarea = screen.getByLabelText('Message input')
+      const sendButton = screen.getByRole('button', { name: 'Send message' })
 
       await user.type(textarea, 'Hello')
       expect(sendButton).not.toBeDisabled()
@@ -245,8 +245,8 @@ describe('ChatInput', () => {
 
       render(<ChatInput />)
 
-      const textarea = screen.getByPlaceholderText(/Type a message/i)
-      const sendButton = screen.getByRole('button')
+      const textarea = screen.getByLabelText('Message input')
+      const sendButton = screen.getByRole('button', { name: 'Send message' })
 
       expect(textarea).toBeDisabled()
       expect(sendButton).toBeDisabled()
@@ -269,8 +269,8 @@ describe('ChatInput', () => {
 
       render(<ChatInput />)
 
-      const textarea = screen.getByPlaceholderText(/Type a message/i)
-      const sendButton = screen.getByRole('button')
+      const textarea = screen.getByLabelText('Message input')
+      const sendButton = screen.getByRole('button', { name: 'Send message' })
 
       await user.type(textarea, 'Test message')
       await user.click(sendButton)
@@ -301,8 +301,8 @@ describe('ChatInput', () => {
 
       render(<ChatInput />)
 
-      const textarea = screen.getByPlaceholderText(/Type a message/i)
-      const sendButton = screen.getByRole('button')
+      const textarea = screen.getByLabelText('Message input')
+      const sendButton = screen.getByRole('button', { name: 'Send message' })
 
       await user.type(textarea, 'Test message')
       await user.click(sendButton)
@@ -339,8 +339,8 @@ describe('ChatInput', () => {
 
       render(<ChatInput />)
 
-      const textarea = screen.getByPlaceholderText(/Type a message/i)
-      const sendButton = screen.getByRole('button')
+      const textarea = screen.getByLabelText('Message input')
+      const sendButton = screen.getByRole('button', { name: 'Send message' })
 
       await user.type(textarea, 'Test message')
       await user.click(sendButton)
@@ -357,15 +357,29 @@ describe('ChatInput', () => {
     it('should send message when pressing Enter', async () => {
       const user = userEvent.setup()
 
-      // Setup: conversation exists
+      // Setup: conversation exists with valid provider and model
       mockConversationStore.getCurrentConversation.mockReturnValue({
         id: 'conv-1',
         title: 'Test Conversation'
       })
+      mockSettingsStore.getCurrentProvider.mockReturnValue({
+        id: 'provider-1',
+        name: 'Test Provider',
+        type: 'openai',
+        apiKey: 'test-api-key',
+        enabled: true
+      })
+      mockSettingsStore.getCurrentModel.mockReturnValue({
+        id: 'model-1',
+        providerId: 'provider-1',
+        modelId: 'gpt-4',
+        name: 'GPT-4',
+        enabled: true
+      })
 
       render(<ChatInput />)
 
-      const textarea = screen.getByPlaceholderText(/Type a message/i)
+      const textarea = screen.getByLabelText('Message input')
 
       await user.type(textarea, 'Test message')
       await user.keyboard('{Enter}')
@@ -379,7 +393,7 @@ describe('ChatInput', () => {
       const user = userEvent.setup()
       render(<ChatInput />)
 
-      const textarea = screen.getByPlaceholderText(/Type a message/i)
+      const textarea = screen.getByLabelText('Message input')
 
       await user.type(textarea, 'Line 1')
       await user.keyboard('{Shift>}{Enter}{/Shift}')
@@ -392,7 +406,7 @@ describe('ChatInput', () => {
       const user = userEvent.setup()
       render(<ChatInput />)
 
-      const textarea = screen.getByPlaceholderText(/Type a message/i)
+      const textarea = screen.getByLabelText('Message input')
       await user.click(textarea)
       await user.keyboard('{Enter}')
 
@@ -404,7 +418,7 @@ describe('ChatInput', () => {
     it('should create conversation if none exists when sending message', async () => {
       const user = userEvent.setup()
 
-      // Setup: no conversation exists
+      // Setup: no conversation exists but valid provider and model
       mockConversationStore.getCurrentConversation.mockReturnValue(null)
       mockConversationStore.createConversation.mockResolvedValue({
         id: 'new-conv-id',
@@ -413,11 +427,25 @@ describe('ChatInput', () => {
         createdAt: Date.now(),
         updatedAt: Date.now()
       })
+      mockSettingsStore.getCurrentProvider.mockReturnValue({
+        id: 'provider-1',
+        name: 'Test Provider',
+        type: 'openai',
+        apiKey: 'test-api-key',
+        enabled: true
+      })
+      mockSettingsStore.getCurrentModel.mockReturnValue({
+        id: 'model-1',
+        providerId: 'provider-1',
+        modelId: 'gpt-4',
+        name: 'GPT-4',
+        enabled: true
+      })
 
       render(<ChatInput />)
 
-      const textarea = screen.getByPlaceholderText(/Type a message/i)
-      const sendButton = screen.getByRole('button')
+      const textarea = screen.getByLabelText('Message input')
+      const sendButton = screen.getByRole('button', { name: 'Send message' })
 
       await user.type(textarea, 'First message')
       await user.click(sendButton)
@@ -438,8 +466,8 @@ describe('ChatInput', () => {
 
       render(<ChatInput />)
 
-      const textarea = screen.getByPlaceholderText(/Type a message/i)
-      const sendButton = screen.getByRole('button')
+      const textarea = screen.getByLabelText('Message input')
+      const sendButton = screen.getByRole('button', { name: 'Send message' })
 
       await user.type(textarea, 'Test message')
       await user.click(sendButton)
@@ -454,16 +482,30 @@ describe('ChatInput', () => {
     it('should call sendMessage with correct parameters', async () => {
       const user = userEvent.setup()
 
-      // Setup: conversation exists
+      // Setup: conversation exists with valid provider and model
       mockConversationStore.getCurrentConversation.mockReturnValue({
         id: 'conv-1',
         title: 'Test Conversation'
       })
+      mockSettingsStore.getCurrentProvider.mockReturnValue({
+        id: 'provider-1',
+        name: 'Test Provider',
+        type: 'openai',
+        apiKey: 'test-api-key',
+        enabled: true
+      })
+      mockSettingsStore.getCurrentModel.mockReturnValue({
+        id: 'model-1',
+        providerId: 'provider-1',
+        modelId: 'gpt-4',
+        name: 'GPT-4',
+        enabled: true
+      })
 
       render(<ChatInput />)
 
-      const textarea = screen.getByPlaceholderText(/Type a message/i)
-      const sendButton = screen.getByRole('button')
+      const textarea = screen.getByLabelText('Message input')
+      const sendButton = screen.getByRole('button', { name: 'Send message' })
 
       await user.type(textarea, 'Test message')
       await user.click(sendButton)
@@ -477,7 +519,8 @@ describe('ChatInput', () => {
             apiKey: 'test-api-key',
             model: 'gpt-4',
             temperature: 1
-          })
+          }),
+          [] // attachments
         )
       })
     })
@@ -489,11 +532,25 @@ describe('ChatInput', () => {
         id: 'conv-1',
         title: 'Test Conversation'
       })
+      mockSettingsStore.getCurrentProvider.mockReturnValue({
+        id: 'provider-1',
+        name: 'Test Provider',
+        type: 'openai',
+        apiKey: 'test-api-key',
+        enabled: true
+      })
+      mockSettingsStore.getCurrentModel.mockReturnValue({
+        id: 'model-1',
+        providerId: 'provider-1',
+        modelId: 'gpt-4',
+        name: 'GPT-4',
+        enabled: true
+      })
 
       render(<ChatInput />)
 
-      const textarea = screen.getByPlaceholderText(/Type a message/i)
-      const sendButton = screen.getByRole('button')
+      const textarea = screen.getByLabelText('Message input')
+      const sendButton = screen.getByRole('button', { name: 'Send message' })
 
       await user.type(textarea, '  Test message with spaces  ')
       await user.click(sendButton)
@@ -503,7 +560,8 @@ describe('ChatInput', () => {
           'conv-1',
           'Test message with spaces',
           expect.any(String),
-          expect.any(Object)
+          expect.any(Object),
+          [] // attachments
         )
       })
     })

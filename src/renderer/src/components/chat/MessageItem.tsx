@@ -1,6 +1,7 @@
 import type { Message } from '@shared/types/conversation'
-import { User, Bot } from 'lucide-react'
+import { User } from 'lucide-react'
 import { cn } from '@/utils/cn'
+import logoImage from '@/assets/providers/logo.png'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { ToolCallsList } from './ToolCallsList'
 import { MessageImage } from './MessageImage'
@@ -22,9 +23,13 @@ export function MessageItem({ message }: MessageItemProps) {
       {/* Avatar */}
       <div className={cn(
         'w-8 h-8 rounded-full flex items-center justify-center shrink-0',
-        isUser ? 'bg-[hsl(var(--surface-2))]' : 'bg-[hsl(var(--accent))] text-white'
+        isUser ? 'bg-[hsl(var(--surface-2))]' : 'bg-[hsl(var(--accent))]'
       )}>
-        {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+        {isUser ? (
+          <User className="w-4 h-4" />
+        ) : (
+          <img src={logoImage} alt="Muse" className="w-full h-full object-cover rounded-full" />
+        )}
       </div>
 
       {/* Message Content */}

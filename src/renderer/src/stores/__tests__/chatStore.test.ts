@@ -1,0 +1,343 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { useChatStore } from '../chatStore'
+
+// Mock uuid
+vi.mock('uuid', () => ({
+  v4: vi.fn(() => 'mock-uuid-123')
+}))
+
+// Use vi.hoisted to define mock before vi.mock hoisting
+const { mockSendMessageStream, MockAPIClientError } = vi.hoisted(() => {
+  class MockAPIClientError extends Error {
+    readonly apiError?: { code?: string; message: string; retryable?: boolean }
+    readonly status?: number
+
+    constructor(
+      message: string,
+      apiError?: { code?: string; message: string; retryable?: boolean },
+      status?: number
+    ) {
+      super(message)
+      this.name = 'APIClientError'
+      this.apiError = apiError
+      this.status = status
+    }
+
+    get retryable(): boolean {
+      return this.apiError?.retryable ?? false
+    }
+  }
+
+  return {
+    mockSendMessageStream: vi.fn(),
+    MockAPIClientError
+  }
+})
+
+// Mock apiClient with APIClientError
+vi.mock('../../services/apiClient', () => ({
+  apiClient: {
+    sendMessageStream: (...args: any[]) => mockSendMessageStream(...args)
+  },
+  APIClientError: MockAPIClientError
+}))
+
+// Mock conversationStore
+const mockAddMessage = vi.fn()
+const mockGetCurrentConversation = vi.fn()
+const mockUpdateConversation = vi.fn()
+const mockRenameConversation = vi.fn()
+
+vi.mock('../conversationStoreV2', () => ({
+  useConversationStore: {
+    getState: () => ({
+      getCurrentConversation: mockGetCurrentConversation,
+      addMessage: mockAddMessage,
+      updateConversation: mockUpdateConversation,
+      renameConversation: mockRenameConversation
+    })
+  }
+}))
+
+describe('ChatStore', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    // Reset store state
+    useChatStore.setState({ isLoading: false, error: null, lastError: null, retryable: false })
+  })
+
+  describe('initial state', () => {
+    it('should have correct initial state', () => {
+      const state = useChatStore.getState()
+      expect(state.isLoading).toBe(false)
+      expect(state.error).toBeNull()
+    })
+  })
+
+  describe('sendMessage', () => {
+    const mockConfig = { apiKey: 'test-key', model: 'gpt-4' }
+
+    it('should set loading state when sending message', async () => {
+      // Track loading state changes
+      const loadingStates: boolean[] = []
+      const unsubscribe = useChatStore.subscribe((state) => {
+        loadingStates.push(state.isLoading)
+      })
+
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+
+      // Use a delayed mock to ensure we can observe loading state
+      mockSendMessageStream.mockImplementation(() =>
+        new Promise(resolve => setTimeout(resolve, 10))
+      )
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello',
+        'openai',
+        mockConfig
+      )
+
+      unsubscribe()
+
+      // Should have set loading to true then false
+      expect(loadingStates).toContain(true)
+      expect(useChatStore.getState().isLoading).toBe(false)
+    })
+
+    it('should add user message to conversation', async () => {
+      mockGetCurrentConversation.mockReturnValue(null)
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello world',
+        'openai',
+        mockConfig
+      )
+
+      expect(mockAddMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          role: 'user',
+          content: 'Hello world'
+        })
+      )
+    })
+
+    it('should set error when no conversation found', async () => {
+      mockGetCurrentConversation.mockReturnValue(null)
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello',
+        'openai',
+        mockConfig
+      )
+
+      expect(useChatStore.getState().error).toBe('No conversation found')
+      expect(useChatStore.getState().isLoading).toBe(false)
+    })
+
+    it('should call apiClient.sendMessageStream with correct params', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [
+          { id: '1', role: 'user', content: 'Hello' }
+        ]
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+      mockSendMessageStream.mockResolvedValue(undefined)
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello',
+        'openai',
+        mockConfig
+      )
+
+      expect(mockSendMessageStream).toHaveBeenCalledWith(
+        'openai',
+        expect.any(Array),
+        mockConfig,
+        expect.any(Function)
+      )
+    })
+
+    it('should add assistant placeholder message', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+      mockSendMessageStream.mockResolvedValue(undefined)
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello',
+        'openai',
+        mockConfig
+      )
+
+      // Should add both user message and assistant placeholder
+      expect(mockAddMessage).toHaveBeenCalledTimes(2)
+      expect(mockAddMessage).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          role: 'assistant',
+          content: ''
+        })
+      )
+    })
+  })
+
+  describe('error handling', () => {
+    const mockConfig = { apiKey: 'test-key', model: 'gpt-4' }
+    const mockConversation = {
+      id: 'conv-1',
+      messages: [{ id: '1', role: 'user', content: 'Hello' }]
+    }
+
+    beforeEach(() => {
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+    })
+
+    it('should handle 401 Unauthorized error', async () => {
+      const apiError = {
+        code: 'UNAUTHORIZED',
+        message: 'Invalid API key. Please check your provider configuration.',
+        retryable: false
+      }
+      mockSendMessageStream.mockRejectedValue(new MockAPIClientError('Unauthorized', apiError, 401))
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello',
+        'openai',
+        mockConfig
+      )
+
+      expect(useChatStore.getState().error).toBe(
+        'Invalid API key. Please check your provider configuration.'
+      )
+    })
+
+    it('should handle 429 rate limit error', async () => {
+      const apiError = {
+        code: 'RATE_LIMITED',
+        message: 'Rate limit exceeded. Please wait a moment and try again.',
+        retryable: true
+      }
+      mockSendMessageStream.mockRejectedValue(new MockAPIClientError('Rate limited', apiError, 429))
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello',
+        'openai',
+        mockConfig
+      )
+
+      expect(useChatStore.getState().error).toBe(
+        'Rate limit exceeded. Please wait a moment and try again.'
+      )
+      expect(useChatStore.getState().retryable).toBe(true)
+    })
+
+    it('should handle 500 server error', async () => {
+      const apiError = {
+        code: 'PROVIDER_ERROR',
+        message: 'Provider service error. Please try again later.',
+        retryable: false
+      }
+      mockSendMessageStream.mockRejectedValue(new MockAPIClientError('Server error', apiError, 500))
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello',
+        'openai',
+        mockConfig
+      )
+
+      expect(useChatStore.getState().error).toBe(
+        'Provider service error. Please try again later.'
+      )
+    })
+
+    it('should handle connection error', async () => {
+      const apiError = {
+        code: 'NETWORK_ERROR',
+        message: 'Cannot connect to API server. Please ensure the server is running.',
+        retryable: true
+      }
+      mockSendMessageStream.mockRejectedValue(new MockAPIClientError('fetch failed', apiError))
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello',
+        'openai',
+        mockConfig
+      )
+
+      expect(useChatStore.getState().error).toBe(
+        'Cannot connect to API server. Please ensure the server is running.'
+      )
+    })
+
+    it('should handle timeout error', async () => {
+      const apiError = {
+        code: 'TIMEOUT',
+        message: 'Request timeout. Please check your network connection.',
+        retryable: true
+      }
+      mockSendMessageStream.mockRejectedValue(new MockAPIClientError('Timeout', apiError, 504))
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello',
+        'openai',
+        mockConfig
+      )
+
+      expect(useChatStore.getState().error).toBe(
+        'Request timeout. Please check your network connection.'
+      )
+    })
+
+    it('should update assistant message with error content', async () => {
+      const apiError = {
+        code: 'INTERNAL_ERROR',
+        message: 'Test error',
+        retryable: false
+      }
+      mockSendMessageStream.mockRejectedValue(new MockAPIClientError('Test error', apiError))
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello',
+        'openai',
+        mockConfig
+      )
+
+      expect(mockUpdateConversation).toHaveBeenCalled()
+    })
+
+    it('should store lastError for APIClientError', async () => {
+      const apiError = {
+        code: 'RATE_LIMITED',
+        message: 'Rate limit exceeded',
+        retryable: true
+      }
+      mockSendMessageStream.mockRejectedValue(new MockAPIClientError('Rate limited', apiError, 429))
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello',
+        'openai',
+        mockConfig
+      )
+
+      expect(useChatStore.getState().lastError).toEqual(apiError)
+    })
+  })
+})

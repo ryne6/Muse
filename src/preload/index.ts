@@ -1,0 +1,49 @@
+import { contextBridge, ipcRenderer } from 'electron'
+import type { IpcApi } from '../shared/types/ipc'
+
+// Expose protected methods that allow the renderer process to use
+// the ipcRenderer without exposing the entire object
+contextBridge.exposeInMainWorld('electron', {
+  platform: process.platform,
+})
+
+// Expose file system and workspace APIs
+const api: IpcApi = {
+  fs: {
+    readFile: (path: string) => ipcRenderer.invoke('fs:readFile', { path }),
+    writeFile: (path: string, content: string) =>
+      ipcRenderer.invoke('fs:writeFile', { path, content }),
+    listFiles: (path: string, pattern?: string) =>
+      ipcRenderer.invoke('fs:listFiles', { path, pattern }),
+    exists: (path: string) => ipcRenderer.invoke('fs:exists', { path }),
+    mkdir: (path: string) => ipcRenderer.invoke('fs:mkdir', { path }),
+  },
+  exec: {
+    command: (command: string, cwd?: string) =>
+      ipcRenderer.invoke('exec:command', { command, cwd }),
+  },
+  workspace: {
+    get: () => ipcRenderer.invoke('workspace:get'),
+    set: (path: string) => ipcRenderer.invoke('workspace:set', { path }),
+    select: () => ipcRenderer.invoke('workspace:select'),
+  },
+  ipc: {
+    invoke: (channel: string, ...args: any[]) => ipcRenderer.invoke(channel, ...args),
+  },
+  search: {
+    query: (query) => ipcRenderer.invoke('db:search', { query }),
+    rebuildIndex: () => ipcRenderer.invoke('db:search:rebuild'),
+  },
+  attachments: {
+    create: (data) => ipcRenderer.invoke('db:attachments:create', data),
+    getByMessageId: (messageId) => ipcRenderer.invoke('db:attachments:getByMessageId', { messageId }),
+    getPreviewsByMessageId: (messageId) => ipcRenderer.invoke('db:attachments:getPreviewsByMessageId', { messageId }),
+    getById: (id) => ipcRenderer.invoke('db:attachments:getById', { id }),
+    getBase64: (id) => ipcRenderer.invoke('db:attachments:getBase64', { id }),
+    updateNote: (id, note) => ipcRenderer.invoke('db:attachments:updateNote', { id, note }),
+    delete: (id) => ipcRenderer.invoke('db:attachments:delete', { id }),
+  },
+}
+
+contextBridge.exposeInMainWorld('api', api)
+

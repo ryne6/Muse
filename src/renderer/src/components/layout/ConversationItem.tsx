@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { MessageSquare, MoreVertical, Trash2, Edit2 } from 'lucide-react'
+import { Star, MoreVertical, Trash2, Edit2 } from 'lucide-react'
 import type { Conversation } from '@shared/types/conversation'
 import { useConversationStore } from '@/stores/conversationStoreV2'
 import { Button } from '../ui/button'
@@ -9,20 +9,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
-
-function formatRelativeTime(timestamp: number): string {
-  const now = Date.now()
-  const diff = now - timestamp
-  const minutes = Math.floor(diff / 60000)
-  const hours = Math.floor(diff / 3600000)
-  const days = Math.floor(diff / 86400000)
-
-  if (minutes < 1) return 'Just now'
-  if (minutes < 60) return `${minutes}m ago`
-  if (hours < 24) return `${hours}h ago`
-  if (days < 7) return `${days}d ago`
-  return new Date(timestamp).toLocaleDateString()
-}
 
 interface ConversationItemProps {
   conversation: Conversation
@@ -79,21 +65,17 @@ export function ConversationItem({ conversation }: ConversationItemProps) {
     <div
       role="button"
       tabIndex={0}
-      className={`group relative flex items-center gap-2 px-2 h-9 rounded-lg cursor-pointer transition-colors ${
+      className={`group relative flex items-center gap-2 px-3 h-9 rounded-lg cursor-pointer transition-colors text-sm ${
         isActive
-          ? 'bg-[hsl(var(--surface-2))] text-foreground font-medium'
-          : 'hover:bg-[hsl(var(--surface-3))] text-foreground'
+          ? 'bg-[hsl(var(--border))] text-foreground font-medium'
+          : 'hover:bg-black/5 text-[hsl(var(--text))]'
       }`}
       onClick={handleClick}
       onKeyDown={handleItemKeyDown}
       aria-label={`Conversation: ${conversation.title}`}
       aria-current={isActive ? 'true' : undefined}
     >
-      {/* Accent bar */}
-      {isActive && (
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 bg-[hsl(var(--accent))] rounded-full" />
-      )}
-      <MessageSquare className="w-4 h-4 shrink-0" />
+      <Star className="w-4 h-4 shrink-0 text-[hsl(var(--text-muted))]" />
 
       {isEditing ? (
         <input
@@ -108,10 +90,7 @@ export function ConversationItem({ conversation }: ConversationItemProps) {
         />
       ) : (
         <div className="flex-1 min-w-0">
-          <div className="text-sm truncate">{conversation.title}</div>
-          <div className="text-xs text-[hsl(var(--text-muted))] truncate">
-            {formatRelativeTime(conversation.updatedAt)}
-          </div>
+          <div className="truncate">{conversation.title}</div>
         </div>
       )}
 
@@ -120,7 +99,7 @@ export function ConversationItem({ conversation }: ConversationItemProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+            className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-[hsl(var(--text-muted))]"
             aria-label="Conversation actions"
           >
             <MoreVertical className="w-3 h-3" />

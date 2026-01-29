@@ -60,30 +60,26 @@ export function SearchBar() {
 
   if (!isOpen) {
     return (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="w-full justify-start text-muted-foreground"
+      <button
+        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-[hsl(var(--text-muted))] rounded-md hover:bg-black/5"
         onClick={openSearch}
+        type="button"
       >
-        <Search className="w-4 h-4 mr-2" />
-        <span>Search...</span>
-        <kbd className="ml-auto text-xs bg-muted px-1.5 py-0.5 rounded">
-          ⌘K
-        </kbd>
-      </Button>
+        <Search className="w-4 h-4" />
+        <span>搜索</span>
+      </button>
     )
   }
 
   return (
     <div className="relative">
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[hsl(var(--text-muted))]" />
       <Input
         ref={inputRef}
         value={query}
         onChange={(e) => handleQueryChange(e.target.value)}
-        placeholder="Search conversations..."
-        className="pl-9 pr-9"
+        placeholder="搜索对话..."
+        className="pl-9 pr-9 bg-white border-[hsl(var(--border))]"
       />
       {(query || isLoading) && (
         <Button

@@ -65,7 +65,7 @@ describe('ConversationList', () => {
     it('should render New Chat button', () => {
       render(<ConversationList />)
 
-      expect(screen.getByText('New Chat')).toBeInTheDocument()
+      expect(screen.getByText('开启新话题')).toBeInTheDocument()
     })
 
     it('should render container with correct structure', () => {
@@ -100,7 +100,7 @@ describe('ConversationList', () => {
       const user = userEvent.setup()
       render(<ConversationList />)
 
-      const newChatButton = screen.getByText('New Chat')
+      const newChatButton = screen.getByText('开启新话题')
       await user.click(newChatButton)
 
       expect(mockConversationStore.createConversation).toHaveBeenCalledTimes(1)
@@ -109,7 +109,7 @@ describe('ConversationList', () => {
     it('should have Plus icon in New Chat button', () => {
       render(<ConversationList />)
 
-      const button = screen.getByText('New Chat').closest('button')
+      const button = screen.getByText('开启新话题').closest('button')
       expect(button).toBeInTheDocument()
     })
   })
@@ -127,8 +127,7 @@ describe('ConversationList', () => {
 
       render(<ConversationList />)
 
-      expect(screen.getByTestId('conversation-group-today')).toBeInTheDocument()
-      expect(screen.getByText('Today')).toBeInTheDocument()
+      expect(screen.getByText('# 今天')).toBeInTheDocument()
     })
 
     it('should render Yesterday group when conversations exist', () => {
@@ -143,8 +142,7 @@ describe('ConversationList', () => {
 
       render(<ConversationList />)
 
-      expect(screen.getByTestId('conversation-group-yesterday')).toBeInTheDocument()
-      expect(screen.getByText('Yesterday')).toBeInTheDocument()
+      expect(screen.getByText('# 昨天')).toBeInTheDocument()
     })
 
     it('should render multiple groups when conversations span multiple periods', () => {
@@ -163,9 +161,9 @@ describe('ConversationList', () => {
 
       render(<ConversationList />)
 
-      expect(screen.getByTestId('conversation-group-today')).toBeInTheDocument()
-      expect(screen.getByTestId('conversation-group-yesterday')).toBeInTheDocument()
-      expect(screen.getByTestId('conversation-group-last-7-days')).toBeInTheDocument()
+      expect(screen.getByText('# 今天')).toBeInTheDocument()
+      expect(screen.getByText('# 昨天')).toBeInTheDocument()
+      expect(screen.getByText('# 本周')).toBeInTheDocument()
     })
 
     it('should not render empty groups', () => {
@@ -180,9 +178,9 @@ describe('ConversationList', () => {
 
       render(<ConversationList />)
 
-      expect(screen.getByTestId('conversation-group-today')).toBeInTheDocument()
-      expect(screen.queryByTestId('conversation-group-yesterday')).not.toBeInTheDocument()
-      expect(screen.queryByTestId('conversation-group-last-7-days')).not.toBeInTheDocument()
+      expect(screen.getByText('# 今天')).toBeInTheDocument()
+      expect(screen.queryByText('# 昨天')).not.toBeInTheDocument()
+      expect(screen.queryByText('# 本周')).not.toBeInTheDocument()
     })
   })
 
@@ -204,7 +202,7 @@ describe('ConversationList', () => {
 
       render(<ConversationList />)
 
-      expect(screen.getByTestId('conversation-group-today')).toBeInTheDocument()
+      expect(screen.getByText('# 今天')).toBeInTheDocument()
       expect(screen.getByText('2 conversations')).toBeInTheDocument()
     })
 
@@ -232,11 +230,11 @@ describe('ConversationList', () => {
 
       render(<ConversationList />)
 
-      expect(screen.getByText('Today')).toBeInTheDocument()
-      expect(screen.getByText('Yesterday')).toBeInTheDocument()
-      expect(screen.getByText('Last 7 Days')).toBeInTheDocument()
-      expect(screen.getByText('Last 30 Days')).toBeInTheDocument()
-      expect(screen.getByText('Older')).toBeInTheDocument()
+      expect(screen.getByText('# 今天')).toBeInTheDocument()
+      expect(screen.getByText('# 昨天')).toBeInTheDocument()
+      expect(screen.getByText('# 本周')).toBeInTheDocument()
+      expect(screen.getByText('# 本月')).toBeInTheDocument()
+      expect(screen.getByText('# 更早')).toBeInTheDocument()
     })
   })
 })

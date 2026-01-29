@@ -14,11 +14,11 @@ const contentTypeIcons: Record<SearchContentType, typeof FileText> = {
 }
 
 const contentTypeLabels: Record<SearchContentType, string> = {
-  conversation_title: 'Title',
-  message: 'Message',
-  tool_call: 'Tool',
-  tool_result: 'Result',
-  attachment_note: 'Image',
+  conversation_title: '标题',
+  message: '消息',
+  tool_call: '工具',
+  tool_result: '结果',
+  attachment_note: '图片',
 }
 
 export function SearchResults() {
@@ -73,13 +73,13 @@ export function SearchResults() {
 
   return (
     <div ref={containerRef} className="max-h-[400px] overflow-y-auto">
-      <div className="px-3 py-2 text-xs text-muted-foreground border-b">
-        {total} result{total !== 1 ? 's' : ''} found
+      <div className="px-3 py-2 text-xs text-[hsl(var(--text-muted))] border-b border-[hsl(var(--border))]">
+        {total} 条结果
       </div>
 
       {Object.entries(grouped).map(([convId, group]) => (
-        <div key={convId} className="border-b last:border-b-0">
-          <div className="px-3 py-2 text-xs font-medium text-muted-foreground bg-muted/30">
+        <div key={convId} className="border-b border-[hsl(var(--border))] last:border-b-0">
+          <div className="px-3 py-2 text-xs text-[hsl(var(--text-muted))] bg-[hsl(var(--surface-3))]">
             {group.title}
           </div>
           {group.results.map((result) => (
@@ -111,15 +111,15 @@ function SearchResultItem({ result, onClick }: SearchResultItemProps) {
   return (
     <button
       onClick={onClick}
-      className="w-full px-3 py-2 text-left hover:bg-muted/50 transition-colors"
+      className="w-full px-3 py-2 text-left hover:bg-black/5 transition-colors"
     >
       <div className="flex items-start gap-2">
-        <div className="flex items-center gap-1 text-xs text-muted-foreground shrink-0 mt-0.5">
+        <div className="flex items-center gap-1 text-xs text-[hsl(var(--text-muted))] shrink-0 mt-0.5">
           <Icon className="w-3 h-3" />
           <span>{label}</span>
         </div>
         <div
-          className="text-sm line-clamp-2"
+          className="text-sm line-clamp-2 text-[hsl(var(--text))]"
           dangerouslySetInnerHTML={{ __html: result.highlightedSnippet }}
         />
       </div>

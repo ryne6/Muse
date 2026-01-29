@@ -18,17 +18,17 @@ export function ConversationList() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-secondary/30 border-r">
+    <div className="flex flex-col h-full">
       {/* Header with New Chat button */}
-      <div className="p-3 border-b bg-background/50 space-y-2">
+      <div className="px-3 pb-3 pt-1 border-b border-[hsl(var(--border))] space-y-2">
         <Button
           onClick={handleNewChat}
-          className="w-full justify-start"
-          variant="default"
+          className="w-full justify-start bg-white text-foreground border border-[hsl(var(--border))] shadow-sm hover:bg-white/90"
+          variant="ghost"
           size="sm"
         >
           <Plus className="w-4 h-4 mr-2" />
-          New Chat
+          开启新话题
         </Button>
         <SearchBar />
       </div>
@@ -43,19 +43,19 @@ export function ConversationList() {
         {hasConversations ? (
           <div className="p-2 space-y-4">
             {conversationGroups.today.length > 0 && (
-              <ConversationGroup label="Today" conversations={conversationGroups.today} />
+              <ConversationGroup label="# 今天" conversations={conversationGroups.today} />
             )}
             {conversationGroups.yesterday.length > 0 && (
-              <ConversationGroup label="Yesterday" conversations={conversationGroups.yesterday} />
+              <ConversationGroup label="# 昨天" conversations={conversationGroups.yesterday} />
             )}
             {conversationGroups.lastWeek.length > 0 && (
-              <ConversationGroup label="Last 7 Days" conversations={conversationGroups.lastWeek} />
+              <ConversationGroup label="# 本周" conversations={conversationGroups.lastWeek} />
             )}
             {conversationGroups.lastMonth.length > 0 && (
-              <ConversationGroup label="Last 30 Days" conversations={conversationGroups.lastMonth} />
+              <ConversationGroup label="# 本月" conversations={conversationGroups.lastMonth} />
             )}
             {conversationGroups.older.length > 0 && (
-              <ConversationGroup label="Older" conversations={conversationGroups.older} />
+              <ConversationGroup label="# 更早" conversations={conversationGroups.older} />
             )}
           </div>
         ) : (

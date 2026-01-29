@@ -9,7 +9,7 @@ interface ConversationGroupProps {
 export function ConversationGroup({ label, conversations }: ConversationGroupProps) {
   return (
     <div className="space-y-1">
-      <div className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+      <div className="px-3 py-1 text-xs text-muted-foreground">
         {label}
       </div>
       {conversations.map((conversation) => (

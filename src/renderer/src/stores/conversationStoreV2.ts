@@ -37,10 +37,12 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
       const conversationsWithMessages = await Promise.all(
         dbConversations.map(async (conv: any) => {
           const messages = await dbClient.messages.getAllWithTools(conv.id)
+          const attachmentsApi =
+            typeof window !== 'undefined' ? window.api?.attachments : undefined
           const messagesWithAttachments = await Promise.all(
             messages.map(async (msg: any) => {
-              const attachments = window.api?.attachments?.getPreviewsByMessageId
-                ? await window.api.attachments.getPreviewsByMessageId(msg.id)
+              const attachments = attachmentsApi?.getPreviewsByMessageId
+                ? await attachmentsApi.getPreviewsByMessageId(msg.id)
                 : []
               return { ...msg, attachments }
             })

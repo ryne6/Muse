@@ -130,15 +130,6 @@ vi.mock('@/utils/notify', () => ({
   notify: mockNotify
 }))
 
-// Mock child components
-vi.mock('../ModelSelector', () => ({
-  ModelSelector: () => <div data-testid="model-selector">Model Selector</div>
-}))
-
-vi.mock('../TemperatureControl', () => ({
-  TemperatureControl: () => <div data-testid="temperature-control">Temperature Control</div>
-}))
-
 describe('ChatInput', () => {
   beforeEach(() => {
     // Reset all mocks before each test
@@ -151,6 +142,7 @@ describe('ChatInput', () => {
 
       const textarea = screen.getByLabelText('Message input')
       expect(textarea).toBeInTheDocument()
+      expect(screen.getByPlaceholderText('从任何想法开始…')).toBeInTheDocument()
     })
 
     it('should render send button', () => {
@@ -160,18 +152,11 @@ describe('ChatInput', () => {
       expect(sendButton).toBeInTheDocument()
     })
 
-    it('should render ModelSelector component', () => {
+    it('should not render model or temperature controls', () => {
       render(<ChatInput />)
 
-      const modelSelector = screen.getByTestId('model-selector')
-      expect(modelSelector).toBeInTheDocument()
-    })
-
-    it('should render TemperatureControl component', () => {
-      render(<ChatInput />)
-
-      const temperatureControl = screen.getByTestId('temperature-control')
-      expect(temperatureControl).toBeInTheDocument()
+      expect(screen.queryByText('Temperature')).not.toBeInTheDocument()
+      expect(screen.queryByText('Model Selector')).not.toBeInTheDocument()
     })
   })
 

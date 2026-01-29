@@ -6,8 +6,6 @@ import { useChatStore } from '@/stores/chatStore'
 import { useConversationStore } from '@/stores/conversationStoreV2'
 import { useSettingsStoreV2 } from '@/stores/settingsStoreV2'
 import { notify } from '@/utils/notify'
-import { ModelSelector } from './ModelSelector'
-import { TemperatureControl } from './TemperatureControl'
 import { ImageUploadButton } from './ImageUploadButton'
 import { ImagePreview } from './ImagePreview'
 import { ImageDropZone } from './ImageDropZone'
@@ -131,12 +129,7 @@ export function ChatInput() {
   }
 
   return (
-    <div className="border-t">
-      {/* Model and Temperature Controls */}
-      <div className="flex items-center justify-between px-4 py-2 border-b bg-background">
-        <ModelSelector />
-        <TemperatureControl />
-      </div>
+    <div className="border-t border-[hsl(var(--border))]">
 
       {/* Pending Attachments Preview */}
       {pendingAttachments.length > 0 && (
@@ -154,11 +147,10 @@ export function ChatInput() {
 
       {/* Input Area */}
       <ImageDropZone onImagesDropped={handleImagesSelected} disabled={isLoading}>
-        <div className="px-4 py-3">
-          {/* Pill Container */}
-          <div className="rounded-xl border bg-[hsl(var(--surface-2))] p-3">
+        <div className="px-6 py-4">
+          <div className="rounded-xl border border-[hsl(var(--border))] bg-white shadow-[0_4px_12px_rgba(0,0,0,0.05)] p-3">
             {/* Icon Row */}
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-3 mb-2 text-[hsl(var(--text-muted))]">
               <ImageUploadButton
                 onImagesSelected={handleImagesSelected}
                 disabled={isLoading}
@@ -172,7 +164,7 @@ export function ChatInput() {
                 onKeyDown={handleKeyDown}
                 placeholder="从任何想法开始…"
                 aria-label="Message input"
-                className="flex-1 resize-none bg-transparent px-1 py-1 text-sm min-h-[40px] max-h-[200px] focus:outline-none"
+                className="flex-1 resize-none bg-transparent px-1 py-1 text-[15px] min-h-[40px] max-h-[200px] focus:outline-none"
                 rows={2}
                 disabled={isLoading}
               />
@@ -180,7 +172,7 @@ export function ChatInput() {
                 onClick={handleSend}
                 disabled={(!input.trim() && pendingAttachments.length === 0) || isLoading}
                 size="icon"
-                className="h-10 w-10 rounded-full shrink-0"
+                className="h-9 w-9 rounded-md shrink-0 bg-[hsl(var(--surface-2))] text-[hsl(var(--text-muted))] hover:bg-[hsl(var(--surface-3))]"
                 aria-label="Send message"
               >
                 <Send className="w-4 h-4" />

@@ -194,6 +194,14 @@ describe('SearchService', () => {
       expect(response.results).toHaveLength(0)
       expect(response.total).toBe(0)
     })
+
+    it('should rebuild index when search_index is empty', async () => {
+      testDb.sqlite.exec('DELETE FROM search_index')
+
+      const response = await SearchService.search({ query: 'Search' })
+
+      expect(response.results.length).toBeGreaterThan(0)
+    })
   })
 
   describe('filters', () => {
@@ -299,9 +307,11 @@ describe('SearchService', () => {
       // Clear the search index manually
       testDb.sqlite.exec('DELETE FROM search_index')
 
-      // Verify index is empty
-      const beforeRebuild = await SearchService.search({ query: 'Search' })
-      expect(beforeRebuild.results).toHaveLength(0)
+      // Verify index is empty via direct SQL (avoid auto rebuild)
+      const count = testDb.sqlite
+        .prepare('SELECT COUNT(*) as total FROM search_index')
+        .get() as { total: number }
+      expect(count.total).toBe(0)
 
       // Rebuild the index
       await SearchService.rebuildIndex()

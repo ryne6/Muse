@@ -17,6 +17,7 @@ export class SearchService {
    */
   static async search(query: SearchQuery): Promise<SearchResponse> {
     const db = getDatabase()
+    await this.ensureIndexReady()
     const searchTerm = this.sanitizeSearchTerm(query.query)
 
     if (!searchTerm) {
@@ -78,6 +79,28 @@ export class SearchService {
       total: countResult?.total ?? 0,
       query: query.query,
       hasMore,
+    }
+  }
+
+  /**
+   * Ensure search_index exists and is populated when data exists
+   */
+  private static async ensureIndexReady(): Promise<void> {
+    const db = getDatabase()
+    try {
+      const count = db.get(sql`SELECT COUNT(*) as total FROM search_index`) as {
+        total: number
+      }
+      const dataCount = db.get(sql`SELECT COUNT(*) as total FROM messages`) as {
+        total: number
+      }
+      if (!count || count.total === 0) {
+        if (!dataCount || dataCount.total > 0) {
+          await this.rebuildIndex()
+        }
+      }
+    } catch {
+      await this.rebuildIndex()
     }
   }
 

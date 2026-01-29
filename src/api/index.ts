@@ -22,13 +22,7 @@ export function parseCorsOrigins(raw?: string): string[] {
 
 // 中间件
 app.use('*', logger())
-app.use(
-  '*',
-  cors({
-    origin: parseCorsOrigins(process.env.MUSE_API_CORS_ORIGINS),
-    credentials: true,
-  })
-)
+app.use('*', cors({ origin: '*' }))
 
 // 健康检查
 app.get('/health', (c) => {

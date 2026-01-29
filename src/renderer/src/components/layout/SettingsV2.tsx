@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from '../ui/button'
 import { Settings as SettingsIcon, X } from 'lucide-react'
 import { ProviderList } from '../settings/ProviderList'
 import { ProviderConfigDialog } from '../settings/ProviderConfigDialog'
+import { dbClient } from '@/services/dbClient'
+import { applyUIFont, getSystemFonts } from '@/services/fontService'
 
 interface Provider {
   id: string
@@ -20,6 +22,50 @@ export function SettingsV2() {
   const [activeTab, setActiveTab] = useState<Tab>('providers')
   const [configProvider, setConfigProvider] = useState<Provider | null>(null)
   const [showConfigDialog, setShowConfigDialog] = useState(false)
+  const [fonts, setFonts] = useState<string[]>([])
+  const [uiFont, setUiFont] = useState('')
+
+  useEffect(() => {
+    let mounted = true
+    getSystemFonts().then((fontList) => {
+      if (mounted) {
+        setFonts(fontList)
+      }
+    })
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    let mounted = true
+    const loadFont = async () => {
+      try {
+        const value = await dbClient.settings.get('uiFont')
+        if (!mounted) return
+        if (typeof value === 'string' && value) {
+          setUiFont(value)
+          applyUIFont(value)
+        }
+      } catch {
+        // Ignore in environments without IPC (tests)
+      }
+    }
+    loadFont()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const handleFontChange = async (value: string) => {
+    setUiFont(value)
+    applyUIFont(value)
+    try {
+      await dbClient.settings.set('uiFont', value)
+    } catch {
+      // Ignore in environments without IPC (tests)
+    }
+  }
 
   const handleConfigureProvider = (provider: Provider) => {
     setConfigProvider(provider)
@@ -90,7 +136,27 @@ export function SettingsV2() {
               {activeTab === 'general' && (
                 <div>
                   <h2 className="text-2xl font-semibold mb-4">General Settings</h2>
-                  <p className="text-muted-foreground">Coming soon...</p>
+                  <div className="space-y-2 max-w-md">
+                    <label htmlFor="ui-font" className="text-sm font-medium">
+                      UI Font
+                    </label>
+                    <input
+                      id="ui-font"
+                      list="system-fonts"
+                      value={uiFont}
+                      onChange={(e) => handleFontChange(e.target.value)}
+                      placeholder="System UI"
+                      className="w-full px-3 py-2 rounded-md border border-[hsl(var(--border))] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--border))]"
+                    />
+                    <datalist id="system-fonts">
+                      {fonts.map((font) => (
+                        <option key={font} value={font} />
+                      ))}
+                    </datalist>
+                    <p className="text-xs text-[hsl(var(--text-muted))]">
+                      Select any installed system font or type a custom name.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>

@@ -118,7 +118,7 @@ describe('SettingsV2', () => {
 
       await waitFor(() => {
         expect(screen.getByText('General Settings')).toBeInTheDocument()
-        expect(screen.getByText('Coming soon...')).toBeInTheDocument()
+        expect(screen.getByLabelText('UI Font')).toBeInTheDocument()
       })
     })
 

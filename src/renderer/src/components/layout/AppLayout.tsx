@@ -4,10 +4,18 @@ import { FileExplorer } from '../explorer/FileExplorer'
 
 export function AppLayout() {
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <ChatView />
-      <FileExplorer />
+    <div className="flex flex-col h-screen overflow-hidden">
+      {/* Draggable title bar for macOS */}
+      <div
+        className="h-8 flex-shrink-0 bg-background"
+        style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
+      />
+      {/* Main content */}
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar />
+        <ChatView />
+        <FileExplorer />
+      </div>
     </div>
   )
 }

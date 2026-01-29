@@ -1,13 +1,6 @@
 import { useState } from 'react'
-import { MoreVertical, Power, Settings, Trash2, Layers } from 'lucide-react'
+import { Power, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { ProviderLogo } from '@/components/ui/ProviderLogo'
 import { dbClient } from '@/services/dbClient'
 import { notify } from '@/utils/notify'
@@ -75,66 +68,34 @@ export function ProviderCardV2({
       )}
     >
       <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div className="rounded-lg bg-muted/40 p-2">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="shrink-0 rounded-lg bg-muted/40 p-2">
             <ProviderLogo type={provider.type} size="md" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h3 className="font-semibold text-base capitalize">{provider.name}</h3>
-              <span
-                className={cn(
-                  'text-xs px-2 py-0.5 rounded-full border',
-                  provider.enabled
-                    ? 'border-primary/30 text-primary'
-                    : 'border-muted-foreground/30 text-muted-foreground'
-                )}
-              >
-                {provider.enabled ? 'Enabled' : 'Disabled'}
-              </span>
-            </div>
+          <div className="min-w-0">
+            <h3 className="font-semibold text-base capitalize truncate">{provider.name}</h3>
             <p className="text-xs opacity-70 mt-0.5">{provider.type}</p>
           </div>
         </div>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Provider actions">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onConfigure(provider)}>
-              <Settings className="h-4 w-4 mr-2" />
-              Configure
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onManageModels(provider)}>
-              <Layers className="h-4 w-4 mr-2" />
-              Manage Models
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleToggleEnabled} disabled={isToggling}>
-              <Power className="h-4 w-4 mr-2" />
-              {provider.enabled ? 'Disable' : 'Enable'}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleDelete} className="text-destructive">
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
 
       <div className="mt-4 flex items-center justify-between gap-3">
-        <div className="text-xs text-muted-foreground">
-          {provider.baseURL ? (
-            <span className="font-mono">{provider.baseURL}</span>
-          ) : (
-            'Default endpoint'
-          )}
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            onClick={handleDelete}
+            aria-label="Delete provider"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+          <span className="text-xs text-muted-foreground font-mono truncate">
+            {provider.baseURL || 'Default endpoint'}
+          </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Button size="sm" variant="outline" onClick={() => onConfigure(provider)}>
             Configure
           </Button>

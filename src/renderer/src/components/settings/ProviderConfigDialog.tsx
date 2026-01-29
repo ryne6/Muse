@@ -17,6 +17,7 @@ interface Provider {
   type: string
   apiKey: string
   baseURL?: string
+  apiFormat?: string
   enabled: boolean
 }
 
@@ -35,8 +36,11 @@ export function ProviderConfigDialog({
 }: ProviderConfigDialogProps) {
   const { triggerRefresh } = useSettingsStoreV2()
   const [formData, setFormData] = useState({
+    name: '',
     apiKey: '',
     baseURL: '',
+    apiFormat: 'chat-completions',
+    enabled: true,
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showApiKey, setShowApiKey] = useState(false)
@@ -44,8 +48,11 @@ export function ProviderConfigDialog({
   useEffect(() => {
     if (provider) {
       setFormData({
+        name: provider.name,
         apiKey: provider.apiKey,
         baseURL: provider.baseURL || '',
+        apiFormat: provider.apiFormat || 'chat-completions',
+        enabled: provider.enabled,
       })
     }
   }, [provider])
@@ -53,16 +60,19 @@ export function ProviderConfigDialog({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!provider || !formData.apiKey) {
-      notify.error('API Key is required')
+    if (!provider || !formData.name.trim() || !formData.apiKey) {
+      notify.error('Name and API Key are required')
       return
     }
 
     setIsSubmitting(true)
     try {
       await dbClient.providers.update(provider.id, {
+        name: formData.name.trim(),
         apiKey: formData.apiKey,
         baseURL: formData.baseURL || null,
+        apiFormat: formData.apiFormat,
+        enabled: formData.enabled,
       })
 
       notify.success(`${provider.name} updated successfully`)
@@ -89,11 +99,27 @@ export function ProviderConfigDialog({
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           <div>
-            <label className="text-sm font-medium mb-2 block">
+            <label className="text-sm font-medium mb-2 block" htmlFor="provider-name">
+              Name <span className="text-destructive">*</span>
+            </label>
+            <input
+              id="provider-name"
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="my-provider"
+              className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-ring text-sm"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-2 block" htmlFor="provider-api-key">
               API Key <span className="text-destructive">*</span>
             </label>
             <div className="relative">
               <input
+                id="provider-api-key"
                 type={showApiKey ? 'text' : 'password'}
                 value={formData.apiKey}
                 onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
@@ -115,8 +141,11 @@ export function ProviderConfigDialog({
           </div>
 
           <div>
-            <label className="text-sm font-medium mb-2 block">Base URL</label>
+            <label className="text-sm font-medium mb-2 block" htmlFor="provider-base-url">
+              Base URL
+            </label>
             <input
+              id="provider-base-url"
               type="text"
               value={formData.baseURL}
               onChange={(e) => setFormData({ ...formData, baseURL: e.target.value })}
@@ -126,6 +155,35 @@ export function ProviderConfigDialog({
             <p className="text-xs text-muted-foreground mt-1">
               Optional: Custom API endpoint
             </p>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-2 block" htmlFor="provider-api-format">
+              API Format
+            </label>
+            <select
+              id="provider-api-format"
+              value={formData.apiFormat}
+              onChange={(e) => setFormData({ ...formData, apiFormat: e.target.value })}
+              className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-ring text-sm"
+            >
+              <option value="chat-completions">Chat Completions (/chat/completions)</option>
+              <option value="responses">Responses (/responses)</option>
+              <option value="anthropic-messages">Anthropic Messages (/v1/messages)</option>
+            </select>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <input
+              id="provider-enabled"
+              type="checkbox"
+              checked={formData.enabled}
+              onChange={(e) => setFormData({ ...formData, enabled: e.target.checked })}
+              className="h-4 w-4 rounded border"
+            />
+            <label htmlFor="provider-enabled" className="text-sm font-medium">
+              Enabled
+            </label>
           </div>
 
           <div className="flex justify-end gap-2 pt-4">

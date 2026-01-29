@@ -108,6 +108,7 @@
     "@vitest/coverage-v8": "^4.0.18",
     "@vitest/ui": "^4.0.18",
     "autoprefixer": "^10.4.17",
+    "drizzle-kit": "^0.31.8",
     "electron": "^28.0.0",
     "electron-builder": "^24.13.0",
     "electron-vite": "^2.0.0",

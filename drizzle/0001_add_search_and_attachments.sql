@@ -150,8 +150,7 @@ BEGIN
 	DELETE FROM search_index WHERE content_type = 'attachment_note' AND content_id = OLD.id;
 	INSERT INTO search_index(content_type, content_id, conversation_id, searchable_text)
 	SELECT 'attachment_note', NEW.id, m.conversation_id, NEW.note
-	FROM messages m WHERE m.id = NEW.message_id
-	WHERE NEW.note IS NOT NULL AND NEW.note != '';
+	FROM messages m WHERE m.id = NEW.message_id AND NEW.note IS NOT NULL AND NEW.note != '';
 END;
 
 --> statement-breakpoint

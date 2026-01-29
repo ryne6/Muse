@@ -1,0 +1,1 @@
+ALTER TABLE `providers` ADD `api_format` text DEFAULT 'chat-completions';

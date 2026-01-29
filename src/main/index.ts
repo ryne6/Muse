@@ -20,6 +20,7 @@ function createWindow() {
     height: 800,
     minWidth: 900,
     minHeight: 600,
+    icon: join(__dirname, '../../build/icon.png'),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       nodeIntegration: false,
@@ -44,6 +45,11 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  // Set dock icon in development
+  if (process.platform === 'darwin' && !app.isPackaged) {
+    app.dock.setIcon(join(__dirname, '../../build/icon.png'))
+  }
+
   // Initialize database
   console.log('🗄️  Initializing database...')
   initDatabase()

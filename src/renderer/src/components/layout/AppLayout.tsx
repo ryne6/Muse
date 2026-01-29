@@ -2,6 +2,7 @@ import { Sidebar } from './Sidebar'
 import { ChatView } from '../chat/ChatView'
 import { FileExplorer } from '../explorer/FileExplorer'
 import { useWorkspaceStore } from '@/stores/workspaceStore'
+import { LoadingOverlay } from '@/components/ui/loading'
 
 export function AppLayout() {
   const { workspacePath } = useWorkspaceStore()
@@ -19,6 +20,7 @@ export function AppLayout() {
         <ChatView />
         {workspacePath ? <FileExplorer /> : null}
       </div>
+      <LoadingOverlay />
     </div>
   )
 }

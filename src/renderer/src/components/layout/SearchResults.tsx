@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react'
-import { FileText, MessageSquare, Wrench, Image, Loader2 } from 'lucide-react'
+import { FileText, MessageSquare, Wrench, Image } from 'lucide-react'
 import { useSearchStore } from '@/stores/searchStore'
 import { useConversationStore } from '@/stores/conversationStoreV2'
 import type { SearchResult, SearchContentType } from '@shared/types/search'
+import { LoadingInline } from '@/components/ui/loading'
 
 const contentTypeIcons: Record<SearchContentType, typeof FileText> = {
   conversation_title: FileText,
@@ -92,9 +93,7 @@ export function SearchResults() {
       ))}
 
       {isLoading && (
-        <div className="flex items-center justify-center p-4">
-          <Loader2 className="w-4 h-4 animate-spin" />
-        </div>
+        <LoadingInline />
       )}
     </div>
   )

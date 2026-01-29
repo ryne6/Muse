@@ -4,6 +4,7 @@ import { ProviderCard } from './ProviderCard'
 import { AddProviderDialog } from './AddProviderDialog'
 import { ManageModelsDialog } from './ManageModelsDialog'
 import { dbClient } from '@/services/dbClient'
+import { fadeInUpClass } from '@/utils/animations'
 
 interface Provider {
   id: string
@@ -92,14 +93,19 @@ export function ProviderList({ onConfigureProvider }: ProviderListProps) {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {providers.map((provider) => (
-            <ProviderCard
+          {providers.map((provider, index) => (
+            <div
               key={provider.id}
-              provider={provider}
-              onUpdate={loadProviders}
-              onConfigure={handleConfigure}
-              onManageModels={handleManageModels}
-            />
+              className={fadeInUpClass}
+              style={{ animationDelay: `${index * 40}ms` }}
+            >
+              <ProviderCard
+                provider={provider}
+                onUpdate={loadProviders}
+                onConfigure={handleConfigure}
+                onManageModels={handleManageModels}
+              />
+            </div>
           ))}
         </div>
       )}

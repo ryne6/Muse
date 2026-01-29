@@ -65,6 +65,53 @@ npm uninstall react-syntax-highlighter @types/react-syntax-highlighter react-cop
 | `Dialog` | `Modal` | `open`→`open`, 需要 `onCancel` |
 | `DropdownMenu` | `Dropdown` | 使用 `menu` prop 配置项 |
 
+### 3.2 组件使用位置清单
+
+#### Button (17 处)
+
+| 文件 | 模块 |
+|------|------|
+| `components/chat/ChatInput.tsx` | Chat |
+| `components/chat/ImagePreview.tsx` | Chat |
+| `components/chat/ImageUploadButton.tsx` | Chat |
+| `components/chat/ModelSelector.tsx` | Chat |
+| `components/chat/TemperatureControl.tsx` | Chat |
+| `components/explorer/FileExplorer.tsx` | Explorer |
+| `components/layout/ConversationItem.tsx` | Layout |
+| `components/layout/ConversationList.tsx` | Layout |
+| `components/layout/SearchBar.tsx` | Layout |
+| `components/layout/Settings.tsx` | Layout |
+| `components/layout/SettingsV2.tsx` | Layout |
+| `components/layout/WorkspaceSelector.tsx` | Layout |
+| `components/settings/AddProviderDialog.tsx` | Settings |
+| `components/settings/ManageModelsDialog.tsx` | Settings |
+| `components/settings/ProviderCard.tsx` | Settings |
+| `components/settings/ProviderCardV2.tsx` | Settings |
+| `components/settings/ProviderConfigDialog.tsx` | Settings |
+
+#### Input (1 处)
+
+| 文件 | 模块 |
+|------|------|
+| `components/layout/SearchBar.tsx` | Layout |
+
+#### Dialog (3 处)
+
+| 文件 | 模块 |
+|------|------|
+| `components/settings/AddProviderDialog.tsx` | Settings |
+| `components/settings/ManageModelsDialog.tsx` | Settings |
+| `components/settings/ProviderConfigDialog.tsx` | Settings |
+
+#### DropdownMenu (4 处)
+
+| 文件 | 模块 |
+|------|------|
+| `components/chat/ModelSelector.tsx` | Chat |
+| `components/chat/TemperatureControl.tsx` | Chat |
+| `components/layout/ConversationItem.tsx` | Layout |
+| `components/settings/ProviderCard.tsx` | Settings |
+
 ### 3.2 增强组件
 
 | 当前实现 | Lobe UI | 收益 |

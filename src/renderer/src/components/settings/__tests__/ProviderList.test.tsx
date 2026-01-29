@@ -46,9 +46,9 @@ vi.mock('@/services/dbClient', () => ({
 }))
 
 // Mock child components
-vi.mock('../ProviderCard', () => ({
-  ProviderCard: ({ provider, onUpdate, onConfigure, onManageModels }: any) => (
-    <div data-testid={`provider-card-${provider.id}`}>
+vi.mock('../ProviderCardV2', () => ({
+  ProviderCardV2: ({ provider, onUpdate, onConfigure, onManageModels }: any) => (
+    <div data-testid="provider-card-v2">
       <div>{provider.name}</div>
       <button onClick={() => onConfigure(provider)}>Configure</button>
       <button onClick={() => onManageModels(provider)}>Manage Models</button>
@@ -112,8 +112,7 @@ describe('ProviderList', () => {
       render(<ProviderList />)
 
       await waitFor(() => {
-        expect(screen.getByTestId('provider-card-provider-1')).toBeInTheDocument()
-        expect(screen.getByTestId('provider-card-provider-2')).toBeInTheDocument()
+        expect(screen.getAllByTestId('provider-card-v2')).toHaveLength(2)
         expect(screen.getByText('Claude')).toBeInTheDocument()
         expect(screen.getByText('OpenAI')).toBeInTheDocument()
       })

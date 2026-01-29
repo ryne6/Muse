@@ -58,7 +58,7 @@ app.whenReady().then(() => {
   registerIpcHandlers()
 
   // Start servers
-  startApiServer(3000)
+  startApiServer(2323)
   startIpcBridge(3001)
 
   createWindow()
@@ -315,7 +315,7 @@ function registerIpcHandlers() {
   // Health check - verify API server is running
   ipcMain.handle('check-server-health', async () => {
     try {
-      const response = await fetch('http://localhost:3000/health')
+      const response = await fetch('http://localhost:2323/health')
       return response.ok
     } catch {
       return false

@@ -2,7 +2,7 @@ import type { AIMessage, AIConfig, AIStreamChunk } from '@shared/types/ai'
 import type { APIError } from '@shared/types/error'
 import { ErrorCode } from '@shared/types/error'
 
-const API_BASE_URL = 'http://localhost:3000/api'
+const API_BASE_URL = 'http://localhost:2323/api'
 
 // Retry configuration
 const DEFAULT_MAX_RETRIES = 3
@@ -281,7 +281,7 @@ export class APIClient {
    */
   async healthCheck(): Promise<boolean> {
     try {
-      const response = await fetch('http://localhost:3000/health')
+      const response = await fetch('http://localhost:2323/health')
       return response.ok
     } catch {
       return false

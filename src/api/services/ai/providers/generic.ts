@@ -1,23 +1,6 @@
 import { BaseAIProvider } from './base'
 import type { AIMessage, AIConfig, AIStreamChunk } from '../../../../shared/types/ai'
-
-// Helper function to get API endpoint based on format
-function getEndpoint(apiFormat?: string): string {
-  switch (apiFormat) {
-    case 'responses':
-      return '/responses'
-    case 'anthropic-messages':
-      return '/v1/messages'
-    case 'chat-completions':
-    default:
-      return '/chat/completions'
-  }
-}
-
-// Check if API format is Anthropic-style
-function isAnthropicFormat(apiFormat?: string): boolean {
-  return apiFormat === 'anthropic-messages'
-}
+import { getStrategy } from './strategies'
 
 // Generic OpenAI-compatible provider for Moonshot, OpenRouter, and custom APIs
 export class GenericProvider extends BaseAIProvider {
@@ -58,45 +41,11 @@ export class GenericProvider extends BaseAIProvider {
     config: AIConfig,
     onChunk: (chunk: AIStreamChunk) => void
   ): Promise<string> {
-    const isAnthropic = isAnthropicFormat(config.apiFormat)
+    const strategy = getStrategy(config.apiFormat)
+    const requestBody = strategy.buildBody(messages, config, { stream: true })
+    const headers = strategy.buildHeaders(config)
 
-    // Build request body based on API format
-    const requestBody = isAnthropic
-      ? {
-          model: config.model,
-          messages: messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-          max_tokens: config.maxTokens ?? 4096,
-          stream: true,
-        }
-      : {
-          model: config.model,
-          messages: messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-          temperature: config.temperature ?? 1,
-          max_tokens: config.maxTokens ?? 4096,
-          stream: true,
-        }
-
-    // Build headers based on API format
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    }
-
-    if (isAnthropic) {
-      // Anthropic uses x-api-key header
-      headers['x-api-key'] = config.apiKey
-      headers['anthropic-version'] = '2023-06-01'
-    } else {
-      // OpenAI-compatible uses Bearer token
-      headers['Authorization'] = `Bearer ${config.apiKey}`
-    }
-
-    const response = await fetch(`${config.baseURL}${getEndpoint(config.apiFormat)}`, {
+    const response = await fetch(`${config.baseURL}${strategy.getEndpoint(config)}`, {
       method: 'POST',
       headers,
       body: JSON.stringify(requestBody),
@@ -134,15 +83,7 @@ export class GenericProvider extends BaseAIProvider {
               const parsed = JSON.parse(data)
               let content: string | undefined
 
-              if (isAnthropic) {
-                // Anthropic format: {"type": "content_block_delta", "delta": {"type": "text_delta", "text": "..."}}
-                if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta') {
-                  content = parsed.delta.text
-                }
-              } else {
-                // OpenAI format: {"choices": [{"delta": {"content": "..."}}]}
-                content = parsed.choices?.[0]?.delta?.content
-              }
+              content = strategy.parseStreamChunk(parsed)
 
               if (content) {
                 fullContent += content
@@ -170,41 +111,11 @@ export class GenericProvider extends BaseAIProvider {
   }
 
   private async simpleResponse(messages: AIMessage[], config: AIConfig): Promise<string> {
-    const isAnthropic = isAnthropicFormat(config.apiFormat)
+    const strategy = getStrategy(config.apiFormat)
+    const requestBody = strategy.buildBody(messages, config, { stream: false })
+    const headers = strategy.buildHeaders(config)
 
-    // Build request body based on API format
-    const requestBody = isAnthropic
-      ? {
-          model: config.model,
-          messages: messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-          max_tokens: config.maxTokens ?? 4096,
-        }
-      : {
-          model: config.model,
-          messages: messages.map((msg) => ({
-            role: msg.role,
-            content: msg.content,
-          })),
-          temperature: config.temperature ?? 1,
-          max_tokens: config.maxTokens ?? 4096,
-        }
-
-    // Build headers based on API format
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    }
-
-    if (isAnthropic) {
-      headers['x-api-key'] = config.apiKey
-      headers['anthropic-version'] = '2023-06-01'
-    } else {
-      headers['Authorization'] = `Bearer ${config.apiKey}`
-    }
-
-    const response = await fetch(`${config.baseURL}${getEndpoint(config.apiFormat)}`, {
+    const response = await fetch(`${config.baseURL}${strategy.getEndpoint(config)}`, {
       method: 'POST',
       headers,
       body: JSON.stringify(requestBody),
@@ -217,15 +128,7 @@ export class GenericProvider extends BaseAIProvider {
 
     const result = await response.json()
 
-    // Parse response based on API format
-    if (isAnthropic) {
-      // Anthropic format: {"content": [{"type": "text", "text": "..."}]}
-      const textBlock = result.content?.find((block: any) => block.type === 'text')
-      return textBlock?.text || ''
-    } else {
-      // OpenAI format: {"choices": [{"message": {"content": "..."}}]}
-      return result.choices[0]?.message?.content || ''
-    }
+    return strategy.parseResponse(result)
   }
 
   validateConfig(config: AIConfig): boolean {

@@ -55,28 +55,49 @@ export const useChatStore = create<ChatStore>((set) => ({
       return
     }
 
-    // Prepare messages for API
-    const aiMessages: AIMessage[] = conversation.messages.map((m) => {
-      // Check if message has attachments
-      if (m.attachments && m.attachments.length > 0) {
-        const contentBlocks: MessageContent[] = []
+    const buildContentBlocks = async (m: Message): Promise<MessageContent[]> => {
+      const contentBlocks: MessageContent[] = []
 
-        // Add text content if present
-        if (m.content) {
-          contentBlocks.push({ type: 'text', text: m.content })
+      if (m.content) {
+        contentBlocks.push({ type: 'text', text: m.content })
+      }
+
+      if (m.attachments?.length && window.api?.attachments?.getBase64) {
+        const imageBlocks = await Promise.all(
+          m.attachments.map(async (attachment) => {
+            const base64 = await window.api.attachments.getBase64(attachment.id)
+            return base64
+              ? {
+                  type: 'image',
+                  mimeType: attachment.mimeType,
+                  data: base64,
+                  note: attachment.note || undefined,
+                }
+              : null
+          })
+        )
+        contentBlocks.push(...imageBlocks.filter(Boolean))
+      }
+
+      return contentBlocks
+    }
+
+    // Prepare messages for API (include history attachments)
+    const aiMessages: AIMessage[] = await Promise.all(
+      conversation.messages.map(async (m) => {
+        if (m.attachments && m.attachments.length > 0) {
+          return {
+            role: m.role as 'user' | 'assistant',
+            content: await buildContentBlocks(m),
+          }
         }
 
         return {
           role: m.role as 'user' | 'assistant',
-          content: contentBlocks,
+          content: m.content,
         }
-      }
-
-      return {
-        role: m.role as 'user' | 'assistant',
-        content: m.content,
-      }
-    })
+      })
+    )
 
     // Add current message with attachments to API messages
     if (attachments.length > 0) {

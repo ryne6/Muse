@@ -37,18 +37,27 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
       const conversationsWithMessages = await Promise.all(
         dbConversations.map(async (conv: any) => {
           const messages = await dbClient.messages.getAllWithTools(conv.id)
+          const messagesWithAttachments = await Promise.all(
+            messages.map(async (msg: any) => {
+              const attachments = window.api?.attachments?.getPreviewsByMessageId
+                ? await window.api.attachments.getPreviewsByMessageId(msg.id)
+                : []
+              return { ...msg, attachments }
+            })
+          )
           return {
             id: conv.id,
             title: conv.title,
             createdAt: new Date(conv.createdAt).getTime(),
             updatedAt: new Date(conv.updatedAt).getTime(),
-            messages: messages.map((msg: any) => ({
+            messages: messagesWithAttachments.map((msg: any) => ({
               id: msg.id,
               role: msg.role,
               content: msg.content,
               timestamp: new Date(msg.timestamp).getTime(),
               toolCalls: msg.toolCalls || [],
               toolResults: msg.toolResults || [],
+              attachments: msg.attachments || [],
             })),
           }
         })

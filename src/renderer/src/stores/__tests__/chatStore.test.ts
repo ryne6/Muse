@@ -190,6 +190,62 @@ describe('ChatStore', () => {
         })
       )
     })
+
+    it('should include image blocks for prior attachments in aiMessages', async () => {
+      global.window = global.window || ({} as any)
+      global.window.api = {
+        attachments: {
+          getBase64: vi.fn().mockResolvedValue('base64-data')
+        }
+      } as any
+
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [
+          {
+            id: '1',
+            role: 'user',
+            content: 'Hello',
+            attachments: [
+              {
+                id: 'att-1',
+                messageId: '1',
+                filename: 'image.png',
+                mimeType: 'image/png',
+                note: null,
+                size: 123,
+                width: null,
+                height: null,
+                createdAt: new Date()
+              }
+            ]
+          }
+        ]
+      }
+
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+      mockSendMessageStream.mockResolvedValue(undefined)
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Next',
+        'openai',
+        mockConfig
+      )
+
+      const aiMessages = mockSendMessageStream.mock.calls[0][1]
+      const historyMessage = aiMessages[0]
+      expect(Array.isArray(historyMessage.content)).toBe(true)
+      expect(historyMessage.content).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            type: 'image',
+            mimeType: 'image/png',
+            data: 'base64-data'
+          })
+        ])
+      )
+    })
   })
 
   describe('error handling', () => {

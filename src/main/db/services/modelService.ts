@@ -108,9 +108,10 @@ export class ModelService {
 
     if (!model) return null
 
+    const currentEnabled = !!model.enabled
     await db
       .update(models)
-      .set({ enabled: !model.enabled })
+      .set({ enabled: !currentEnabled })
       .where(eq(models.id, id))
 
     return this.getById(id)

@@ -5,12 +5,27 @@ import chatRoutes from './routes/chat'
 
 const app = new Hono()
 
+const defaultCorsOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'http://localhost:4173',
+]
+
+export function parseCorsOrigins(raw?: string): string[] {
+  if (!raw) return defaultCorsOrigins
+  const origins = raw
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+  return origins.length > 0 ? origins : defaultCorsOrigins
+}
+
 // 中间件
 app.use('*', logger())
 app.use(
   '*',
   cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:4173'],
+    origin: parseCorsOrigins(process.env.MUSE_API_CORS_ORIGINS),
     credentials: true,
   })
 )

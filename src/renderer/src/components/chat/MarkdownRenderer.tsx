@@ -35,7 +35,7 @@ function CodeBlock({ inline, className, children, ...props }: CodeBlockProps) {
 
   if (inline) {
     return (
-      <code className="px-1.5 py-0.5 rounded bg-secondary text-sm font-mono text-foreground">
+      <code className="px-1.5 py-0.5 rounded bg-[hsl(var(--surface-2))] text-sm font-mono text-foreground">
         {children}
       </code>
     )
@@ -47,9 +47,9 @@ function CodeBlock({ inline, className, children, ...props }: CodeBlockProps) {
   }
 
   return (
-    <div className="relative my-4 rounded-lg border border-border overflow-hidden">
+    <div className="relative my-4 rounded-lg border border-[hsl(var(--border))] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-[hsl(var(--surface-1))] border-b border-border">
+      <div className="flex items-center justify-between px-4 py-2 bg-[hsl(var(--surface-3))] border-b border-[hsl(var(--border))]">
         <span className="text-xs font-medium text-[hsl(var(--text-muted))]">
           {language || 'code'}
         </span>
@@ -107,7 +107,7 @@ const markdownComponents: Components = {
   h4: ({ children }) => <h4 className="text-base font-semibold mt-3 mb-2 text-foreground">{children}</h4>,
 
   // Paragraph
-  p: ({ children }) => <p className="mb-4 leading-7 text-foreground">{children}</p>,
+  p: ({ children }) => <p className="mb-4 text-[15px] leading-[1.6] text-foreground">{children}</p>,
 
   // Lists
   ul: ({ children }) => <ul className="list-disc list-inside mb-4 space-y-1 text-foreground">{children}</ul>,

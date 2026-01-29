@@ -37,11 +37,13 @@ export function MessageList() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
-      {currentMessages.map((message) => (
-        <MessageItem key={message.id} message={message} />
-      ))}
-      <div ref={messagesEndRef} />
+    <div className="flex-1 overflow-y-auto">
+      <div className="max-w-[800px] mx-auto px-6 py-6 space-y-6">
+        {currentMessages.map((message) => (
+          <MessageItem key={message.id} message={message} />
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
     </div>
   )
 }

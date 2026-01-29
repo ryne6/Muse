@@ -1,8 +1,11 @@
 import { Sidebar } from './Sidebar'
 import { ChatView } from '../chat/ChatView'
 import { FileExplorer } from '../explorer/FileExplorer'
+import { useWorkspaceStore } from '@/stores/workspaceStore'
 
 export function AppLayout() {
+  const { workspacePath } = useWorkspaceStore()
+
   return (
     <div className="flex flex-col h-screen overflow-hidden">
       {/* Draggable title bar for macOS */}
@@ -14,7 +17,7 @@ export function AppLayout() {
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />
         <ChatView />
-        <FileExplorer />
+        {workspacePath ? <FileExplorer /> : null}
       </div>
     </div>
   )

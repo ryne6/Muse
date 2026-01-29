@@ -4,9 +4,10 @@ import { FileTree } from './FileTree'
 import type { FileNode } from './FileTreeItem'
 import { Button } from '../ui/button'
 import { cn } from '@/utils/cn'
+import { useWorkspaceStore } from '@/stores/workspaceStore'
 
 export function FileExplorer() {
-  const [workspacePath, setWorkspacePath] = useState<string | null>(null)
+  const { workspacePath, loadWorkspace } = useWorkspaceStore()
   const [fileTree, setFileTree] = useState<FileNode[]>([])
   const [selectedPath, setSelectedPath] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -15,7 +16,7 @@ export function FileExplorer() {
   // Load workspace path on mount
   useEffect(() => {
     loadWorkspace()
-  }, [])
+  }, [loadWorkspace])
 
   // Load file tree when workspace changes
   useEffect(() => {
@@ -23,13 +24,6 @@ export function FileExplorer() {
       loadFileTree(workspacePath)
     }
   }, [workspacePath])
-
-  const loadWorkspace = async () => {
-    if (window.api) {
-      const result = await window.api.workspace.get()
-      setWorkspacePath(result.path)
-    }
-  }
 
   const loadFileTree = async (path: string) => {
     setIsLoading(true)

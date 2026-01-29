@@ -5,39 +5,41 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --foreground: 0 0% 13%;
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 0 0% 13%;
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 24 95% 53%;
+    --popover-foreground: 0 0% 13%;
+    --primary: 0 0% 0%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 45%;
-    --accent: 24 95% 53%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 13%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 60%;
+    --accent: 0 0% 0%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 24 95% 53%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 0 0% 0%;
     --radius: 0.5rem;
 
     /* V2 Surface 层级 */
     --bg: 0 0% 100%;
-    --surface-1: 240 5% 97%;
-    --surface-2: 240 5% 98%;
-    --surface-3: 240 4% 96%;
+    --bg-sidebar: 210 17% 98%;
+    --bg-main: 0 0% 100%;
+    --surface-1: 0 0% 100%;
+    --surface-2: 0 0% 96%;
+    --surface-3: 0 0% 98%;
 
     /* V2 文本层级 */
-    --text-strong: 220 15% 15%;
-    --text: 220 10% 25%;
-    --text-muted: 220 8% 45%;
+    --text-strong: 0 0% 13%;
+    --text: 0 0% 40%;
+    --text-muted: 0 0% 60%;
 
     /* V2 交互状态 */
-    --accent-hover: 24 90% 48%;
+    --accent-hover: 0 0% 0%;
   }
 
   .dark {
@@ -83,6 +85,17 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(
+      --font-ui,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      'Segoe UI',
+      Roboto,
+      Helvetica,
+      Arial,
+      sans-serif
+    );
     font-feature-settings:
       'rlig' 1,
       'calt' 1;

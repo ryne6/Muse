@@ -222,4 +222,12 @@ describe('SettingsStoreV2', () => {
       expect(result.every(m => m.providerId === 'p1')).toBe(true)
     })
   })
+
+  describe('triggerRefresh', () => {
+    it('should bump lastUpdated when triggerRefresh is called', () => {
+      const prev = useSettingsStoreV2.getState().lastUpdated
+      useSettingsStoreV2.getState().triggerRefresh()
+      expect(useSettingsStoreV2.getState().lastUpdated).toBeGreaterThan(prev)
+    })
+  })
 })

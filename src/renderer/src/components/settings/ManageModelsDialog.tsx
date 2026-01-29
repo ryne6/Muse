@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dialog'
 import { dbClient } from '@/services/dbClient'
 import { notify } from '@/utils/notify'
+import { useSettingsStoreV2 } from '@/stores/settingsStoreV2'
 
 interface Model {
   id: string
@@ -35,6 +36,7 @@ export function ManageModelsDialog({
   providerName,
   onUpdate,
 }: ManageModelsDialogProps) {
+  const { triggerRefresh } = useSettingsStoreV2()
   const [models, setModels] = useState<Model[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isAdding, setIsAdding] = useState(false)
@@ -77,6 +79,7 @@ export function ManageModelsDialog({
       notify.success('Model added successfully')
       setNewModel({ modelId: '', name: '' })
       await loadModels()
+      triggerRefresh()
       onUpdate()
     } catch (error) {
       console.error('Failed to add model:', error)
@@ -90,6 +93,7 @@ export function ManageModelsDialog({
     try {
       await dbClient.models.toggleEnabled(modelId)
       await loadModels()
+      triggerRefresh()
       onUpdate()
     } catch (error) {
       console.error('Failed to toggle model:', error)
@@ -104,6 +108,7 @@ export function ManageModelsDialog({
       await dbClient.models.delete(modelId)
       notify.success('Model deleted')
       await loadModels()
+      triggerRefresh()
       onUpdate()
     } catch (error) {
       console.error('Failed to delete model:', error)

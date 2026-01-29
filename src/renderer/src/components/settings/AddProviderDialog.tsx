@@ -52,7 +52,7 @@ const PROVIDER_TEMPLATES = [
 ]
 
 export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
-  const { loadData } = useSettingsStoreV2()
+  const { loadData, triggerRefresh } = useSettingsStoreV2()
   const [open, setOpen] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<string>('')
   const [formData, setFormData] = useState({
@@ -159,6 +159,7 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
 
       notify.success(`${formData.name} added successfully`)
       await loadData()
+      triggerRefresh()
       setOpen(false)
       setFormData({ name: '', type: '', apiKey: '', baseURL: '', apiFormat: 'chat-completions' })
       setSelectedTemplate('')

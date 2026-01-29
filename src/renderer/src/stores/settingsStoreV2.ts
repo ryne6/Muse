@@ -11,6 +11,7 @@ interface SettingsStoreV2 {
   temperature: number
   isLoading: boolean
   error: string | null
+  lastUpdated: number
 
   // Cached data
   providers: Provider[]
@@ -22,6 +23,7 @@ interface SettingsStoreV2 {
   setCurrentModel: (modelId: string) => Promise<void>
   setTemperature: (temperature: number) => void
   clearError: () => void
+  triggerRefresh: () => void
 
   // Computed
   getCurrentProvider: () => Provider | null
@@ -40,6 +42,7 @@ export const useSettingsStoreV2 = create<SettingsStoreV2>()(
       temperature: 1,
       isLoading: false,
       error: null,
+      lastUpdated: Date.now(),
 
       // Cached data
       providers: [],
@@ -121,6 +124,9 @@ export const useSettingsStoreV2 = create<SettingsStoreV2>()(
 
       setTemperature: (temperature: number) => {
         set({ temperature })
+      },
+      triggerRefresh: () => {
+        set({ lastUpdated: Date.now() })
       },
 
       // Computed

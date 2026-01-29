@@ -21,6 +21,7 @@ export function ModelSelector() {
     providers,
     models,
     loadData,
+    lastUpdated,
   } = useSettingsStoreV2()
 
   const currentProvider = getCurrentProvider()
@@ -30,7 +31,7 @@ export function ModelSelector() {
   // Load data on mount
   useEffect(() => {
     loadData()
-  }, [loadData])
+  }, [loadData, lastUpdated])
 
   const handleModelSelect = (modelId: string) => {
     setCurrentModel(modelId)

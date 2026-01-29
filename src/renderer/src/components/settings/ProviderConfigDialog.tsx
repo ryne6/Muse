@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/dialog'
 import { dbClient } from '@/services/dbClient'
 import { notify } from '@/utils/notify'
+import { useSettingsStoreV2 } from '@/stores/settingsStoreV2'
 
 interface Provider {
   id: string
@@ -32,6 +33,7 @@ export function ProviderConfigDialog({
   onClose,
   onUpdated,
 }: ProviderConfigDialogProps) {
+  const { triggerRefresh } = useSettingsStoreV2()
   const [formData, setFormData] = useState({
     apiKey: '',
     baseURL: '',
@@ -64,6 +66,7 @@ export function ProviderConfigDialog({
       })
 
       notify.success(`${provider.name} updated successfully`)
+      triggerRefresh()
       onClose()
       onUpdated()
     } catch (error) {

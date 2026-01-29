@@ -31,6 +31,7 @@
     "package:mac": "npm run build && electron-builder --mac",
     "package:win": "npm run build && electron-builder --win",
     "package:linux": "npm run build && electron-builder --linux",
+    "postinstall": "electron-rebuild -f -w better-sqlite3",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
@@ -69,7 +70,28 @@
     "uuid": "^13.0.0",
     "zustand": "^4.4.7"
   },
+  "build": {
+    "appId": "com.muse.app",
+    "productName": "Muse",
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "icon": "build/icon.png",
+      "category": "public.app-category.developer-tools"
+    },
+    "win": {
+      "icon": "build/icon.png",
+      "target": "nsis"
+    },
+    "linux": {
+      "icon": "build/icon.png",
+      "target": "AppImage",
+      "category": "Development"
+    }
+  },
   "devDependencies": {
+    "@electron/rebuild": "^3.6.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",

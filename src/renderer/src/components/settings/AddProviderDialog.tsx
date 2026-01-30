@@ -1,14 +1,7 @@
 import { useState } from 'react'
 import { Plus, Loader2, CheckCircle, XCircle } from 'lucide-react'
+import { Modal } from '@lobehub/ui'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
 import { dbClient } from '@/services/dbClient'
 import { apiClient } from '@/services/apiClient'
 import { notify } from '@/utils/notify'
@@ -173,22 +166,27 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Provider
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Add AI Provider</DialogTitle>
-          <DialogDescription>
-            Choose a provider template or configure a custom provider
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <Button className="gap-2" onClick={() => setOpen(true)}>
+        <Plus className="h-4 w-4" />
+        Add Provider
+      </Button>
 
-        <form onSubmit={handleSubmit} className="space-y-6 mt-4">
+      <Modal
+        open={open}
+        onCancel={() => setOpen(false)}
+        title="Add AI Provider"
+        footer={null}
+        width={672}
+        styles={{
+          body: { maxHeight: '70vh', overflowY: 'auto' }
+        }}
+      >
+        <p className="text-sm text-muted-foreground mb-4">
+          Choose a provider template or configure a custom provider
+        </p>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Provider Templates */}
           <div>
             <label className="text-sm font-medium mb-2 block">Choose Provider</label>
@@ -325,7 +323,7 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
             </>
           )}
         </form>
-      </DialogContent>
-    </Dialog>
+      </Modal>
+    </>
   )
 }

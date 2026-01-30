@@ -1,13 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, Loader2 } from 'lucide-react'
+import { Modal } from '@lobehub/ui'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { dbClient } from '@/services/dbClient'
 import { notify } from '@/utils/notify'
 import { useSettingsStore } from '@/stores/settingsStore'
@@ -117,17 +111,22 @@ export function ManageModelsDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Manage Models - {providerName}</DialogTitle>
-          <DialogDescription>
-            Add, enable/disable, or remove models for this provider
-          </DialogDescription>
-        </DialogHeader>
+    <Modal
+      open={open}
+      onCancel={() => onOpenChange(false)}
+      title={`Manage Models - ${providerName}`}
+      footer={null}
+      width={672}
+      styles={{
+        body: { maxHeight: '70vh', overflowY: 'auto' }
+      }}
+    >
+      <p className="text-sm text-muted-foreground mb-4">
+        Add, enable/disable, or remove models for this provider
+      </p>
 
-        {/* Add New Model */}
-        <div className="border rounded-lg p-4 bg-muted/30">
+      {/* Add New Model */}
+      <div className="border rounded-lg p-4 bg-muted/30">
           <h3 className="font-semibold text-sm mb-3">Add New Model</h3>
           <div className="space-y-3">
             <div>
@@ -226,7 +225,6 @@ export function ManageModelsDialog({
             </div>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </Modal>
   )
 }

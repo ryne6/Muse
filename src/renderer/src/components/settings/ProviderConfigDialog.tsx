@@ -1,13 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Checkbox } from 'antd'
+import { Modal } from '@lobehub/ui'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { dbClient } from '@/services/dbClient'
 import { notify } from '@/utils/notify'
 import { useSettingsStore } from '@/stores/settingsStore'
@@ -91,14 +85,18 @@ export function ProviderConfigDialog({
   if (!provider) return null
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Configure {provider.name}</DialogTitle>
-          <DialogDescription>Update your provider settings</DialogDescription>
-        </DialogHeader>
+    <Modal
+      open={open}
+      onCancel={onClose}
+      title={`Configure ${provider.name}`}
+      footer={null}
+      width={500}
+    >
+      <p className="text-sm text-muted-foreground mb-4">
+        Update your provider settings
+      </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="text-sm font-medium mb-2 block" htmlFor="provider-name">
               Name <span className="text-destructive">*</span>
@@ -193,7 +191,6 @@ export function ProviderConfigDialog({
             </Button>
           </div>
         </form>
-      </DialogContent>
-    </Dialog>
+      </Modal>
   )
 }

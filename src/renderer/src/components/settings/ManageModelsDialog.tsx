@@ -154,18 +154,18 @@ export function ManageModelsDialog({
               onClick={handleAddModel}
               disabled={isAdding || !newModel.modelId || !newModel.name}
               size="sm"
-              className="w-full"
+              className="w-full whitespace-nowrap"
             >
               {isAdding ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                <span className="flex items-center justify-center">
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin flex-shrink-0" />
                   Adding...
-                </>
+                </span>
               ) : (
-                <>
-                  <Plus className="h-4 w-4 mr-2" />
+                <span className="flex items-center justify-center">
+                  <Plus className="h-4 w-4 mr-2 flex-shrink-0" />
                   Add Model
-                </>
+                </span>
               )}
             </Button>
           </div>

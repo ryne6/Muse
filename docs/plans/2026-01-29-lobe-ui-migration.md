@@ -112,7 +112,39 @@ npm uninstall react-syntax-highlighter @types/react-syntax-highlighter react-cop
 | `components/layout/ConversationItem.tsx` | Layout |
 | `components/settings/ProviderCard.tsx` | Settings |
 
-### 3.2 增强组件
+### 3.3 原生 HTML 元素使用位置
+
+#### 原生 `<input>` (21 处)
+
+| 文件 | 行号 | 用途 | 替换为 |
+|------|------|------|--------|
+| `ConversationItem.tsx` | 81 | 重命名输入 | Input |
+| `AddProviderDialog.tsx` | 221, 239, 289 | 表单输入 | Input |
+| `TemperatureControl.tsx` | 43 | 滑块 range | Slider |
+| `ProviderConfigDialog.tsx` | 105, 121, 147, 177 | 配置表单 | Input |
+| `Settings.tsx` | 115, 135, 248, 265, 332, 343, 354 | 设置表单 | Input/Checkbox |
+| `SettingsV2.tsx` | 143 | 字体选择 | Select |
+| `ImagePreview.tsx` | 29 | 文件选择 | 保留(file input) |
+| `ManageModelsDialog.tsx` | 135, 145 | 模型管理 | Input/Checkbox |
+| `ImageUploadButton.tsx` | 47 | 文件上传 | 保留(file input) |
+
+#### 原生 `<button>` (12 处，不含测试文件)
+
+| 文件 | 行号 | 用途 | 替换为 |
+|------|------|------|--------|
+| `FileTreeItem.tsx` | 59 | 文件操作 | Button |
+| `TemperatureControl.tsx` | 63 | 重置按钮 | Button |
+| `AddProviderDialog.tsx` | 197 | 切换按钮 | Button |
+| `MarkdownRenderer.tsx` | 57 | 复制按钮 | CopyButton |
+| `ProviderConfigDialog.tsx` | 130 | 显示/隐藏 | Button |
+| `SearchResults.tsx` | 112 | 搜索结果项 | Button |
+| `ProviderCard.tsx` | 117 | 操作按钮 | Button |
+| `ToolCallCard.tsx` | 87, 104 | 展开/复制 | Button/CopyButton |
+| `SearchBar.tsx` | 63 | 清除按钮 | Button |
+| `Settings.tsx` | 204 | 删除按钮 | Button |
+| `SettingsV2.tsx` | 107, 119 | Tab 按钮 | Segmented |
+
+### 3.4 增强组件
 
 | 当前实现 | Lobe UI | 收益 |
 |----------|---------|------|

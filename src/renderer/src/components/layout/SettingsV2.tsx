@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
+import { Modal } from '@lobehub/ui'
 import { Button } from '../ui/button'
-import { Settings as SettingsIcon, X } from 'lucide-react'
+import { Settings as SettingsIcon } from 'lucide-react'
 import { ProviderList } from '../settings/ProviderList'
 import { ProviderConfigDialog } from '../settings/ProviderConfigDialog'
 import { dbClient } from '@/services/dbClient'
@@ -24,6 +25,7 @@ export function SettingsV2() {
   const [showConfigDialog, setShowConfigDialog] = useState(false)
   const [fonts, setFonts] = useState<string[]>([])
   const [uiFont, setUiFont] = useState('')
+  const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>('auto')
 
   useEffect(() => {
     let mounted = true
@@ -57,11 +59,41 @@ export function SettingsV2() {
     }
   }, [])
 
+  useEffect(() => {
+    let mounted = true
+    const loadTheme = async () => {
+      try {
+        const value = await dbClient.settings.get('theme')
+        if (!mounted) return
+        if (value && ['light', 'dark', 'auto'].includes(value as string)) {
+          setTheme(value as 'light' | 'dark' | 'auto')
+        }
+      } catch {
+        // Ignore in environments without IPC (tests)
+      }
+    }
+    loadTheme()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
   const handleFontChange = async (value: string) => {
     setUiFont(value)
     applyUIFont(value)
     try {
       await dbClient.settings.set('uiFont', value)
+    } catch {
+      // Ignore in environments without IPC (tests)
+    }
+  }
+
+  const handleThemeChange = async (value: 'light' | 'dark' | 'auto') => {
+    setTheme(value)
+    try {
+      await dbClient.settings.set('theme', value)
+      // Dispatch custom event to notify App.tsx
+      window.dispatchEvent(new CustomEvent('theme-changed', { detail: value }))
     } catch {
       // Ignore in environments without IPC (tests)
     }
@@ -77,28 +109,25 @@ export function SettingsV2() {
     setConfigProvider(null)
   }
 
-  if (!isOpen) {
-    return (
+  return (
+    <>
       <div className="p-4 border-t">
         <Button variant="ghost" className="w-full justify-start" onClick={() => setIsOpen(true)}>
           <SettingsIcon className="w-4 h-4 mr-2" />
           Settings
         </Button>
       </div>
-    )
-  }
 
-  return (
-    <>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-background rounded-lg shadow-lg w-full max-w-5xl mx-4 h-[85vh] flex flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b">
-            <h2 className="text-2xl font-semibold">Settings</h2>
-            <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
-              <X className="w-5 h-5" />
-            </Button>
-          </div>
+      <Modal
+        open={isOpen}
+        onCancel={() => setIsOpen(false)}
+        title="Settings"
+        footer={null}
+        width={1200}
+        styles={{
+          body: { padding: 0, height: '70vh', display: 'flex', overflow: 'hidden' }
+        }}
+      >
 
           {/* Content */}
           <div className="flex-1 flex overflow-hidden">
@@ -109,7 +138,7 @@ export function SettingsV2() {
                 className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
                   activeTab === 'providers'
                     ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-accent'
+                    : 'hover:bg-accent hover:text-accent-foreground'
                 }`}
               >
                 <div className="font-medium">Providers</div>
@@ -119,7 +148,7 @@ export function SettingsV2() {
               <button
                 onClick={() => setActiveTab('general')}
                 className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                  activeTab === 'general' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent'
+                  activeTab === 'general' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-accent-foreground'
                 }`}
               >
                 <div className="font-medium">General</div>
@@ -157,12 +186,34 @@ export function SettingsV2() {
                       Select any installed system font or type a custom name.
                     </p>
                   </div>
+
+                  {/* Theme Setting */}
+                  <div className="space-y-2 max-w-md mt-6">
+                    <label className="text-sm font-medium">Theme</label>
+                    <div className="flex gap-2">
+                      {(['light', 'dark', 'auto'] as const).map((option) => (
+                        <button
+                          key={option}
+                          onClick={() => handleThemeChange(option)}
+                          className={`px-4 py-2 rounded-md border text-sm capitalize transition-colors ${
+                            theme === option
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'border-[hsl(var(--border))] hover:bg-accent'
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-[hsl(var(--text-muted))]">
+                      Choose light, dark, or auto (follows system preference).
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
           </div>
-        </div>
-      </div>
+      </Modal>
 
       {/* Provider Config Dialog */}
       <ProviderConfigDialog

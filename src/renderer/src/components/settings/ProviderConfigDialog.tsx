@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { Checkbox } from 'antd'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -174,16 +175,13 @@ export function ProviderConfigDialog({
           </div>
 
           <div className="flex items-center gap-2">
-            <input
+            <Checkbox
               id="provider-enabled"
-              type="checkbox"
               checked={formData.enabled}
               onChange={(e) => setFormData({ ...formData, enabled: e.target.checked })}
-              className="h-4 w-4 rounded border"
-            />
-            <label htmlFor="provider-enabled" className="text-sm font-medium">
+            >
               Enabled
-            </label>
+            </Checkbox>
           </div>
 
           <div className="flex justify-end gap-2 pt-4">

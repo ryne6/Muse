@@ -32,7 +32,7 @@ const mockConversationStore = vi.hoisted(() => {
   }
 })
 
-vi.mock('@/stores/conversationStoreV2', () => ({
+vi.mock('@/stores/conversationStore', () => ({
   useConversationStore: () => mockConversationStore
 }))
 

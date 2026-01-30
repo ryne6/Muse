@@ -48,7 +48,7 @@ const mockGetCurrentConversation = vi.fn()
 const mockUpdateConversation = vi.fn()
 const mockRenameConversation = vi.fn()
 
-vi.mock('../conversationStoreV2', () => ({
+vi.mock('../conversationStore', () => ({
   useConversationStore: {
     getState: () => ({
       getCurrentConversation: mockGetCurrentConversation,

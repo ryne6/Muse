@@ -117,7 +117,7 @@ vi.mock('@/stores/chatStore', () => ({
   useChatStore: () => mockChatStore
 }))
 
-vi.mock('@/stores/conversationStoreV2', () => ({
+vi.mock('@/stores/conversationStore', () => ({
   useConversationStore: () => mockConversationStore
 }))
 

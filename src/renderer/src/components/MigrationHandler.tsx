@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { dbClient } from '@/services/dbClient'
-import { useConversationStore } from '@/stores/conversationStoreV2'
+import { useConversationStore } from '@/stores/conversationStore'
 import { useSettingsStore } from '@/stores/settingsStore'
 
 export function MigrationHandler() {

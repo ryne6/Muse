@@ -1,5 +1,5 @@
 import { Plus, MessageSquare } from 'lucide-react'
-import { useConversationStore } from '@/stores/conversationStoreV2'
+import { useConversationStore } from '@/stores/conversationStore'
 import { useSearchStore } from '@/stores/searchStore'
 import { Button } from '../ui/button'
 import { ConversationGroup } from './ConversationGroup'

@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { FileText, MessageSquare, Wrench, Image } from 'lucide-react'
 import { useSearchStore } from '@/stores/searchStore'
-import { useConversationStore } from '@/stores/conversationStoreV2'
+import { useConversationStore } from '@/stores/conversationStore'
 import type { SearchResult, SearchContentType } from '@shared/types/search'
 import { LoadingInline } from '@/components/ui/loading'
 

@@ -6,7 +6,7 @@ import type { APIError } from '@shared/types/error'
 import { getErrorMessage } from '@shared/types/error'
 import type { Message, ToolCall, ToolResult } from '@shared/types/conversation'
 import type { PendingAttachment } from '@shared/types/attachment'
-import { useConversationStore } from './conversationStoreV2'
+import { useConversationStore } from './conversationStore'
 
 interface ChatStore {
   // State

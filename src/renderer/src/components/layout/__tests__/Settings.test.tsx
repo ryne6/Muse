@@ -67,7 +67,7 @@ describe('Settings', () => {
       await user.click(settingsButton)
 
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument()
+        expect(screen.getByRole('dialog')).toBeInTheDocument()
       })
     })
 
@@ -91,15 +91,15 @@ describe('Settings', () => {
       await user.click(screen.getByText('Settings'))
 
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument()
+        expect(screen.getByRole('dialog')).toBeInTheDocument()
       })
 
       // Close dialog
-      const closeButton = screen.getByRole('button', { name: '' })
+      const closeButton = screen.getByRole('button', { name: 'Close' })
       await user.click(closeButton)
 
       await waitFor(() => {
-        expect(screen.queryByRole('heading', { name: 'Settings' })).not.toBeInTheDocument()
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
       })
     })
   })

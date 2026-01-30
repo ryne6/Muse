@@ -29,7 +29,7 @@ export function FullscreenEditor({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-[hsl(var(--bg-main))] flex flex-col">
+    <div className="absolute inset-0 z-50 bg-[hsl(var(--bg-main))] flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-[hsl(var(--border))]">
         <span className="text-sm text-[hsl(var(--text-muted))]">

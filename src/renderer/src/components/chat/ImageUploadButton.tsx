@@ -1,6 +1,5 @@
 import { useRef } from 'react'
 import { Link } from 'lucide-react'
-import { Button } from '../ui/button'
 import { SUPPORTED_IMAGE_TYPES, MAX_ATTACHMENT_SIZE } from '@shared/types/attachment'
 import { notify } from '@/utils/notify'
 
@@ -52,16 +51,15 @@ export function ImageUploadButton({ onImagesSelected, disabled }: ImageUploadBut
         onChange={handleChange}
         className="hidden"
       />
-      <Button
+      <button
         type="button"
-        variant="ghost"
-        size="icon"
         onClick={handleClick}
         disabled={disabled}
         title="Add image"
+        className="p-1.5 rounded hover:bg-[hsl(var(--surface-2))] text-[hsl(var(--text-muted))] transition-colors disabled:opacity-50"
       >
         <Link className="w-4 h-4" />
-      </Button>
+      </button>
     </>
   )
 }

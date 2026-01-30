@@ -1,14 +1,8 @@
 import { useState } from 'react'
 import { Star, MoreVertical, Trash2, Edit2 } from 'lucide-react'
+import { Dropdown } from '@lobehub/ui'
 import type { Conversation } from '@shared/types/conversation'
 import { useConversationStore } from '@/stores/conversationStore'
-import { Button } from '../ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu'
 
 interface ConversationItemProps {
   conversation: Conversation
@@ -94,28 +88,33 @@ export function ConversationItem({ conversation }: ConversationItemProps) {
         </div>
       )}
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-[hsl(var(--text-muted))]"
-            aria-label="Conversation actions"
-          >
-            <MoreVertical className="w-3 h-3" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={handleRename}>
-            <Edit2 className="w-3 h-3 mr-2" />
-            Rename
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={handleDelete} className="text-destructive">
-            <Trash2 className="w-3 h-3 mr-2" />
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <Dropdown
+        menu={{
+          items: [
+            {
+              key: 'rename',
+              label: 'Rename',
+              icon: <Edit2 className="w-3 h-3" />,
+              onClick: handleRename,
+            },
+            {
+              key: 'delete',
+              label: 'Delete',
+              icon: <Trash2 className="w-3 h-3" />,
+              danger: true,
+              onClick: handleDelete,
+            },
+          ],
+        }}
+      >
+        <button
+          className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-[hsl(var(--text-muted))] flex items-center justify-center rounded hover:bg-[hsl(var(--surface-2))]"
+          onClick={(e) => e.stopPropagation()}
+          aria-label="Conversation actions"
+        >
+          <MoreVertical className="w-3 h-3" />
+        </button>
+      </Dropdown>
     </div>
   )
 }

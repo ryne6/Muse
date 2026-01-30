@@ -22,7 +22,7 @@ describe('ClaudeProvider', () => {
       expect(provider.supportedModels).toContain('claude-3-opus-20240229')
       expect(provider.supportedModels).toContain('claude-3-sonnet-20240229')
       expect(provider.supportedModels).toContain('claude-3-haiku-20240307')
-      expect(provider.supportedModels.length).toBe(4)
+      expect(provider.supportedModels.length).toBe(7)
     })
 
     it('should return correct default model', () => {

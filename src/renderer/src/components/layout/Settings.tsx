@@ -1,375 +1,229 @@
-import { useState, useEffect } from 'react'
-import { useSettingsStore } from '@/stores/settingsStore'
+import { useEffect, useState } from 'react'
+import { Modal } from '@lobehub/ui'
 import { Button } from '../ui/button'
-import { Settings as SettingsIcon, X, Plus } from 'lucide-react'
-import type { ModelConfig } from '@shared/types/config'
+import { Settings as SettingsIcon } from 'lucide-react'
+import { ProviderList } from '../settings/ProviderList'
+import { ProviderConfigDialog } from '../settings/ProviderConfigDialog'
+import { dbClient } from '@/services/dbClient'
+import { applyUIFont, getSystemFonts } from '@/services/fontService'
+
+interface Provider {
+  id: string
+  name: string
+  type: string
+  apiKey: string
+  baseURL?: string
+  enabled: boolean
+}
+
+type Tab = 'providers' | 'general'
 
 export function Settings() {
   const [isOpen, setIsOpen] = useState(false)
-  const {
-    currentProvider,
-    providers,
-    updateProvider,
-    setCurrentProvider,
-    addCustomModel,
-    removeCustomModel,
-    getAvailableModels,
-  } = useSettingsStore()
+  const [activeTab, setActiveTab] = useState<Tab>('providers')
+  const [configProvider, setConfigProvider] = useState<Provider | null>(null)
+  const [showConfigDialog, setShowConfigDialog] = useState(false)
+  const [fonts, setFonts] = useState<string[]>([])
+  const [uiFont, setUiFont] = useState('')
+  const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>('auto')
 
-  const [selectedProvider, setSelectedProvider] = useState(currentProvider)
-  const [apiKey, setApiKey] = useState('')
-  const [model, setModel] = useState('')
-  const [isCustomInput, setIsCustomInput] = useState(false)
-  const [customModelId, setCustomModelId] = useState('')
-  const [temperature, setTemperature] = useState(1)
-  const [baseURL, setBaseURL] = useState('')
-  const [showAddModelDialog, setShowAddModelDialog] = useState(false)
-
-  // Load current provider config
   useEffect(() => {
-    if (isOpen && providers[selectedProvider]) {
-      const config = providers[selectedProvider]
-      setApiKey(config.apiKey || '')
-      setModel(config.model || '')
-      setCustomModelId(config.model || '')
-      setTemperature(config.temperature || 1)
-      setBaseURL(config.baseURL || '')
-    }
-  }, [isOpen, selectedProvider, providers])
-
-  const handleSave = () => {
-    const modelToSave = isCustomInput ? customModelId : model
-    updateProvider(selectedProvider, {
-      type: selectedProvider as any,
-      apiKey,
-      model: modelToSave,
-      models: providers[selectedProvider]?.models,
-      temperature,
-      baseURL: baseURL || undefined,
-      maxTokens: 4096,
+    let mounted = true
+    getSystemFonts().then((fontList) => {
+      if (mounted) {
+        setFonts(fontList)
+      }
     })
-    setCurrentProvider(selectedProvider)
-    setIsOpen(false)
-  }
+    return () => {
+      mounted = false
+    }
+  }, [])
 
-  const handleAddModel = (newModel: ModelConfig) => {
-    addCustomModel(selectedProvider, newModel)
-    setModel(newModel.id)
-    setCustomModelId(newModel.id)
-  }
-
-  const handleRemoveModel = (modelId: string) => {
-    removeCustomModel(selectedProvider, modelId)
-    if (model === modelId) {
-      const availableModels = getAvailableModels(selectedProvider)
-      const firstModel = availableModels.find((m) => !m.isCustom)
-      if (firstModel) {
-        setModel(firstModel.id)
-        setCustomModelId(firstModel.id)
+  useEffect(() => {
+    let mounted = true
+    const loadFont = async () => {
+      try {
+        const value = await dbClient.settings.get('uiFont')
+        if (!mounted) return
+        if (typeof value === 'string' && value) {
+          setUiFont(value)
+          applyUIFont(value)
+        }
+      } catch {
+        // Ignore in environments without IPC (tests)
       }
     }
+    loadFont()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  useEffect(() => {
+    let mounted = true
+    const loadTheme = async () => {
+      try {
+        const value = await dbClient.settings.get('theme')
+        if (!mounted) return
+        if (value && ['light', 'dark', 'auto'].includes(value as string)) {
+          setTheme(value as 'light' | 'dark' | 'auto')
+        }
+      } catch {
+        // Ignore in environments without IPC (tests)
+      }
+    }
+    loadTheme()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
+  const handleFontChange = async (value: string) => {
+    setUiFont(value)
+    applyUIFont(value)
+    try {
+      await dbClient.settings.set('uiFont', value)
+    } catch {
+      // Ignore in environments without IPC (tests)
+    }
   }
 
-  if (!isOpen) {
-    return (
+  const handleThemeChange = async (value: 'light' | 'dark' | 'auto') => {
+    setTheme(value)
+    try {
+      await dbClient.settings.set('theme', value)
+      // Dispatch custom event to notify App.tsx
+      window.dispatchEvent(new CustomEvent('theme-changed', { detail: value }))
+    } catch {
+      // Ignore in environments without IPC (tests)
+    }
+  }
+
+  const handleConfigureProvider = (provider: Provider) => {
+    setConfigProvider(provider)
+    setShowConfigDialog(true)
+  }
+
+  const handleCloseConfigDialog = () => {
+    setShowConfigDialog(false)
+    setConfigProvider(null)
+  }
+
+  return (
+    <>
       <div className="p-4 border-t">
         <Button variant="ghost" className="w-full justify-start" onClick={() => setIsOpen(true)}>
           <SettingsIcon className="w-4 h-4 mr-2" />
           Settings
         </Button>
       </div>
-    )
-  }
 
-  const availableModels = getAvailableModels(selectedProvider)
-  const presetModels = availableModels.filter((m) => !m.isCustom)
-  const customModels = availableModels.filter((m) => m.isCustom)
+      <Modal
+        open={isOpen}
+        onCancel={() => setIsOpen(false)}
+        title="Settings"
+        footer={null}
+        width={1200}
+        styles={{
+          body: { padding: 0, height: '70vh', display: 'flex', overflow: 'hidden' }
+        }}
+      >
 
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-background rounded-lg shadow-lg w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-4 border-b sticky top-0 bg-background z-10">
-          <h2 className="text-lg font-semibold">Settings</h2>
-          <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
+          {/* Content */}
+          <div className="flex-1 flex overflow-hidden">
+            {/* Sidebar */}
+            <div className="w-64 border-r p-4 space-y-1">
+              <button
+                onClick={() => setActiveTab('providers')}
+                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                  activeTab === 'providers'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-accent hover:text-accent-foreground'
+                }`}
+              >
+                <div className="font-medium">Providers</div>
+                <div className="text-xs opacity-70">AI provider configurations</div>
+              </button>
 
-        <div className="p-4 space-y-4">
-          {/* Provider Selector */}
-          <div>
-            <label className="block text-sm font-medium mb-2">AI Provider</label>
-            <select
-              value={selectedProvider}
-              onChange={(e) => setSelectedProvider(e.target.value)}
-              className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background"
-            >
-              <option value="claude">Claude (Anthropic)</option>
-              <option value="openai">OpenAI (GPT)</option>
-            </select>
-          </div>
-
-          {/* API Key */}
-          <div>
-            <label className="block text-sm font-medium mb-2">API Key</label>
-            <input
-              type="password"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder={`Enter your ${selectedProvider === 'claude' ? 'Anthropic' : 'OpenAI'} API key`}
-              className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              {selectedProvider === 'claude'
-                ? 'Get your key from console.anthropic.com'
-                : 'Get your key from platform.openai.com'}
-            </p>
-          </div>
-
-          {/* Model Selector */}
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium mb-2">Model</label>
-              <div className="flex gap-2">
-                {isCustomInput ? (
-                  <input
-                    type="text"
-                    value={customModelId}
-                    onChange={(e) => {
-                      setCustomModelId(e.target.value)
-                    }}
-                    placeholder="Enter custom model ID"
-                    className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                ) : (
-                  <select
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
-                    className="flex-1 px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background"
-                  >
-                    {availableModels.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name}
-                        {m.contextLength && ` (${m.contextLength / 1000}K)`}
-                      </option>
-                    ))}
-                  </select>
-                )}
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsCustomInput(!isCustomInput)}
-                  className="shrink-0"
-                >
-                  {isCustomInput ? 'Select' : 'Custom'}
-                </Button>
-              </div>
+              <button
+                onClick={() => setActiveTab('general')}
+                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                  activeTab === 'general' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-accent-foreground'
+                }`}
+              >
+                <div className="font-medium">General</div>
+                <div className="text-xs opacity-70">App preferences</div>
+              </button>
             </div>
 
-            {/* Quick Select Preset Models */}
-            {presetModels.length > 0 && (
-              <div>
-                <div className="text-xs text-muted-foreground mb-2">Quick Select:</div>
-                <div className="flex flex-wrap gap-2">
-                  {presetModels.slice(0, 4).map((m) => (
-                    <Button
-                      key={m.id}
-                      variant={(isCustomInput ? customModelId : model) === m.id ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => {
-                        setModel(m.id)
-                        setCustomModelId(m.id)
-                        setIsCustomInput(false)
-                      }}
-                      className="text-xs"
-                    >
-                      {m.name.replace(/^(Claude|GPT) /, '')}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Main Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {activeTab === 'providers' && (
+                <ProviderList onConfigureProvider={handleConfigureProvider} />
+              )}
 
-            {/* Custom Models List */}
-            {customModels.length > 0 && (
-              <div>
-                <div className="text-xs text-muted-foreground mb-2">Custom Models:</div>
-                <div className="space-y-1">
-                  {customModels.map((m) => (
-                    <div
-                      key={m.id}
-                      className="flex items-center justify-between p-2 rounded bg-secondary text-sm"
-                    >
-                      <button
-                        onClick={() => {
-                          setModel(m.id)
-                          setCustomModelId(m.id)
-                          setIsCustomInput(false)
-                        }}
-                        className="flex-1 text-left"
-                      >
-                        {m.name}
-                        {m.contextLength && (
-                          <span className="text-xs text-muted-foreground ml-2">
-                            ({m.contextLength / 1000}K)
-                          </span>
-                        )}
-                      </button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6 shrink-0"
-                        onClick={() => handleRemoveModel(m.id)}
-                      >
-                        <X className="w-3 h-3" />
-                      </Button>
+              {activeTab === 'general' && (
+                <div>
+                  <h2 className="text-2xl font-semibold mb-4">General Settings</h2>
+                  <div className="space-y-2 max-w-md">
+                    <label htmlFor="ui-font" className="text-sm font-medium">
+                      UI Font
+                    </label>
+                    <input
+                      id="ui-font"
+                      list="system-fonts"
+                      value={uiFont}
+                      onChange={(e) => handleFontChange(e.target.value)}
+                      placeholder="System UI"
+                      className="w-full px-3 py-2 rounded-md border border-[hsl(var(--border))] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--border))]"
+                    />
+                    <datalist id="system-fonts">
+                      {fonts.map((font) => (
+                        <option key={font} value={font} />
+                      ))}
+                    </datalist>
+                    <p className="text-xs text-[hsl(var(--text-muted))]">
+                      Select any installed system font or type a custom name.
+                    </p>
+                  </div>
+
+                  {/* Theme Setting */}
+                  <div className="space-y-2 max-w-md mt-6">
+                    <label className="text-sm font-medium">Theme</label>
+                    <div className="flex gap-2">
+                      {(['light', 'dark', 'auto'] as const).map((option) => (
+                        <button
+                          key={option}
+                          onClick={() => handleThemeChange(option)}
+                          className={`px-4 py-2 rounded-md border text-sm capitalize transition-colors ${
+                            theme === option
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'border-[hsl(var(--border))] hover:bg-accent'
+                          }`}
+                        >
+                          {option}
+                        </button>
+                      ))}
                     </div>
-                  ))}
+                    <p className="text-xs text-[hsl(var(--text-muted))]">
+                      Choose light, dark, or auto (follows system preference).
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
-
-            {/* Add Custom Model Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAddModelDialog(true)}
-              className="w-full"
-            >
-              <Plus className="w-4 h-4 mr-1" />
-              Add Custom Model
-            </Button>
-          </div>
-
-          {/* Base URL */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Base URL (Optional)</label>
-            <input
-              type="text"
-              value={baseURL}
-              onChange={(e) => setBaseURL(e.target.value)}
-              placeholder={
-                selectedProvider === 'claude'
-                  ? 'https://api.anthropic.com'
-                  : 'https://api.openai.com/v1'
-              }
-              className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-            <p className="text-xs text-muted-foreground mt-1">For custom endpoints or proxy servers</p>
-          </div>
-
-          {/* Temperature */}
-          <div>
-            <label className="block text-sm font-medium mb-2">Temperature: {temperature}</label>
-            <input
-              type="range"
-              min="0"
-              max="2"
-              step="0.1"
-              value={temperature}
-              onChange={(e) => setTemperature(parseFloat(e.target.value))}
-              className="w-full"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground mt-1">
-              <span>Precise (0)</span>
-              <span>Balanced (1)</span>
-              <span>Creative (2)</span>
+              )}
             </div>
           </div>
-        </div>
+      </Modal>
 
-        <div className="p-4 border-t flex justify-end gap-2 sticky bottom-0 bg-background">
-          <Button variant="outline" onClick={() => setIsOpen(false)}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave}>Save</Button>
-        </div>
-      </div>
-
-      {/* Add Custom Model Dialog */}
-      {showAddModelDialog && (
-        <CustomModelDialog
-          onAdd={handleAddModel}
-          onCancel={() => setShowAddModelDialog(false)}
-        />
-      )}
-    </div>
-  )
-}
-
-interface CustomModelDialogProps {
-  onAdd: (model: ModelConfig) => void
-  onCancel: () => void
-}
-
-function CustomModelDialog({ onAdd, onCancel }: CustomModelDialogProps) {
-  const [modelId, setModelId] = useState('')
-  const [modelName, setModelName] = useState('')
-  const [contextLength, setContextLength] = useState('')
-
-  const handleAdd = () => {
-    if (!modelId.trim()) return
-
-    onAdd({
-      id: modelId.trim(),
-      name: modelName.trim() || modelId.trim(),
-      contextLength: contextLength ? parseInt(contextLength) : undefined,
-      isCustom: true,
-    })
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
-      <div className="bg-background rounded-lg shadow-lg w-full max-w-sm mx-4 p-4">
-        <h3 className="text-lg font-semibold mb-4">Add Custom Model</h3>
-
-        <div className="space-y-3">
-          <div>
-            <label className="block text-sm font-medium mb-1">
-              Model ID <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={modelId}
-              onChange={(e) => setModelId(e.target.value)}
-              placeholder="e.g., gpt-4-1106-preview"
-              className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Display Name</label>
-            <input
-              type="text"
-              value={modelName}
-              onChange={(e) => setModelName(e.target.value)}
-              placeholder="e.g., GPT-4 Turbo (Nov 2023)"
-              className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">Context Length</label>
-            <input
-              type="number"
-              value={contextLength}
-              onChange={(e) => setContextLength(e.target.value)}
-              placeholder="e.g., 128000"
-              className="w-full px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button onClick={handleAdd} disabled={!modelId.trim()}>
-            Add Model
-          </Button>
-        </div>
-      </div>
-    </div>
+      {/* Provider Config Dialog */}
+      <ProviderConfigDialog
+        provider={configProvider}
+        open={showConfigDialog}
+        onClose={handleCloseConfigDialog}
+        onUpdated={() => {
+          // Provider list will auto-refresh
+        }}
+      />
+    </>
   )
 }

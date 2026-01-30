@@ -1,4 +1,4 @@
-import { SettingsV2 } from './SettingsV2'
+import { Settings } from './Settings'
 import { ConversationList } from './ConversationList'
 
 export function Sidebar() {
@@ -16,7 +16,7 @@ export function Sidebar() {
       </div>
 
       {/* Settings */}
-      <SettingsV2 />
+      <Settings />
     </div>
   )
 }

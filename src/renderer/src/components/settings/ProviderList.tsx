@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
-import { ProviderCardV2 } from './ProviderCardV2'
+import { ProviderCard } from './ProviderCard'
 import { AddProviderDialog } from './AddProviderDialog'
 import { ManageModelsDialog } from './ManageModelsDialog'
 import { dbClient } from '@/services/dbClient'
@@ -99,7 +99,7 @@ export function ProviderList({ onConfigureProvider }: ProviderListProps) {
               className={fadeInUpClass}
               style={{ animationDelay: `${index * 40}ms` }}
             >
-              <ProviderCardV2
+              <ProviderCard
                 provider={provider}
                 onUpdate={loadProviders}
                 onConfigure={handleConfigure}

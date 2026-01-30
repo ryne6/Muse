@@ -1,5 +1,5 @@
 import { useState, KeyboardEvent, useEffect, useCallback } from 'react'
-import { Send, Maximize2, Brain, Globe, ChevronDown } from 'lucide-react'
+import { Send, Square, Maximize2, Brain, Globe, ChevronDown } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { Button } from '../ui/button'
 import { useChatStore } from '@/stores/chatStore'
@@ -19,7 +19,7 @@ export function ChatInput() {
   const [thinkingEnabled, setThinkingEnabled] = useState(false)
   const [webSearchEnabled, setWebSearchEnabled] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
-  const { sendMessage, isLoading } = useChatStore()
+  const { sendMessage, isLoading, abortMessage } = useChatStore()
   const { getCurrentConversation, createConversation } = useConversationStore()
   const {
     getCurrentProvider,
@@ -167,7 +167,6 @@ export function ChatInput() {
                   aria-label="Message input"
                   className="w-full resize-none bg-transparent text-[15px] min-h-[60px] max-h-[200px] focus:outline-none"
                   rows={3}
-                  disabled={isLoading}
                 />
                 {/* Fullscreen Button */}
                 <button
@@ -221,16 +220,28 @@ export function ChatInput() {
                   </button>
                 </div>
 
-                {/* Send Button */}
-                <Button
-                  onClick={handleSend}
-                  disabled={(!input.trim() && pendingAttachments.length === 0) || isLoading}
-                  size="icon"
-                  className="h-8 w-8 rounded-md shrink-0"
-                  aria-label="Send message"
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
+                {/* Send / Stop Button */}
+                {isLoading ? (
+                  <Button
+                    onClick={abortMessage}
+                    size="icon"
+                    variant="destructive"
+                    className="h-8 w-8 rounded-md shrink-0"
+                    aria-label="Stop generation"
+                  >
+                    <Square className="w-4 h-4" />
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleSend}
+                    disabled={!input.trim() && pendingAttachments.length === 0}
+                    size="icon"
+                    className="h-8 w-8 rounded-md shrink-0"
+                    aria-label="Send message"
+                  >
+                    <Send className="w-4 h-4" />
+                  </Button>
+                )}
               </div>
             </div>
           </div>

@@ -77,6 +77,7 @@ export interface AIConfig {
   temperature?: number
   maxTokens?: number
   thinkingEnabled?: boolean
+  thinkingBudget?: number
 }
 
 export interface AIProvider {

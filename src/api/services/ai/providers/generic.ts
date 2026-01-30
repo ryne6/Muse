@@ -41,6 +41,15 @@ export class GenericProvider extends BaseAIProvider {
     config: AIConfig,
     onChunk: (chunk: AIStreamChunk) => void
   ): Promise<string> {
+    // Warn if thinking is enabled but apiFormat doesn't support it
+    if (config.thinkingEnabled && config.apiFormat !== 'anthropic-messages') {
+      console.warn(
+        '[generic-provider] Thinking is enabled but apiFormat is not "anthropic-messages". ' +
+          'Thinking only works with Anthropic Messages API format. ' +
+          `Current apiFormat: "${config.apiFormat || 'chat-completions'}"`
+      )
+    }
+
     const strategy = getStrategy(config.apiFormat)
     const requestBody = strategy.buildBody(messages, config, { stream: true })
     const headers = strategy.buildHeaders(config)
@@ -81,15 +90,21 @@ export class GenericProvider extends BaseAIProvider {
 
             try {
               const parsed = JSON.parse(data)
-              let content: string | undefined
+              const result = strategy.parseStreamChunk(parsed)
 
-              content = strategy.parseStreamChunk(parsed)
-
-              if (content) {
-                fullContent += content
+              if (result?.content) {
+                fullContent += result.content
                 onChunk({
-                  content,
+                  content: result.content,
                   done: false,
+                })
+              }
+              if (result?.thinking) {
+                console.log('[generic-provider] Sending thinking chunk:', result.thinking.slice(0, 50))
+                onChunk({
+                  content: '',
+                  done: false,
+                  thinking: result.thinking,
                 })
               }
             } catch (e) {

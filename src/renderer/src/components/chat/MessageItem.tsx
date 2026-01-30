@@ -23,7 +23,7 @@ export function MessageItem({ message }: MessageItemProps) {
     <>
       {/* Thinking Process (只在 AI 消息中显示) */}
       {!isUser && message.thinking && (
-        <ThinkingBlock thinking={message.thinking} />
+        <ThinkingBlock thinking={message.thinking} isComplete={!!message.content} />
       )}
 
       {/* Tool Calls (只在 AI 消息中显示) */}
@@ -77,7 +77,7 @@ export function MessageItem({ message }: MessageItemProps) {
       <div className="flex-1 min-w-0">
         {/* Header */}
         <div className="flex items-center gap-2 mb-2 text-xs text-[hsl(var(--text-muted))]">
-          <span className="text-sm font-semibold text-foreground">Lobe AI</span>
+          <span className="text-sm font-semibold text-foreground">Muse</span>
           {timestamp ? (
             <span className="ml-auto text-[hsl(var(--text-muted))]">{timestamp}</span>
           ) : null}

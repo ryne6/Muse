@@ -11,6 +11,7 @@ import { useConversationStore } from './conversationStore'
 interface ChatStore {
   // State
   isLoading: boolean
+  abortController: AbortController | null
   error: string | null
   lastError: APIError | null
   retryable: boolean
@@ -23,20 +24,32 @@ interface ChatStore {
     config: AIConfig,
     attachments?: PendingAttachment[]
   ) => Promise<void>
+  abortMessage: () => void
   clearError: () => void
 }
 
-export const useChatStore = create<ChatStore>((set) => ({
+export const useChatStore = create<ChatStore>((set, get) => ({
   // State
   isLoading: false,
+  abortController: null,
   error: null,
   lastError: null,
   retryable: false,
 
   // Actions
   clearError: () => set({ error: null, lastError: null, retryable: false }),
+
+  abortMessage: () => {
+    const { abortController } = get()
+    if (abortController) {
+      abortController.abort()
+      set({ isLoading: false, abortController: null })
+    }
+  },
+
   sendMessage: async (conversationId, content, providerType, config, attachments = []) => {
-    set({ isLoading: true, error: null })
+    const controller = new AbortController()
+    set({ isLoading: true, error: null, abortController: controller })
 
     // Add user message
     const userMessage: Message = {
@@ -194,7 +207,8 @@ export const useChatStore = create<ChatStore>((set) => ({
           conversationStore.updateConversation(conversationId, {
             messages: updatedMessages,
           })
-        }
+        },
+        controller.signal
       )
 
       // Update conversation title if it's the first user message
@@ -204,6 +218,11 @@ export const useChatStore = create<ChatStore>((set) => ({
         useConversationStore.getState().renameConversation(conversationId, title)
       }
     } catch (error) {
+      // Ignore abort errors (user cancelled)
+      if (error instanceof Error && error.name === 'AbortError') {
+        return
+      }
+
       console.error('Failed to send message:', error)
 
       // Parse error using structured error types
@@ -238,7 +257,7 @@ export const useChatStore = create<ChatStore>((set) => ({
 
       set({ error: errorMessage, lastError: apiError, retryable: isRetryable })
     } finally {
-      set({ isLoading: false })
+      set({ isLoading: false, abortController: null })
     }
   },
 }))

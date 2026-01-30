@@ -159,7 +159,8 @@ export class APIClient {
     provider: string,
     messages: AIMessage[],
     config: AIConfig,
-    onChunk: (chunk: AIStreamChunk) => void
+    onChunk: (chunk: AIStreamChunk) => void,
+    signal?: AbortSignal
   ): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/chat/stream`, {
       method: 'POST',
@@ -167,6 +168,7 @@ export class APIClient {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ provider, messages, config }),
+      signal,
     })
 
     if (!response.ok) {

@@ -1,36 +1,60 @@
 import { useState } from 'react'
-import { ChevronDown, ChevronRight, Brain } from 'lucide-react'
+import { ChevronDown, ChevronUp } from 'lucide-react'
+import { cn } from '../../utils/cn'
 
 interface ThinkingBlockProps {
   thinking: string
+  isComplete?: boolean
 }
 
-export function ThinkingBlock({ thinking }: ThinkingBlockProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
+export function ThinkingBlock({ thinking, isComplete = false }: ThinkingBlockProps) {
+  const [isFullExpanded, setIsFullExpanded] = useState(false)
 
   if (!thinking) return null
 
   return (
-    <div className="mb-3 border border-[hsl(var(--border))] rounded-lg overflow-hidden">
-      <button
-        onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center gap-2 px-3 py-2 bg-[hsl(var(--surface-1))] hover:bg-[hsl(var(--surface-2))] transition-colors"
-      >
-        {isExpanded ? (
-          <ChevronDown className="w-4 h-4" />
-        ) : (
-          <ChevronRight className="w-4 h-4" />
-        )}
-        <Brain className="w-4 h-4 text-blue-500" />
-        <span className="text-sm font-medium">Thinking Process</span>
-        <span className="text-xs text-[hsl(var(--text-muted))] ml-auto">
-          {thinking.length} chars
+    <div className="mb-3 relative group">
+      {/* 头部标题 */}
+      <div className="flex items-center gap-2 mb-1">
+        <span className="text-xs text-muted-foreground">
+          {isComplete ? 'Thought for a moment' : 'Thinking...'}
         </span>
-      </button>
-      {isExpanded && (
-        <div className="px-3 py-2 text-sm text-[hsl(var(--text-muted))] whitespace-pre-wrap max-h-[400px] overflow-y-auto">
-          {thinking}
-        </div>
+      </div>
+
+      {/* 内容区域 */}
+      <div
+        className={cn(
+          'text-sm text-muted-foreground whitespace-pre-wrap',
+          !isFullExpanded && 'max-h-[4.5rem] overflow-hidden group-hover:overflow-auto'
+        )}
+      >
+        {thinking}
+      </div>
+
+      {/* 悬浮时显示展开按钮（仅当内容超长时） */}
+      {!isFullExpanded && thinking.length > 200 && (
+        <button
+          onClick={() => setIsFullExpanded(true)}
+          className="absolute bottom-0 right-0 flex items-center gap-1 px-2 py-0.5 text-xs
+                     text-muted-foreground bg-[hsl(var(--surface-2))] rounded
+                     opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <ChevronDown className="w-3 h-3" />
+          展开
+        </button>
+      )}
+
+      {/* 展开后显示收起按钮 */}
+      {isFullExpanded && (
+        <button
+          onClick={() => setIsFullExpanded(false)}
+          className="absolute bottom-0 right-0 flex items-center gap-1 px-2 py-0.5 text-xs
+                     text-muted-foreground bg-[hsl(var(--surface-2))] rounded
+                     opacity-0 group-hover:opacity-100 transition-opacity"
+        >
+          <ChevronUp className="w-3 h-3" />
+          收起
+        </button>
       )}
     </div>
   )

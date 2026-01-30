@@ -111,12 +111,15 @@ export class ClaudeProvider extends BaseAIProvider {
       }
 
       const stream = await client.messages.create(requestParams)
+      console.log('[Claude] Request with thinking:', config.thinkingEnabled, 'params:', JSON.stringify(requestParams.thinking))
 
       let currentContent = ''
       const toolUses: any[] = []
 
       for await (const chunk of stream) {
+        console.log('[Claude] Chunk:', chunk.type, (chunk as any).delta?.type)
         if (chunk.type === 'content_block_start') {
+          console.log('[Claude] Block start:', (chunk as any).content_block?.type)
           if (chunk.content_block.type === 'tool_use') {
             toolUses.push({
               id: chunk.content_block.id,

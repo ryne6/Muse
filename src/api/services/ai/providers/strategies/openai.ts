@@ -1,5 +1,5 @@
 import type { AIConfig, AIMessage } from '../../../../../shared/types/ai'
-import type { ProviderStrategy, StrategyOptions } from './index'
+import type { ProviderStrategy, StrategyOptions, StreamChunkResult } from './index'
 
 function getEndpoint(apiFormat?: string): string {
   if (apiFormat === 'responses') return '/responses'
@@ -22,6 +22,12 @@ export const openAIStrategy: ProviderStrategy = {
     max_tokens: config.maxTokens ?? 4096,
     stream: options.stream,
   }),
-  parseStreamChunk: (parsed: any) => parsed.choices?.[0]?.delta?.content,
+  parseStreamChunk: (parsed: any): StreamChunkResult | undefined => {
+    const content = parsed.choices?.[0]?.delta?.content
+    if (content) {
+      return { content }
+    }
+    return undefined
+  },
   parseResponse: (result: any) => result.choices?.[0]?.message?.content || '',
 }

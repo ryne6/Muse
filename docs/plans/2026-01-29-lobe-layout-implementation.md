@@ -179,7 +179,7 @@ Expected: FAIL (name/bubble not found).
 
 **Step 3: Write minimal implementation**
 
-- Add `ChatHeader` to show current model (from `settingsStoreV2`) and a static “联网搜索” tag (no right-side icons).
+- Add `ChatHeader` to show current model (from `settingsStore`) and a static “联网搜索” tag (no right-side icons).
 - `MessageList`: center messages with `max-w-[800px]`, increase vertical spacing to 24px, align with demo padding.
 - `MessageItem`: keep avatar from existing logic; for assistant, render header row (avatar + name + timestamp) and body without bubble; for user, render a single bubble with padding `10px 16px` and `rounded-xl` and `data-user-bubble` attribute for test.
 - `MarkdownRenderer`: set code blocks to `bg-[hsl(var(--surface-2))]` and border with `--border` to mimic demo.
@@ -250,15 +250,15 @@ git commit -m "style: match chat input layout to demo"
 
 **Files:**
 - Create: `src/renderer/src/services/fontService.ts`
-- Modify: `src/renderer/src/components/layout/SettingsV2.tsx`
+- Modify: `src/renderer/src/components/layout/Settings.tsx`
 - Modify: `src/renderer/src/components/layout/AppLayout.tsx`
 - Modify: `src/renderer/src/services/dbClient.ts` (if typing needs a new helper)
-- Test: `src/renderer/src/components/layout/__tests__/SettingsV2.test.tsx`
+- Test: `src/renderer/src/components/layout/__tests__/Settings.test.tsx`
 
 **Step 1: Write the failing test**
 
 ```ts
-// in SettingsV2.test.tsx
+// in Settings.test.tsx
 await user.click(screen.getByText('Settings'))
 await user.click(screen.getByText('General'))
 expect(screen.getByLabelText('UI Font')).toBeInTheDocument()
@@ -266,27 +266,27 @@ expect(screen.getByLabelText('UI Font')).toBeInTheDocument()
 
 **Step 2: Run test to verify it fails**
 
-Run: `npm run test:renderer -- src/renderer/src/components/layout/__tests__/SettingsV2.test.tsx`
+Run: `npm run test:renderer -- src/renderer/src/components/layout/__tests__/Settings.test.tsx`
 Expected: FAIL (UI Font control missing).
 
 **Step 3: Write minimal implementation**
 
 - `fontService.ts`: expose `getSystemFonts()` using `window.queryLocalFonts?.()` with fallback to a small default list and a manual text input.
-- `SettingsV2`: render a select/input in General tab labeled “UI Font”; on change, persist to `dbClient.settings.set('uiFont', font)` and apply to `document.documentElement.style.setProperty('--font-ui', font)`.
+- `Settings`: render a select/input in General tab labeled “UI Font”; on change, persist to `dbClient.settings.set('uiFont', font)` and apply to `document.documentElement.style.setProperty('--font-ui', font)`.
 - `AppLayout`: on mount, read `dbClient.settings.get('uiFont')` and apply it (fallback to system stack).
 
 **Step 4: Run test to verify it passes**
 
-Run: `npm run test:renderer -- src/renderer/src/components/layout/__tests__/SettingsV2.test.tsx`
+Run: `npm run test:renderer -- src/renderer/src/components/layout/__tests__/Settings.test.tsx`
 Expected: PASS.
 
 **Step 5: Commit**
 
 ```bash
 git add src/renderer/src/services/fontService.ts \
-  src/renderer/src/components/layout/SettingsV2.tsx \
+  src/renderer/src/components/layout/Settings.tsx \
   src/renderer/src/components/layout/AppLayout.tsx \
-  src/renderer/src/components/layout/__tests__/SettingsV2.test.tsx
+  src/renderer/src/components/layout/__tests__/Settings.test.tsx
 
 git commit -m "feat: add UI font selection in settings"
 ```
@@ -309,6 +309,6 @@ npm run test:renderer -- src/renderer/src/__tests__/themeTokens.test.ts \
   src/renderer/src/components/layout/__tests__/ConversationList.test.tsx \
   src/renderer/src/components/chat/__tests__/MessageItem.test.tsx \
   src/renderer/src/components/chat/__tests__/ChatInput.test.tsx \
-  src/renderer/src/components/layout/__tests__/SettingsV2.test.tsx
+  src/renderer/src/components/layout/__tests__/Settings.test.tsx
 ```
 

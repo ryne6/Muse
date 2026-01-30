@@ -40,10 +40,10 @@
 
 **根因**: `ModelSelector` 组件只在挂载时调用 `loadData()`，外部变更不会触发重新渲染。
 
-**方案**: 在 settingsStoreV2 添加 `lastUpdated` 时间戳触发刷新。
+**方案**: 在 settingsStore 添加 `lastUpdated` 时间戳触发刷新。
 
 **修改文件**:
-- `src/renderer/src/stores/settingsStoreV2.ts` - 添加 lastUpdated 字段
+- `src/renderer/src/stores/settingsStore.ts` - 添加 lastUpdated 字段
 - `src/renderer/src/components/chat/ModelSelector.tsx` - 监听 lastUpdated
 - `src/renderer/src/components/settings/AddProviderDialog.tsx` - 调用 triggerRefresh
 - `src/renderer/src/components/settings/ManageModelsDialog.tsx` - 调用 triggerRefresh
@@ -171,7 +171,7 @@
 **方案**: 参考 LobeChat 重新设计 Provider 卡片。
 
 **新建文件**:
-- `src/renderer/src/components/settings/ProviderCardV2.tsx`
+- `src/renderer/src/components/settings/ProviderCard.tsx`
 
 **修改文件**:
 - `src/renderer/src/components/settings/ProviderList.tsx`
@@ -221,7 +221,7 @@ npm run dev
 
 | 文件 | 修改类型 | 优先级 |
 |------|----------|--------|
-| `src/renderer/src/stores/settingsStoreV2.ts` | 修改 | P0 |
+| `src/renderer/src/stores/settingsStore.ts` | 修改 | P0 |
 | `src/renderer/src/stores/chatStore.ts` | 修改 | P0 |
 | `src/renderer/src/stores/workspaceStore.ts` | 新建 | P0 |
 | `src/renderer/src/index.css` | 修改 | P2 |
@@ -267,12 +267,12 @@ npm run dev
 ### Task 1: Issue #1 Provider/Model 新增后 Chat 页面不刷新
 
 **Files:**
-- Modify: `src/renderer/src/stores/settingsStoreV2.ts`
+- Modify: `src/renderer/src/stores/settingsStore.ts`
 - Modify: `src/renderer/src/components/chat/ModelSelector.tsx`
 - Modify: `src/renderer/src/components/settings/AddProviderDialog.tsx`
 - Modify: `src/renderer/src/components/settings/ManageModelsDialog.tsx`
 - Modify: `src/renderer/src/components/settings/ProviderConfigDialog.tsx`
-- Test: `src/renderer/src/stores/__tests__/settingsStoreV2.test.ts`
+- Test: `src/renderer/src/stores/__tests__/settingsStore.test.ts`
 
 **Step 1: Write the failing test**
 ```ts
@@ -284,12 +284,12 @@ it('should bump lastUpdated when triggerRefresh is called', () => {
 ```
 
 **Step 2: Run test to verify it fails**
-Run: `npm run test:renderer -- src/renderer/src/stores/__tests__/settingsStoreV2.test.ts`
+Run: `npm run test:renderer -- src/renderer/src/stores/__tests__/settingsStore.test.ts`
 Expected: FAIL (lastUpdated undefined or triggerRefresh not implemented)
 
 **Step 3: Write minimal implementation**
 ```ts
-// settingsStoreV2.ts
+// settingsStore.ts
 lastUpdated: Date.now(),
 triggerRefresh: () => set({ lastUpdated: Date.now() }),
 ```
@@ -306,17 +306,17 @@ triggerRefresh()
 ```
 
 **Step 4: Run test to verify it passes**
-Run: `npm run test:renderer -- src/renderer/src/stores/__tests__/settingsStoreV2.test.ts`
+Run: `npm run test:renderer -- src/renderer/src/stores/__tests__/settingsStore.test.ts`
 Expected: PASS
 
 **Step 5: Commit**
 ```bash
-git add src/renderer/src/stores/settingsStoreV2.ts \
+git add src/renderer/src/stores/settingsStore.ts \
   src/renderer/src/components/chat/ModelSelector.tsx \
   src/renderer/src/components/settings/AddProviderDialog.tsx \
   src/renderer/src/components/settings/ManageModelsDialog.tsx \
   src/renderer/src/components/settings/ProviderConfigDialog.tsx \
-  src/renderer/src/stores/__tests__/settingsStoreV2.test.ts
+  src/renderer/src/stores/__tests__/settingsStore.test.ts
 
 git commit -m "fix: refresh model selector after provider/model updates"
 ```
@@ -380,7 +380,7 @@ git commit -m "fix: centralize workspace state and hide explorer when empty"
 ### Task 3: Issue #4 图片附件未传到接口（历史消息）
 
 **Files:**
-- Modify: `src/renderer/src/stores/conversationStoreV2.ts`
+- Modify: `src/renderer/src/stores/conversationStore.ts`
 - Modify: `src/renderer/src/stores/chatStore.ts`
 - Test: `src/renderer/src/stores/__tests__/chatStore.test.ts`
 
@@ -399,7 +399,7 @@ Expected: FAIL (no image blocks from history)
 
 **Step 3: Write minimal implementation**
 ```ts
-// conversationStoreV2.ts - load attachments previews for messages
+// conversationStore.ts - load attachments previews for messages
 const attachments = await window.api.attachments.getPreviewsByMessageId(msg.id)
 return { ...msg, attachments }
 ```
@@ -422,7 +422,7 @@ Expected: PASS
 
 **Step 5: Commit**
 ```bash
-git add src/renderer/src/stores/conversationStoreV2.ts \
+git add src/renderer/src/stores/conversationStore.ts \
   src/renderer/src/stores/chatStore.ts \
   src/renderer/src/stores/__tests__/chatStore.test.ts
 
@@ -707,15 +707,15 @@ git commit -m "refactor: split generic provider into strategies"
 ### Task 11: Issue #8 AI Provider 样式重构（参考 LobeChat）
 
 **Files:**
-- Create: `src/renderer/src/components/settings/ProviderCardV2.tsx`
+- Create: `src/renderer/src/components/settings/ProviderCard.tsx`
 - Modify: `src/renderer/src/components/settings/ProviderList.tsx`
 - Test: `src/renderer/src/components/settings/__tests__/ProviderList.test.tsx`
 
 **Step 1: Write the failing test**
 ```tsx
-it('should render ProviderCardV2 for each provider', async () => {
+it('should render ProviderCard for each provider', async () => {
   render(<ProviderList />)
-  expect(screen.getAllByTestId('provider-card-v2').length).toBeGreaterThan(0)
+  expect(screen.getAllByTestId('provider-card').length).toBeGreaterThan(0)
 })
 ```
 
@@ -726,8 +726,8 @@ Expected: FAIL
 **Step 3: Write minimal implementation**
 ```tsx
 // ProviderList.tsx
-import { ProviderCardV2 } from './ProviderCardV2'
-// map to ProviderCardV2 with data-testid="provider-card-v2"
+import { ProviderCard } from './ProviderCard'
+// map to ProviderCard with data-testid="provider-card"
 ```
 
 **Step 4: Run test to verify it passes**
@@ -736,7 +736,7 @@ Expected: PASS
 
 **Step 5: Commit**
 ```bash
-git add src/renderer/src/components/settings/ProviderCardV2.tsx \
+git add src/renderer/src/components/settings/ProviderCard.tsx \
   src/renderer/src/components/settings/ProviderList.tsx \
   src/renderer/src/components/settings/__tests__/ProviderList.test.tsx
 

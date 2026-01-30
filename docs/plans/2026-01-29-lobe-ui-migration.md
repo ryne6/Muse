@@ -81,12 +81,12 @@ npm uninstall react-syntax-highlighter @types/react-syntax-highlighter react-cop
 | `components/layout/ConversationList.tsx` | Layout |
 | `components/layout/SearchBar.tsx` | Layout |
 | `components/layout/Settings.tsx` | Layout |
-| `components/layout/SettingsV2.tsx` | Layout |
+| `components/layout/Settings.tsx` | Layout |
 | `components/layout/WorkspaceSelector.tsx` | Layout |
 | `components/settings/AddProviderDialog.tsx` | Settings |
 | `components/settings/ManageModelsDialog.tsx` | Settings |
 | `components/settings/ProviderCard.tsx` | Settings |
-| `components/settings/ProviderCardV2.tsx` | Settings |
+| `components/settings/ProviderCard.tsx` | Settings |
 | `components/settings/ProviderConfigDialog.tsx` | Settings |
 
 #### Input (1 处)
@@ -123,7 +123,7 @@ npm uninstall react-syntax-highlighter @types/react-syntax-highlighter react-cop
 | `TemperatureControl.tsx` | 43 | 滑块 range | Slider |
 | `ProviderConfigDialog.tsx` | 105, 121, 147, 177 | 配置表单 | Input |
 | `Settings.tsx` | 115, 135, 248, 265, 332, 343, 354 | 设置表单 | Input/Checkbox |
-| `SettingsV2.tsx` | 143 | 字体选择 | Select |
+| `Settings.tsx` | 143 | 字体选择 | Select |
 | `ImagePreview.tsx` | 29 | 文件选择 | 保留(file input) |
 | `ManageModelsDialog.tsx` | 135, 145 | 模型管理 | Input/Checkbox |
 | `ImageUploadButton.tsx` | 47 | 文件上传 | 保留(file input) |
@@ -142,7 +142,7 @@ npm uninstall react-syntax-highlighter @types/react-syntax-highlighter react-cop
 | `ToolCallCard.tsx` | 87, 104 | 展开/复制 | Button/CopyButton |
 | `SearchBar.tsx` | 63 | 清除按钮 | Button |
 | `Settings.tsx` | 204 | 删除按钮 | Button |
-| `SettingsV2.tsx` | 107, 119 | Tab 按钮 | Segmented |
+| `Settings.tsx` | 107, 119 | Tab 按钮 | Segmented |
 
 ### 3.4 增强组件
 
@@ -274,7 +274,7 @@ npm uninstall react-syntax-highlighter @types/react-syntax-highlighter react-cop
 | `src/renderer/src/App.tsx` | 添加 ThemeProvider |
 | `src/renderer/src/components/ui/*.tsx` | 替换为 Lobe UI |
 | `src/renderer/src/components/chat/MarkdownRenderer.tsx` | 使用 Lobe Markdown |
-| `src/renderer/src/components/layout/SettingsV2.tsx` | 添加主题切换 |
+| `src/renderer/src/components/layout/Settings.tsx` | 添加主题切换 |
 | `src/renderer/src/index.css` | 调整 CSS 变量 |
 | `package.json` | 依赖变更 |
 | `tailwind.config.js` | 可能需要调整 |

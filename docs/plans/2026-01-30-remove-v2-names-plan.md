@@ -9,7 +9,7 @@
 **Tech Stack:** Electron, React 18, Zustand, Vitest, Tailwind.
 
 **Assumptions/Notes:**
-- 只改“代码命名/文档引用”的 V2（例如 `SettingsV2`、`settingsStoreV2`、`provider-card-v2`）；不改产品/依赖版本号（如 `v2.0`、`v22.2.0`）。
+- 只改“代码命名/文档引用”的 V2（例如 `Settings`、`settingsStore`、`provider-card`）；不改产品/依赖版本号（如 `v2.0`、`v22.2.0`）。
 - 若同时存在 `muse-settings-v2` 与旧 `muse-settings`，优先迁移 V2 数据并覆盖旧键。
 - 删除旧 V1 store 后，MigrationHandler 不再依赖 V1 store；如需迁移旧 localStorage 数据，改为直接读取 legacy key。
 
@@ -17,7 +17,7 @@
 
 **Files:**
 - Delete: `src/renderer/src/stores/conversationStore.ts`
-- Move: `src/renderer/src/stores/conversationStoreV2.ts` → `src/renderer/src/stores/conversationStore.ts`
+- Move: `src/renderer/src/stores/conversationStore.ts` → `src/renderer/src/stores/conversationStore.ts`
 - Modify: `src/renderer/src/App.tsx`
 - Modify: `src/renderer/src/stores/chatStore.ts`
 - Modify: `src/renderer/src/components/MigrationHandler.tsx`
@@ -31,7 +31,7 @@
 - Modify: `src/renderer/src/components/chat/__tests__/MessageList.test.tsx`
 - Modify: `src/renderer/src/components/layout/__tests__/ConversationList.test.tsx`
 - Modify: `src/renderer/src/stores/__tests__/chatStore.test.ts`
-- Move: `src/renderer/src/stores/__tests__/conversationStoreV2.test.ts` → `src/renderer/src/stores/__tests__/conversationStore.test.ts`
+- Move: `src/renderer/src/stores/__tests__/conversationStore.test.ts` → `src/renderer/src/stores/__tests__/conversationStore.test.ts`
 
 **Step 1: Write the failing test**
 ```ts
@@ -53,7 +53,7 @@ Expected: FAIL (module not found: conversationStore)
 import { useConversationStore } from '@/stores/conversationStore'
 ```
 - Rename the store file to `conversationStore.ts` and remove the old V1 file.
-- Update all imports/mocks from `conversationStoreV2` → `conversationStore`.
+- Update all imports/mocks from `conversationStore` → `conversationStore`.
 - Update test describe name to `ConversationStore`.
 
 **Step 4: Run test to verify it passes**
@@ -85,7 +85,7 @@ git commit -m "refactor: rename conversation store to default"
 
 **Files:**
 - Delete: `src/renderer/src/stores/settingsStore.ts`
-- Move: `src/renderer/src/stores/settingsStoreV2.ts` → `src/renderer/src/stores/settingsStore.ts`
+- Move: `src/renderer/src/stores/settingsStore.ts` → `src/renderer/src/stores/settingsStore.ts`
 - Modify: `src/renderer/src/components/settings/AddProviderDialog.tsx`
 - Modify: `src/renderer/src/components/settings/ManageModelsDialog.tsx`
 - Modify: `src/renderer/src/components/settings/ProviderConfigDialog.tsx`
@@ -94,7 +94,7 @@ git commit -m "refactor: rename conversation store to default"
 - Modify: `src/renderer/src/components/chat/ChatInput.tsx`
 - Modify: `src/renderer/src/components/chat/__tests__/ChatInput.test.tsx`
 - Modify: `src/renderer/src/components/MigrationHandler.tsx`
-- Move: `src/renderer/src/stores/__tests__/settingsStoreV2.test.ts` → `src/renderer/src/stores/__tests__/settingsStore.test.ts`
+- Move: `src/renderer/src/stores/__tests__/settingsStore.test.ts` → `src/renderer/src/stores/__tests__/settingsStore.test.ts`
 
 **Step 1: Write the failing test**
 ```ts
@@ -182,11 +182,11 @@ git commit -m "refactor: rename settings store and migrate storage key"
 ### Task 3: 重命名 Settings/ProviderCard 组件 + 更新 data-testid
 
 **Files:**
-- Move: `src/renderer/src/components/layout/SettingsV2.tsx` → `src/renderer/src/components/layout/Settings.tsx`
-- Move: `src/renderer/src/components/settings/ProviderCardV2.tsx` → `src/renderer/src/components/settings/ProviderCard.tsx`
+- Move: `src/renderer/src/components/layout/Settings.tsx` → `src/renderer/src/components/layout/Settings.tsx`
+- Move: `src/renderer/src/components/settings/ProviderCard.tsx` → `src/renderer/src/components/settings/ProviderCard.tsx`
 - Modify: `src/renderer/src/components/layout/Sidebar.tsx`
 - Modify: `src/renderer/src/components/settings/ProviderList.tsx`
-- Move: `src/renderer/src/components/layout/__tests__/SettingsV2.test.tsx` → `src/renderer/src/components/layout/__tests__/Settings.test.tsx`
+- Move: `src/renderer/src/components/layout/__tests__/Settings.test.tsx` → `src/renderer/src/components/layout/__tests__/Settings.test.tsx`
 - Modify: `src/renderer/src/components/settings/__tests__/ProviderList.test.tsx`
 
 **Step 1: Write the failing test**
@@ -223,7 +223,7 @@ import { ProviderCard } from './ProviderCard'
 import { Settings } from './Settings'
 ```
 - Rename Settings/ProviderCard files and exports.
-- Update test IDs from `provider-card-v2` → `provider-card` in code + tests.
+- Update test IDs from `provider-card` → `provider-card` in code + tests.
 
 **Step 4: Run test to verify it passes**
 Run: `npm run test:renderer -- src/renderer/src/components/layout/__tests__/Settings.test.tsx`
@@ -259,21 +259,21 @@ git commit -m "refactor: rename settings/provider components"
 - Modify: `prd/07-system-design.md`
 - Modify: `prd/06-test-coverage-plan.md`
 - Modify: `prd/11-test-failures-report.md`
-- Move: `prd/09-ui-design-system-v2.md` → `prd/09-ui-design-system.md`
-- Move: `prd/10-ui-v2-implementation-gaps.md` → `prd/10-ui-implementation-gaps.md`
+- Move: `prd/09-ui-design-system.md` → `prd/09-ui-design-system.md`
+- Move: `prd/10-ui-implementation-gaps.md` → `prd/10-ui-implementation-gaps.md`
 
 **Step 1: Write the failing test**
 ```md
 // Example doc updates (conceptual)
-- SettingsV2 → Settings
-- ProviderCardV2 → ProviderCard
-- settingsStoreV2 → settingsStore
-- conversationStoreV2 → conversationStore
-- provider-card-v2 → provider-card
+- Settings → Settings
+- ProviderCard → ProviderCard
+- settingsStore → settingsStore
+- conversationStore → conversationStore
+- provider-card → provider-card
 ```
 
 **Step 2: Run check to verify it fails**
-Run: `rg -n "SettingsV2|ProviderCardV2|settingsStoreV2|conversationStoreV2|provider-card-v2" docs prd src`
+Run: `rg -n "Settings|ProviderCard|settingsStore|conversationStore|provider-card" docs prd src`
 Expected: Hits still present
 
 **Step 3: Write minimal implementation**
@@ -291,7 +291,7 @@ Expected: Hits still present
 - 重命名 PRD 文件并修正引用路径。
 
 **Step 4: Run check to verify it passes**
-Run: `rg -n "SettingsV2|ProviderCardV2|settingsStoreV2|conversationStoreV2|provider-card-v2" docs prd src`
+Run: `rg -n "Settings|ProviderCard|settingsStore|conversationStore|provider-card" docs prd src`
 Expected: No matches (except product/依赖版本号)
 
 **Step 5: Commit**
@@ -335,7 +335,7 @@ Run: `npm run test:renderer -- src/renderer/src/components/layout/__tests__/Sett
 Expected: PASS
 
 **Step 4: Final search**
-Run: `rg -n "SettingsV2|ProviderCardV2|settingsStoreV2|conversationStoreV2|provider-card-v2" src docs prd`
+Run: `rg -n "Settings|ProviderCard|settingsStore|conversationStore|provider-card" src docs prd`
 Expected: No matches
 
 **Step 5: Commit**

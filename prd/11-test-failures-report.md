@@ -163,5 +163,5 @@ Warning: validateDOMNesting(...): <pre> cannot appear as a descendant of <p>
 
 - `ProviderList.test.tsx` (12 tests)
 - `ConversationList.test.tsx` (13 tests)
-- `SettingsV2.test.tsx` (9 tests)
+- `Settings.test.tsx` (9 tests)
 - 其他 23 个测试文件

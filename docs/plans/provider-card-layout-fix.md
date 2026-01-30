@@ -11,7 +11,7 @@
 
 ## 修复方案
 
-### 1. 移除冗余元素 (`ProviderCardV2.tsx`)
+### 1. 移除冗余元素 (`ProviderCard.tsx`)
 
 **移除右上角三点菜单** (第 100-125 行)：
 - 删除整个 `<DropdownMenu>` 组件
@@ -37,7 +37,7 @@
 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 ```
 
-### 3. 优化卡片布局 (`ProviderCardV2.tsx`)
+### 3. 优化卡片布局 (`ProviderCard.tsx`)
 
 - 名称加 `truncate` 防止换行
 - URL 单独一行，加 `truncate` 截断
@@ -49,7 +49,7 @@
 | 文件 | 修改 |
 |------|------|
 | `src/renderer/src/components/settings/ProviderList.tsx` | 网格改为 2 列 |
-| `src/renderer/src/components/settings/ProviderCardV2.tsx` | 移除三点菜单和状态标签，优化布局 |
+| `src/renderer/src/components/settings/ProviderCard.tsx` | 移除三点菜单和状态标签，优化布局 |
 
 ---
 

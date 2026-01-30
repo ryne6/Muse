@@ -60,7 +60,7 @@
 
 ### 5. 新版本 ConversationStore
 
-创建 `src/renderer/src/stores/conversationStoreV2.ts`:
+创建 `src/renderer/src/stores/conversationStore.ts`:
 
 **与旧版本的区别**:
 - 移除 Zustand persist middleware
@@ -277,7 +277,7 @@ src/renderer/src/
 ├── services/
 │   └── dbClient.ts                       # 数据库 IPC 客户端
 ├── stores/
-│   └── conversationStoreV2.ts            # 新版本 Store（使用数据库）
+│   └── conversationStore.ts            # 新版本 Store（使用数据库）
 └── components/
     └── MigrationHandler.tsx              # 自动迁移处理器
 ```
@@ -295,7 +295,7 @@ src/renderer/src/
 6. `src/renderer/src/App.tsx` - 集成迁移和数据加载
 
 ### 批量替换
-- 所有组件从 `conversationStore` 改为 `conversationStoreV2`
+- 所有组件从 `conversationStore` 改为 `conversationStore`
 
 ---
 

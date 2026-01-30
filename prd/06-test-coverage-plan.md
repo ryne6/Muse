@@ -47,9 +47,9 @@
 ### renderer store（业务状态核心）
 - `src/renderer/src/stores/chatStore.ts`
   - sendMessage 流程、loading/error 状态、AI 响应落库。
-- `src/renderer/src/stores/conversationStoreV2.ts`
+- `src/renderer/src/stores/conversationStore.ts`
   - create/select/delete、日期分组、messages 同步。
-- `src/renderer/src/stores/settingsStoreV2.ts`
+- `src/renderer/src/stores/settingsStore.ts`
   - provider/model 选择、API key 校验、温度/配置持久化。
 
 ---

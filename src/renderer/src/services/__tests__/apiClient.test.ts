@@ -31,7 +31,7 @@ describe('APIClient', () => {
 
       expect(result).toBe('Hello response')
       expect(global.fetch).toHaveBeenCalledWith(
-        'http://localhost:3000/api/chat',
+        'http://localhost:2323/api/chat',
         expect.objectContaining({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' }

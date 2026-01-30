@@ -22,9 +22,9 @@ vi.mock('@/services/dbClient', () => ({
   dbClient: mockDbClient
 }))
 
-import { useConversationStore } from '../conversationStoreV2'
+import { useConversationStore } from '../conversationStore'
 
-describe('ConversationStoreV2', () => {
+describe('ConversationStore', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Reset store state

@@ -7,7 +7,7 @@
 
 ### 1. SettingsStoreV2 实现
 
-创建 `src/renderer/src/stores/settingsStoreV2.ts` (150+ 行):
+创建 `src/renderer/src/stores/settingsStore.ts` (150+ 行):
 
 #### 核心功能
 - **数据库驱动** - 从数据库加载 Provider 和 Model 数据
@@ -141,7 +141,7 @@ export interface Setting {
 
 #### 使用新的 SettingsStoreV2
 ```typescript
-import { useSettingsStoreV2 } from '@/stores/settingsStoreV2'
+import { useSettingsStoreV2 } from '@/stores/settingsStore'
 
 const {
   getCurrentProvider,
@@ -424,7 +424,7 @@ src/shared/types/
 └── db.ts                               # ✅ 数据库类型定义 (65 行)
 
 src/renderer/src/stores/
-└── settingsStoreV2.ts                  # ✅ 新设置 Store (150 行)
+└── settingsStore.ts                  # ✅ 新设置 Store (150 行)
 ```
 
 ### 修改

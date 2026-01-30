@@ -4,10 +4,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { SettingsV2 } from '../SettingsV2'
+import { Settings } from '../Settings'
 
 /**
- * SettingsV2 组件测试
+ * Settings 组件测试
  *
  * 测试目标：
  * - 标签切换（提供商、通用设置）
@@ -38,20 +38,20 @@ vi.mock('../../settings/ProviderConfigDialog', () => ({
     ) : null
 }))
 
-describe('SettingsV2', () => {
+describe('Settings', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
   describe('关闭状态测试', () => {
     it('should render Settings button when closed', () => {
-      render(<SettingsV2 />)
+      render(<Settings />)
 
       expect(screen.getByText('Settings')).toBeInTheDocument()
     })
 
     it('should not show settings dialog when closed', () => {
-      render(<SettingsV2 />)
+      render(<Settings />)
 
       expect(screen.queryByText('Providers')).not.toBeInTheDocument()
       expect(screen.queryByText('General')).not.toBeInTheDocument()
@@ -61,19 +61,19 @@ describe('SettingsV2', () => {
   describe('打开状态测试', () => {
     it('should open settings dialog when clicking Settings button', async () => {
       const user = userEvent.setup()
-      render(<SettingsV2 />)
+      render(<Settings />)
 
       const settingsButton = screen.getByText('Settings')
       await user.click(settingsButton)
 
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument()
+        expect(screen.getByRole('dialog')).toBeInTheDocument()
       })
     })
 
     it('should show Providers tab by default', async () => {
       const user = userEvent.setup()
-      render(<SettingsV2 />)
+      render(<Settings />)
 
       await user.click(screen.getByText('Settings'))
 
@@ -85,21 +85,21 @@ describe('SettingsV2', () => {
 
     it('should close dialog when clicking close button', async () => {
       const user = userEvent.setup()
-      render(<SettingsV2 />)
+      render(<Settings />)
 
       // Open dialog
       await user.click(screen.getByText('Settings'))
 
       await waitFor(() => {
-        expect(screen.getByRole('heading', { name: 'Settings' })).toBeInTheDocument()
+        expect(screen.getByRole('dialog')).toBeInTheDocument()
       })
 
       // Close dialog
-      const closeButton = screen.getByRole('button', { name: '' })
+      const closeButton = screen.getByRole('button', { name: 'Close' })
       await user.click(closeButton)
 
       await waitFor(() => {
-        expect(screen.queryByRole('heading', { name: 'Settings' })).not.toBeInTheDocument()
+        expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
       })
     })
   })
@@ -107,7 +107,7 @@ describe('SettingsV2', () => {
   describe('标签切换测试', () => {
     it('should switch to General tab when clicking General button', async () => {
       const user = userEvent.setup()
-      render(<SettingsV2 />)
+      render(<Settings />)
 
       // Open dialog
       await user.click(screen.getByText('Settings'))
@@ -124,7 +124,7 @@ describe('SettingsV2', () => {
 
     it('should switch back to Providers tab', async () => {
       const user = userEvent.setup()
-      render(<SettingsV2 />)
+      render(<Settings />)
 
       // Open dialog
       await user.click(screen.getByText('Settings'))
@@ -144,7 +144,7 @@ describe('SettingsV2', () => {
   describe('提供商配置对话框测试', () => {
     it('should open ProviderConfigDialog when configuring provider', async () => {
       const user = userEvent.setup()
-      render(<SettingsV2 />)
+      render(<Settings />)
 
       // Open settings
       await user.click(screen.getByText('Settings'))
@@ -160,7 +160,7 @@ describe('SettingsV2', () => {
 
     it('should close ProviderConfigDialog when clicking close', async () => {
       const user = userEvent.setup()
-      render(<SettingsV2 />)
+      render(<Settings />)
 
       // Open settings and configure provider
       await user.click(screen.getByText('Settings'))

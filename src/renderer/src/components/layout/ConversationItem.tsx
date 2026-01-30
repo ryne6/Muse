@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Star, MoreVertical, Trash2, Edit2 } from 'lucide-react'
 import type { Conversation } from '@shared/types/conversation'
-import { useConversationStore } from '@/stores/conversationStoreV2'
+import { useConversationStore } from '@/stores/conversationStore'
 import { Button } from '../ui/button'
 import {
   DropdownMenu,

@@ -14,9 +14,9 @@ vi.mock('../../services/dbClient', () => ({
   dbClient: mockDbClient
 }))
 
-import { useSettingsStoreV2 } from '../settingsStoreV2'
+import { useSettingsStore } from '../settingsStore'
 
-describe('SettingsStoreV2', () => {
+describe('SettingsStore', () => {
   const mockProviders = [
     { id: 'p1', name: 'OpenAI', type: 'openai', enabled: true, apiKey: 'key1' },
     { id: 'p2', name: 'Claude', type: 'claude', enabled: false, apiKey: 'key2' }
@@ -30,8 +30,9 @@ describe('SettingsStoreV2', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    localStorage.clear()
     // Reset store state
-    useSettingsStoreV2.setState({
+    useSettingsStore.setState({
       currentProviderId: null,
       currentModelId: null,
       temperature: 1,
@@ -42,7 +43,7 @@ describe('SettingsStoreV2', () => {
 
   describe('initial state', () => {
     it('should have correct initial state', () => {
-      const state = useSettingsStoreV2.getState()
+      const state = useSettingsStore.getState()
       expect(state.currentProviderId).toBeNull()
       expect(state.currentModelId).toBeNull()
       expect(state.temperature).toBe(1)
@@ -51,14 +52,39 @@ describe('SettingsStoreV2', () => {
     })
   })
 
+  describe('persistence migration', () => {
+    it('should load legacy muse-settings-v2 data when muse-settings is missing', async () => {
+      const legacyState = {
+        state: {
+          currentProviderId: 'p1',
+          currentModelId: 'm1',
+          temperature: 0.42
+        },
+        version: 0
+      }
+
+      localStorage.setItem('muse-settings-v2', JSON.stringify(legacyState))
+      localStorage.removeItem('muse-settings')
+
+      vi.resetModules()
+      const { useSettingsStore: migratedStore } = await import('../settingsStore')
+
+      expect(migratedStore.getState().currentProviderId).toBe('p1')
+      expect(migratedStore.getState().currentModelId).toBe('m1')
+      expect(migratedStore.getState().temperature).toBe(0.42)
+
+      localStorage.clear()
+    })
+  })
+
   describe('loadData', () => {
     it('should load providers and models from database', async () => {
       mockDbClient.providers.getAll.mockResolvedValue(mockProviders)
       mockDbClient.models.getAll.mockResolvedValue(mockModels)
 
-      await useSettingsStoreV2.getState().loadData()
+      await useSettingsStore.getState().loadData()
 
-      const state = useSettingsStoreV2.getState()
+      const state = useSettingsStore.getState()
       expect(state.providers).toEqual(mockProviders)
       expect(state.models).toEqual(mockModels)
     })
@@ -67,28 +93,28 @@ describe('SettingsStoreV2', () => {
       mockDbClient.providers.getAll.mockResolvedValue(mockProviders)
       mockDbClient.models.getAll.mockResolvedValue(mockModels)
 
-      await useSettingsStoreV2.getState().loadData()
+      await useSettingsStore.getState().loadData()
 
-      const state = useSettingsStoreV2.getState()
+      const state = useSettingsStore.getState()
       expect(state.currentProviderId).toBe('p1')
       expect(state.currentModelId).toBe('m1')
     })
 
     it('should not auto-select if provider already selected', async () => {
-      useSettingsStoreV2.setState({ currentProviderId: 'existing' })
+      useSettingsStore.setState({ currentProviderId: 'existing' })
       mockDbClient.providers.getAll.mockResolvedValue(mockProviders)
       mockDbClient.models.getAll.mockResolvedValue(mockModels)
 
-      await useSettingsStoreV2.getState().loadData()
+      await useSettingsStore.getState().loadData()
 
-      expect(useSettingsStoreV2.getState().currentProviderId).toBe('existing')
+      expect(useSettingsStore.getState().currentProviderId).toBe('existing')
     })
 
     it('should handle load error gracefully', async () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       mockDbClient.providers.getAll.mockRejectedValue(new Error('DB error'))
 
-      await useSettingsStoreV2.getState().loadData()
+      await useSettingsStore.getState().loadData()
 
       expect(consoleSpy).toHaveBeenCalled()
       consoleSpy.mockRestore()
@@ -97,72 +123,72 @@ describe('SettingsStoreV2', () => {
 
   describe('setCurrentProvider', () => {
     beforeEach(() => {
-      useSettingsStoreV2.setState({
+      useSettingsStore.setState({
         providers: mockProviders,
         models: mockModels
       })
     })
 
     it('should set current provider and auto-select first model', async () => {
-      await useSettingsStoreV2.getState().setCurrentProvider('p1')
+      await useSettingsStore.getState().setCurrentProvider('p1')
 
-      const state = useSettingsStoreV2.getState()
+      const state = useSettingsStore.getState()
       expect(state.currentProviderId).toBe('p1')
       expect(state.currentModelId).toBe('m1')
     })
 
     it('should not change state if provider not found', async () => {
-      await useSettingsStoreV2.getState().setCurrentProvider('invalid')
+      await useSettingsStore.getState().setCurrentProvider('invalid')
 
-      expect(useSettingsStoreV2.getState().currentProviderId).toBeNull()
+      expect(useSettingsStore.getState().currentProviderId).toBeNull()
     })
   })
 
   describe('setCurrentModel', () => {
     beforeEach(() => {
-      useSettingsStoreV2.setState({
+      useSettingsStore.setState({
         providers: mockProviders,
         models: mockModels
       })
     })
 
     it('should set current model and update provider', async () => {
-      await useSettingsStoreV2.getState().setCurrentModel('m3')
+      await useSettingsStore.getState().setCurrentModel('m3')
 
-      const state = useSettingsStoreV2.getState()
+      const state = useSettingsStore.getState()
       expect(state.currentModelId).toBe('m3')
       expect(state.currentProviderId).toBe('p2')
     })
 
     it('should not change state if model not found', async () => {
-      await useSettingsStoreV2.getState().setCurrentModel('invalid')
+      await useSettingsStore.getState().setCurrentModel('invalid')
 
-      expect(useSettingsStoreV2.getState().currentModelId).toBeNull()
+      expect(useSettingsStore.getState().currentModelId).toBeNull()
     })
   })
 
   describe('setTemperature', () => {
     it('should set temperature', () => {
-      useSettingsStoreV2.getState().setTemperature(0.7)
+      useSettingsStore.getState().setTemperature(0.7)
 
-      expect(useSettingsStoreV2.getState().temperature).toBe(0.7)
+      expect(useSettingsStore.getState().temperature).toBe(0.7)
     })
   })
 
   describe('getCurrentProvider', () => {
     it('should return current provider', () => {
-      useSettingsStoreV2.setState({
+      useSettingsStore.setState({
         providers: mockProviders,
         currentProviderId: 'p1'
       })
 
-      const result = useSettingsStoreV2.getState().getCurrentProvider()
+      const result = useSettingsStore.getState().getCurrentProvider()
 
       expect(result?.id).toBe('p1')
     })
 
     it('should return null if no current provider', () => {
-      const result = useSettingsStoreV2.getState().getCurrentProvider()
+      const result = useSettingsStore.getState().getCurrentProvider()
 
       expect(result).toBeNull()
     })
@@ -170,18 +196,18 @@ describe('SettingsStoreV2', () => {
 
   describe('getCurrentModel', () => {
     it('should return current model', () => {
-      useSettingsStoreV2.setState({
+      useSettingsStore.setState({
         models: mockModels,
         currentModelId: 'm1'
       })
 
-      const result = useSettingsStoreV2.getState().getCurrentModel()
+      const result = useSettingsStore.getState().getCurrentModel()
 
       expect(result?.id).toBe('m1')
     })
 
     it('should return null if no current model', () => {
-      const result = useSettingsStoreV2.getState().getCurrentModel()
+      const result = useSettingsStore.getState().getCurrentModel()
 
       expect(result).toBeNull()
     })
@@ -189,9 +215,9 @@ describe('SettingsStoreV2', () => {
 
   describe('getEnabledProviders', () => {
     it('should return only enabled providers', () => {
-      useSettingsStoreV2.setState({ providers: mockProviders })
+      useSettingsStore.setState({ providers: mockProviders })
 
-      const result = useSettingsStoreV2.getState().getEnabledProviders()
+      const result = useSettingsStore.getState().getEnabledProviders()
 
       expect(result).toHaveLength(1)
       expect(result[0].id).toBe('p1')
@@ -200,9 +226,9 @@ describe('SettingsStoreV2', () => {
 
   describe('getModelsForProvider', () => {
     it('should return models for specific provider', () => {
-      useSettingsStoreV2.setState({ models: mockModels })
+      useSettingsStore.setState({ models: mockModels })
 
-      const result = useSettingsStoreV2.getState().getModelsForProvider('p1')
+      const result = useSettingsStore.getState().getModelsForProvider('p1')
 
       expect(result).toHaveLength(2)
     })
@@ -210,12 +236,12 @@ describe('SettingsStoreV2', () => {
 
   describe('getEnabledModels', () => {
     it('should return only enabled models from enabled providers', () => {
-      useSettingsStoreV2.setState({
+      useSettingsStore.setState({
         providers: mockProviders,
         models: mockModels
       })
 
-      const result = useSettingsStoreV2.getState().getEnabledModels()
+      const result = useSettingsStore.getState().getEnabledModels()
 
       // Only models from enabled provider p1
       expect(result).toHaveLength(2)
@@ -225,9 +251,9 @@ describe('SettingsStoreV2', () => {
 
   describe('triggerRefresh', () => {
     it('should bump lastUpdated when triggerRefresh is called', () => {
-      const prev = useSettingsStoreV2.getState().lastUpdated
-      useSettingsStoreV2.getState().triggerRefresh()
-      expect(useSettingsStoreV2.getState().lastUpdated).toBeGreaterThan(prev)
+      const prev = useSettingsStore.getState().lastUpdated
+      useSettingsStore.getState().triggerRefresh()
+      expect(useSettingsStore.getState().lastUpdated).toBeGreaterThan(prev)
     })
   })
 })

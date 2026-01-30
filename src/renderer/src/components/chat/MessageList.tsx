@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react'
-import { useConversationStore } from '@/stores/conversationStoreV2'
+import { useConversationStore } from '@/stores/conversationStore'
 import { useChatStore } from '@/stores/chatStore'
 import { MessageItem } from './MessageItem'
 

@@ -103,7 +103,7 @@
 ## 5. 关键业务流程
 
 ### 5.1 流式聊天
-1) UI 选中 Provider/Model → `settingsStoreV2` 保存。
+1) UI 选中 Provider/Model → `settingsStore` 保存。
 2) `ChatInput` 触发 `chatStore.sendMessage`。
 3) `apiClient.sendMessageStream` → `POST /api/chat/stream`。
 4) API Server → `AIManager` → `ProviderFactory` → 对应 Provider。

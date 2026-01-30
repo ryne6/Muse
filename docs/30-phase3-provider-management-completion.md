@@ -152,9 +152,9 @@ const PROVIDER_COLORS = {
 
 ---
 
-### 5. SettingsV2 组件
+### 5. Settings 组件
 
-创建 `src/renderer/src/components/layout/SettingsV2.tsx` (100+ 行):
+创建 `src/renderer/src/components/layout/Settings.tsx` (100+ 行):
 
 #### 核心功能
 - **标签页布局** - 左侧导航 + 右侧内容
@@ -208,7 +208,7 @@ const PROVIDER_COLORS = {
 ### 7. Sidebar 集成
 
 更新 `src/renderer/src/components/layout/Sidebar.tsx`:
-- 替换 Settings 为 SettingsV2
+- 替换 Settings 为 Settings
 - 保持相同的按钮位置
 
 ---
@@ -394,7 +394,7 @@ src/renderer/src/components/
 │   ├── AddProviderDialog.tsx         # 添加对话框 (190+ 行)
 │   └── ProviderConfigDialog.tsx      # 配置对话框 (110+ 行)
 ├── layout/
-│   └── SettingsV2.tsx                # 新设置页面 (100+ 行)
+│   └── Settings.tsx                # 新设置页面 (100+ 行)
 └── ui/
     └── dialog.tsx                    # Dialog 组件 (100+ 行)
 ```
@@ -402,7 +402,7 @@ src/renderer/src/components/
 ### 修改
 ```
 src/renderer/src/components/layout/
-└── Sidebar.tsx                       # 使用 SettingsV2
+└── Sidebar.tsx                       # 使用 Settings
 ```
 
 ---
@@ -413,7 +413,7 @@ src/renderer/src/components/layout/
 - ✅ ProviderList 组件实现
 - ✅ AddProviderDialog 组件实现
 - ✅ ProviderConfigDialog 组件实现
-- ✅ SettingsV2 页面实现
+- ✅ Settings 页面实现
 - ✅ Dialog UI 组件实现
 - ✅ 支持 5+ 提供商类型
 - ✅ 启用/禁用功能

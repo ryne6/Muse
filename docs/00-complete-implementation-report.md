@@ -47,7 +47,7 @@
 - `src/main/db/migration.ts` - 数据迁移逻辑
 - `src/renderer/src/services/dbClient.ts` - 前端数据库客户端
 - `src/renderer/src/components/MigrationHandler.tsx` - 自动迁移组件
-- `src/renderer/src/stores/conversationStoreV2.ts` - 基于数据库的对话 Store
+- `src/renderer/src/stores/conversationStore.ts` - 基于数据库的对话 Store
 
 #### 数据迁移流程
 ```
@@ -105,7 +105,7 @@ SQLite Database
 - `src/renderer/src/components/settings/ProviderList.tsx` - Provider 列表 (100 行)
 - `src/renderer/src/components/settings/AddProviderDialog.tsx` - 添加对话框 (190 行)
 - `src/renderer/src/components/settings/ProviderConfigDialog.tsx` - 配置对话框 (110 行)
-- `src/renderer/src/components/layout/SettingsV2.tsx` - 设置页面 (100 行)
+- `src/renderer/src/components/layout/Settings.tsx` - 设置页面 (100 行)
 - `src/renderer/src/components/ui/dialog.tsx` - Dialog 组件 (100 行)
 
 #### 支持的 Provider 模板
@@ -186,7 +186,7 @@ SQLite Database
 
 #### 关键文件
 - `src/shared/types/db.ts` - 数据库类型定义 (65 行)
-- `src/renderer/src/stores/settingsStoreV2.ts` - 新设置 Store (150 行)
+- `src/renderer/src/stores/settingsStore.ts` - 新设置 Store (150 行)
 - `src/renderer/src/components/chat/ChatInput.tsx` - 更新使用 V2 Store
 - `src/renderer/src/components/chat/ModelSelector.tsx` - 更新使用 V2 Store
 - `src/renderer/src/components/chat/TemperatureControl.tsx` - 更新使用 V2 Store

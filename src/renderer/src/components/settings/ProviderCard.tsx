@@ -1,16 +1,10 @@
 import { useState } from 'react'
-import { MoreVertical, Power, Settings, Trash2, Layers } from 'lucide-react'
+import { Power, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { ProviderLogo } from '@/components/ui/ProviderLogo'
 import { dbClient } from '@/services/dbClient'
 import { notify } from '@/utils/notify'
+import { cn } from '@/utils/cn'
 
 interface Provider {
   id: string
@@ -28,7 +22,12 @@ interface ProviderCardProps {
   onManageModels: (provider: Provider) => void
 }
 
-export function ProviderCard({ provider, onUpdate, onConfigure, onManageModels }: ProviderCardProps) {
+export function ProviderCard({
+  provider,
+  onUpdate,
+  onConfigure,
+  onManageModels,
+}: ProviderCardProps) {
   const [isToggling, setIsToggling] = useState(false)
 
   const handleToggleEnabled = async () => {
@@ -60,74 +59,59 @@ export function ProviderCard({ provider, onUpdate, onConfigure, onManageModels }
 
   return (
     <div
-      className={`relative rounded-lg border p-4 transition-all ${
+      data-testid="provider-card"
+      className={cn(
+        'group relative rounded-xl border p-4 transition-all',
         provider.enabled
           ? 'bg-background border-border hover:border-foreground/20'
-          : 'bg-muted/50 text-muted-foreground border-muted'
-      }`}
+          : 'bg-muted/40 text-muted-foreground border-muted'
+      )}
     >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <ProviderLogo type={provider.type} size="md" />
-          <div>
-            <h3 className="font-semibold text-base capitalize">{provider.name}</h3>
-            <p className="text-xs opacity-70">{provider.type}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start gap-3 min-w-0">
+          <div className="shrink-0 rounded-lg bg-muted/40 p-2">
+            <ProviderLogo type={provider.type} size="md" />
+          </div>
+          <div className="min-w-0">
+            <h3 className="font-semibold text-base capitalize truncate">{provider.name}</h3>
+            <p className="text-xs opacity-70 mt-0.5">{provider.type}</p>
           </div>
         </div>
-
-        {/* Actions Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Provider actions">
-              <MoreVertical className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onConfigure(provider)}>
-              <Settings className="h-4 w-4 mr-2" />
-              Configure
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onManageModels(provider)}>
-              <Layers className="h-4 w-4 mr-2" />
-              Manage Models
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={handleToggleEnabled} disabled={isToggling}>
-              <Power className="h-4 w-4 mr-2" />
-              {provider.enabled ? 'Disable' : 'Enable'}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleDelete} className="text-destructive">
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
 
-      {/* Base URL (if custom) */}
-      {provider.baseURL && (
-        <div className="text-xs opacity-60">
-          <span className="font-mono">{provider.baseURL}</span>
+      <div className="mt-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+            onClick={handleDelete}
+            aria-label="Delete provider"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+          <span className="text-xs text-muted-foreground font-mono truncate">
+            {provider.baseURL || 'Default endpoint'}
+          </span>
         </div>
-      )}
 
-      {/* Toggle - Bottom Right */}
-      <div className="absolute bottom-4 right-4">
-        <button
-          onClick={handleToggleEnabled}
-          disabled={isToggling}
-          className={`relative w-10 h-6 rounded-full transition-colors ${
-            provider.enabled ? 'bg-[hsl(var(--accent))]' : 'bg-gray-300'
-          }`}
-          aria-label={provider.enabled ? 'Disable provider' : 'Enable provider'}
-        >
-          <span
-            className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
-              provider.enabled ? 'left-5' : 'left-1'
-            }`}
-          />
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button size="sm" variant="outline" onClick={() => onConfigure(provider)}>
+            Configure
+          </Button>
+          <Button size="sm" variant="secondary" onClick={() => onManageModels(provider)}>
+            Models
+          </Button>
+          <Button
+            size="sm"
+            variant={provider.enabled ? 'default' : 'outline'}
+            onClick={handleToggleEnabled}
+            disabled={isToggling}
+          >
+            <Power className="h-3 w-3 mr-1" />
+            {provider.enabled ? 'On' : 'Off'}
+          </Button>
+        </div>
       </div>
     </div>
   )

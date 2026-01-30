@@ -62,7 +62,7 @@
 - ✅ ProviderList 组件 (100 行)
 - ✅ AddProviderDialog 组件 (190 行)
 - ✅ ProviderConfigDialog 组件 (110 行)
-- ✅ SettingsV2 页面 (100 行)
+- ✅ Settings 页面 (100 行)
 - ✅ Dialog UI 组件 (100 行)
 - ✅ 5 个预定义模板
 - ✅ 自定义 Provider 支持
@@ -273,7 +273,7 @@ src/renderer/src/components/
 │   ├── AddProviderDialog.tsx    # 添加对话框 (新)
 │   └── ProviderConfigDialog.tsx # 配置对话框 (新)
 ├── layout/
-│   ├── SettingsV2.tsx           # 新设置页面 (新)
+│   ├── Settings.tsx           # 新设置页面 (新)
 │   └── SystemStatus.tsx         # 系统状态 (新)
 ├── chat/
 │   ├── ModelSelector.tsx        # 模型选择器 (新)
@@ -286,8 +286,8 @@ src/renderer/src/components/
 #### Stores
 ```
 src/renderer/src/stores/
-├── conversationStoreV2.ts  # 数据库驱动 (新)
-├── settingsStoreV2.ts      # 数据库驱动 (新)
+├── conversationStore.ts  # 数据库驱动 (新)
+├── settingsStore.ts      # 数据库驱动 (新)
 └── chatStore.ts            # 更新
 ```
 

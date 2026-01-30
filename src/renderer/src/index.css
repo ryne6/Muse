@@ -25,7 +25,7 @@
     --ring: 0 0% 0%;
     --radius: 0.5rem;
 
-    /* V2 Surface 层级 */
+    /* Surface layers */
     --bg: 0 0% 100%;
     --bg-sidebar: 210 17% 98%;
     --bg-main: 0 0% 100%;
@@ -33,12 +33,12 @@
     --surface-2: 0 0% 96%;
     --surface-3: 0 0% 98%;
 
-    /* V2 文本层级 */
+    /* Text layers */
     --text-strong: 0 0% 13%;
     --text: 0 0% 40%;
     --text-muted: 0 0% 60%;
 
-    /* V2 交互状态 */
+    /* Interaction states */
     --accent-hover: 0 0% 0%;
   }
 
@@ -63,18 +63,18 @@
     --input: 240 3.7% 15.9%;
     --ring: 24 95% 53%;
 
-    /* V2 Surface 层级 (dark) */
+    /* Surface layers (dark) */
     --bg: 240 10% 3.9%;
     --surface-1: 240 6% 10%;
     --surface-2: 240 5% 12%;
     --surface-3: 240 4% 14%;
 
-    /* V2 文本层级 (dark) */
+    /* Text layers (dark) */
     --text-strong: 0 0% 98%;
     --text: 0 0% 90%;
     --text-muted: 240 5% 64.9%;
 
-    /* V2 交互状态 (dark) */
+    /* Interaction states (dark) */
     --accent-hover: 24 90% 48%;
   }
 }

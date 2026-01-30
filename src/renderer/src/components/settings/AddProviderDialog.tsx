@@ -12,7 +12,7 @@ import {
 import { dbClient } from '@/services/dbClient'
 import { apiClient } from '@/services/apiClient'
 import { notify } from '@/utils/notify'
-import { useSettingsStoreV2 } from '@/stores/settingsStoreV2'
+import { useSettingsStore } from '@/stores/settingsStore'
 
 interface AddProviderDialogProps {
   onProviderAdded: () => void
@@ -52,7 +52,7 @@ const PROVIDER_TEMPLATES = [
 ]
 
 export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
-  const { loadData, triggerRefresh } = useSettingsStoreV2()
+  const { loadData, triggerRefresh } = useSettingsStore()
   const [open, setOpen] = useState(false)
   const [selectedTemplate, setSelectedTemplate] = useState<string>('')
   const [formData, setFormData] = useState({

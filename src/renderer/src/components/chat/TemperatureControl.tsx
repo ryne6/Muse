@@ -5,10 +5,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
-import { useSettingsStoreV2 } from '@/stores/settingsStoreV2'
+import { useSettingsStore } from '@/stores/settingsStore'
 
 export function TemperatureControl() {
-  const { temperature, setTemperature } = useSettingsStoreV2()
+  const { temperature, setTemperature } = useSettingsStore()
 
   const handleTemperatureChange = (value: number) => {
     setTemperature(value)

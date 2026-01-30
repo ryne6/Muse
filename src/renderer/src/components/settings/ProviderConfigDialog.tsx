@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog'
 import { dbClient } from '@/services/dbClient'
 import { notify } from '@/utils/notify'
-import { useSettingsStoreV2 } from '@/stores/settingsStoreV2'
+import { useSettingsStore } from '@/stores/settingsStore'
 
 interface Provider {
   id: string
@@ -35,7 +35,7 @@ export function ProviderConfigDialog({
   onClose,
   onUpdated,
 }: ProviderConfigDialogProps) {
-  const { triggerRefresh } = useSettingsStoreV2()
+  const { triggerRefresh } = useSettingsStore()
   const [formData, setFormData] = useState({
     name: '',
     apiKey: '',

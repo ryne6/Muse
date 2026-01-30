@@ -117,12 +117,12 @@ vi.mock('@/stores/chatStore', () => ({
   useChatStore: () => mockChatStore
 }))
 
-vi.mock('@/stores/conversationStoreV2', () => ({
+vi.mock('@/stores/conversationStore', () => ({
   useConversationStore: () => mockConversationStore
 }))
 
-vi.mock('@/stores/settingsStoreV2', () => ({
-  useSettingsStoreV2: () => mockSettingsStore
+vi.mock('@/stores/settingsStore', () => ({
+  useSettingsStore: () => mockSettingsStore
 }))
 
 // Mock notify utility

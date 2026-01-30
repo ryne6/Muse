@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MarkdownRenderer } from '../MarkdownRenderer'
 
@@ -14,19 +14,6 @@ import { MarkdownRenderer } from '../MarkdownRenderer'
  * - 内联代码渲染
  * - 链接渲染
  */
-
-// Mock external libraries to simplify testing
-vi.mock('react-syntax-highlighter', () => ({
-  Prism: ({ children, language }: any) => (
-    <pre data-testid="syntax-highlighter" data-language={language}>
-      <code>{children}</code>
-    </pre>
-  )
-}))
-
-vi.mock('react-syntax-highlighter/dist/esm/styles/prism', () => ({
-  oneLight: {}
-}))
 
 describe('MarkdownRenderer', () => {
   describe('基本渲染测试', () => {
@@ -60,11 +47,13 @@ describe('MarkdownRenderer', () => {
 
     it('should render code block with language', () => {
       const codeContent = '```javascript\nconst x = 1;\n```'
-      render(<MarkdownRenderer content={codeContent} />)
+      const { container } = render(<MarkdownRenderer content={codeContent} />)
 
-      const syntaxHighlighter = screen.getByTestId('syntax-highlighter')
-      expect(syntaxHighlighter).toBeInTheDocument()
-      expect(syntaxHighlighter).toHaveAttribute('data-language', 'javascript')
+      const codeElement = screen.getByText(/const x = 1;/)
+      expect(codeElement).toBeInTheDocument()
+      expect(codeElement.tagName).toBe('CODE')
+      expect(codeElement.closest('pre')).not.toBeNull()
+      expect(container.querySelector('[data-code-type="highlighter"]')).toBeInTheDocument()
     })
 
     it('should render code block without language', () => {

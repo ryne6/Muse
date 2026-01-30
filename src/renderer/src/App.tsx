@@ -3,7 +3,7 @@ import { ThemeProvider } from '@lobehub/ui'
 import { AppLayout } from './components/layout/AppLayout'
 import { Toaster } from 'sonner'
 import { MigrationHandler } from './components/MigrationHandler'
-import { useConversationStore } from './stores/conversationStoreV2'
+import { useConversationStore } from './stores/conversationStore'
 import { dbClient } from './services/dbClient'
 
 function App() {

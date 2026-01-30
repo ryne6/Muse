@@ -11,7 +11,12 @@ export default mergeConfig(
       name: 'renderer',
       environment: 'happy-dom',
       include: ['src/renderer/**/*.test.ts', 'src/renderer/**/*.test.tsx'],
-      setupFiles: ['./tests/setup/renderer.setup.ts']
+      setupFiles: ['./tests/setup/renderer.setup.ts'],
+      server: {
+        deps: {
+          inline: ['@emoji-mart/data', '@emoji-mart/react', '@lobehub/ui']
+        }
+      }
     },
     resolve: {
       alias: {

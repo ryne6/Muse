@@ -52,6 +52,7 @@ export class MessageService {
       conversationId: data.conversationId,
       role: data.role,
       content: data.content,
+      thinking: data.thinking,
       timestamp: data.timestamp,
     }
 

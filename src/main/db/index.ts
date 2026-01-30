@@ -35,7 +35,27 @@ export function initDatabase() {
     console.error('❌ Database migration failed:', error)
   }
 
+  // Run manual schema migrations for new columns
+  runSchemaMigrations(sqlite)
+
   return db
+}
+
+// Manual schema migrations for adding new columns
+function runSchemaMigrations(sqlite: Database.Database) {
+  try {
+    // Check if thinking column exists in messages table
+    const columns = sqlite.pragma('table_info(messages)') as { name: string }[]
+    const hasThinking = columns.some((col) => col.name === 'thinking')
+
+    if (!hasThinking) {
+      console.log('📦 Adding thinking column to messages table...')
+      sqlite.exec('ALTER TABLE messages ADD COLUMN thinking TEXT')
+      console.log('✅ Added thinking column')
+    }
+  } catch (error) {
+    console.error('❌ Schema migration failed:', error)
+  }
 }
 
 // Get database instance

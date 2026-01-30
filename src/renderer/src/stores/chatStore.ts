@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { v4 as uuidv4 } from 'uuid'
 import { apiClient, APIClientError } from '../services/apiClient'
+import { dbClient } from '../services/dbClient'
 import type { AIMessage, AIConfig, MessageContent } from '@shared/types/ai'
 import type { APIError } from '@shared/types/error'
 import { getErrorMessage } from '@shared/types/error'
@@ -52,13 +53,52 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     set({ isLoading: true, error: null, abortController: controller })
 
     // Add user message
+    const messageId = uuidv4()
+    const messageTimestamp = Date.now()
     const userMessage: Message = {
-      id: uuidv4(),
+      id: messageId,
       role: 'user',
       content,
-      timestamp: Date.now(),
+      timestamp: messageTimestamp,
+      attachments: attachments.map((a) => ({
+        id: a.id,
+        messageId: messageId,
+        filename: a.filename,
+        mimeType: a.mimeType,
+        note: a.note || null,
+        size: a.size,
+        width: a.width,
+        height: a.height,
+        createdAt: new Date(messageTimestamp),
+      })),
     }
 
+    // Persist user message to database first
+    await dbClient.messages.create({
+      id: userMessage.id,
+      conversationId,
+      role: 'user',
+      content,
+      timestamp: new Date(userMessage.timestamp),
+    })
+
+    // Persist attachments to database
+    for (const attachment of attachments) {
+      const base64Data = attachment.dataUrl.split(',')[1]
+      await window.api.attachments.create({
+        id: attachment.id,
+        messageId: userMessage.id,
+        filename: attachment.filename,
+        mimeType: attachment.mimeType,
+        data: base64Data,
+        note: attachment.note || null,
+        size: attachment.size,
+        width: attachment.width,
+        height: attachment.height,
+      })
+    }
+
+    // Add to memory after database save (so MessageImage can load from DB)
     useConversationStore.getState().addMessage(userMessage)
 
     // Get conversation for context
@@ -161,10 +201,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         config,
         (chunk) => {
           const conversationStore = useConversationStore.getState()
-          const currentConv = conversationStore.getCurrentConversation()
-          if (!currentConv) return
+          // Use original conversationId to find the conversation, not getCurrentConversation()
+          // This ensures streaming updates go to the correct conversation even if user switches away
+          const conv = conversationStore.conversations.find((c) => c.id === conversationId)
+          if (!conv) return
 
-          const updatedMessages = currentConv.messages.map((m) => {
+          const updatedMessages = conv.messages.map((m) => {
             if (m.id !== assistantMessageId) return m
 
             const updated: Message = { ...m }
@@ -210,6 +252,20 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         },
         controller.signal
       )
+
+      // Persist assistant message to database after streaming completes
+      const finalConv = useConversationStore.getState().getCurrentConversation()
+      const finalAssistantMessage = finalConv?.messages.find((m) => m.id === assistantMessageId)
+      if (finalAssistantMessage) {
+        await dbClient.messages.create({
+          id: finalAssistantMessage.id,
+          conversationId,
+          role: 'assistant',
+          content: finalAssistantMessage.content,
+          thinking: finalAssistantMessage.thinking,
+          timestamp: new Date(finalAssistantMessage.timestamp),
+        })
+      }
 
       // Update conversation title if it's the first user message
       const currentConv = useConversationStore.getState().getCurrentConversation()

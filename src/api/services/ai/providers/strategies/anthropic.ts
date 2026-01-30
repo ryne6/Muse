@@ -1,5 +1,25 @@
-import type { AIConfig, AIMessage } from '../../../../../shared/types/ai'
+import type { AIConfig, AIMessage, MessageContent } from '../../../../../shared/types/ai'
 import type { ProviderStrategy, StrategyOptions, StreamChunkResult } from './index'
+
+function convertContent(content: string | MessageContent[]): string | any[] {
+  if (typeof content === 'string') return content
+  return content.map((block) => {
+    if (block.type === 'text') {
+      return { type: 'text', text: block.text }
+    }
+    if (block.type === 'image') {
+      return {
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: block.mimeType,
+          data: block.data,
+        },
+      }
+    }
+    return block
+  })
+}
 
 export const anthropicStrategy: ProviderStrategy = {
   getEndpoint: () => '/v1/messages',
@@ -13,9 +33,9 @@ export const anthropicStrategy: ProviderStrategy = {
       model: config.model,
       messages: messages.map((msg) => ({
         role: msg.role,
-        content: msg.content,
+        content: convertContent(msg.content),
       })),
-      max_tokens: config.maxTokens ?? 16000,
+      max_tokens: config.maxTokens ?? 10000000,
       stream: options.stream,
     }
 

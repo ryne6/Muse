@@ -1,5 +1,24 @@
-import type { AIConfig, AIMessage } from '../../../../../shared/types/ai'
+import type { AIConfig, AIMessage, MessageContent } from '../../../../../shared/types/ai'
 import type { ProviderStrategy, StrategyOptions, StreamChunkResult } from './index'
+
+function convertContent(content: string | MessageContent[]): string | any[] {
+  if (typeof content === 'string') return content
+  return content.map((block) => {
+    if (block.type === 'text') {
+      return { type: 'text', text: block.text }
+    }
+    if (block.type === 'image') {
+      return {
+        type: 'image_url',
+        image_url: {
+          url: `data:${block.mimeType};base64,${block.data}`,
+          detail: 'auto',
+        },
+      }
+    }
+    return block
+  })
+}
 
 function getEndpoint(apiFormat?: string): string {
   if (apiFormat === 'responses') return '/responses'
@@ -16,10 +35,10 @@ export const openAIStrategy: ProviderStrategy = {
     model: config.model,
     messages: messages.map((msg) => ({
       role: msg.role,
-      content: msg.content,
+      content: convertContent(msg.content),
     })),
     temperature: config.temperature ?? 1,
-    max_tokens: config.maxTokens ?? 4096,
+    max_tokens: config.maxTokens ?? 10000000,
     stream: options.stream,
   }),
   parseStreamChunk: (parsed: any): StreamChunkResult | undefined => {

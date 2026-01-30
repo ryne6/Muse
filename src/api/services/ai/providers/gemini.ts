@@ -125,7 +125,7 @@ export class GeminiProvider extends BaseAIProvider {
       ],
       generationConfig: {
         temperature: config.temperature ?? 1,
-        maxOutputTokens: config.maxTokens ?? 2048,
+        maxOutputTokens: config.maxTokens ?? 10000000,
       },
     }
 
@@ -231,7 +231,7 @@ export class GeminiProvider extends BaseAIProvider {
       })),
       generationConfig: {
         temperature: config.temperature ?? 1,
-        maxOutputTokens: config.maxTokens ?? 2048,
+        maxOutputTokens: config.maxTokens ?? 10000000,
       },
     }
 

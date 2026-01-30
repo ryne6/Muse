@@ -8,13 +8,15 @@ interface ConversationStore {
   conversations: Conversation[]
   currentConversationId: string | null
   isLoading: boolean
+  loadedConversationIds: Set<string>
+  loadingConversationId: string | null
 
   // Actions
   loadConversations: () => Promise<void>
   createConversation: (title?: string) => Promise<Conversation>
   deleteConversation: (id: string) => Promise<void>
   renameConversation: (id: string, title: string) => Promise<void>
-  loadConversation: (id: string) => void
+  loadConversation: (id: string) => Promise<void>
   updateConversation: (id: string, updates: Partial<Conversation>) => void
   addMessage: (message: Message) => void
   getCurrentConversation: () => Conversation | null
@@ -26,46 +28,29 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
   conversations: [],
   currentConversationId: null,
   isLoading: false,
+  loadedConversationIds: new Set<string>(),
+  loadingConversationId: null,
 
-  // Load all conversations from database
+  // Load all conversations from database (metadata only, no messages)
   loadConversations: async () => {
     set({ isLoading: true })
     try {
       const dbConversations = await dbClient.conversations.getAll()
 
-      // Load messages for each conversation
-      const conversationsWithMessages = await Promise.all(
-        dbConversations.map(async (conv: any) => {
-          const messages = await dbClient.messages.getAllWithTools(conv.id)
-          const attachmentsApi =
-            typeof window !== 'undefined' ? window.api?.attachments : undefined
-          const messagesWithAttachments = await Promise.all(
-            messages.map(async (msg: any) => {
-              const attachments = attachmentsApi?.getPreviewsByMessageId
-                ? await attachmentsApi.getPreviewsByMessageId(msg.id)
-                : []
-              return { ...msg, attachments }
-            })
-          )
-          return {
-            id: conv.id,
-            title: conv.title,
-            createdAt: new Date(conv.createdAt).getTime(),
-            updatedAt: new Date(conv.updatedAt).getTime(),
-            messages: messagesWithAttachments.map((msg: any) => ({
-              id: msg.id,
-              role: msg.role,
-              content: msg.content,
-              timestamp: new Date(msg.timestamp).getTime(),
-              toolCalls: msg.toolCalls || [],
-              toolResults: msg.toolResults || [],
-              attachments: msg.attachments || [],
-            })),
-          }
-        })
-      )
+      // Only load metadata, messages will be loaded on demand
+      const conversations = dbConversations.map((conv: any) => ({
+        id: conv.id,
+        title: conv.title,
+        createdAt: new Date(conv.createdAt).getTime(),
+        updatedAt: new Date(conv.updatedAt).getTime(),
+        messages: [],
+      }))
 
-      set({ conversations: conversationsWithMessages, isLoading: false })
+      set({
+        conversations,
+        isLoading: false,
+        loadedConversationIds: new Set<string>(),
+      })
     } catch (error) {
       console.error('Failed to load conversations:', error)
       set({ isLoading: false })
@@ -126,7 +111,51 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
     }))
   },
 
-  loadConversation: (id: string) => set({ currentConversationId: id }),
+  loadConversation: async (id: string) => {
+    set({ currentConversationId: id })
+
+    const { loadedConversationIds } = get()
+    if (loadedConversationIds.has(id)) return // Already loaded
+
+    set({ loadingConversationId: id })
+
+    try {
+      const messages = await dbClient.messages.getAllWithTools(id)
+      const attachmentsApi =
+        typeof window !== 'undefined' ? window.api?.attachments : undefined
+
+      const messagesWithAttachments = await Promise.all(
+        messages.map(async (msg: any) => {
+          const attachments = attachmentsApi?.getPreviewsByMessageId
+            ? await attachmentsApi.getPreviewsByMessageId(msg.id)
+            : []
+          return { ...msg, attachments }
+        })
+      )
+
+      const mappedMessages = messagesWithAttachments.map((msg: any) => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content,
+        thinking: msg.thinking,
+        timestamp: new Date(msg.timestamp).getTime(),
+        toolCalls: msg.toolCalls || [],
+        toolResults: msg.toolResults || [],
+        attachments: msg.attachments || [],
+      }))
+
+      set((state) => ({
+        conversations: state.conversations.map((c) =>
+          c.id === id ? { ...c, messages: mappedMessages } : c
+        ),
+        loadedConversationIds: new Set([...state.loadedConversationIds, id]),
+        loadingConversationId: null,
+      }))
+    } catch (error) {
+      console.error('Failed to load conversation messages:', error)
+      set({ loadingConversationId: null })
+    }
+  },
 
   updateConversation: (id: string, updates: Partial<Conversation>) =>
     set((state) => ({

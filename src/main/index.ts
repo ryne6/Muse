@@ -284,6 +284,10 @@ function registerIpcHandlers() {
 
   // Database - Attachments
   ipcMain.handle('db:attachments:create', async (_, data) => {
+    // Convert base64 string to Buffer if needed (renderer sends base64)
+    if (typeof data.data === 'string') {
+      data.data = Buffer.from(data.data, 'base64')
+    }
     return await AttachmentService.create(data)
   })
 

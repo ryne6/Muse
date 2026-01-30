@@ -114,7 +114,7 @@ export class OpenAIProvider extends BaseAIProvider {
         requestParams.reasoning_effort = 'medium'
         // o1/o3 don't support tools currently
       } else {
-        requestParams.max_tokens = config.maxTokens || 4096
+        requestParams.max_tokens = config.maxTokens || 10000000
         requestParams.temperature = config.temperature || 1
         requestParams.tools = this.convertTools(fileSystemTools)
       }
@@ -226,7 +226,7 @@ export class OpenAIProvider extends BaseAIProvider {
       if (isReasoning && config.thinkingEnabled) {
         requestParams.reasoning_effort = 'medium'
       } else {
-        requestParams.max_tokens = config.maxTokens || 4096
+        requestParams.max_tokens = config.maxTokens || 10000000
         requestParams.temperature = config.temperature || 1
         requestParams.tools = this.convertTools(fileSystemTools)
       }

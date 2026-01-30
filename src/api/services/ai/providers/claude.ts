@@ -92,7 +92,7 @@ export class ClaudeProvider extends BaseAIProvider {
       // Build request parameters
       const requestParams: any = {
         model: config.model,
-        max_tokens: config.maxTokens || 16000,
+        max_tokens: config.maxTokens || 10000000,
         messages: conversationMessages,
         tools: fileSystemTools,
         stream: true,
@@ -232,7 +232,7 @@ export class ClaudeProvider extends BaseAIProvider {
       // Build request parameters
       const requestParams: any = {
         model: config.model,
-        max_tokens: config.maxTokens || 16000,
+        max_tokens: config.maxTokens || 10000000,
         messages: conversationMessages,
         tools: fileSystemTools,
       }

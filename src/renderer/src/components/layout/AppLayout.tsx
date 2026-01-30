@@ -21,10 +21,10 @@ export function AppLayout() {
   }, [])
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[hsl(var(--bg-main))]">
+    <div className="flex flex-col h-screen overflow-hidden bg-[hsl(var(--bg-sidebar))]">
       {/* Draggable title bar for macOS */}
       <div
-        className="h-8 flex-shrink-0 bg-[hsl(var(--bg-main))]"
+        className="h-8 flex-shrink-0 bg-[hsl(var(--bg-sidebar))]"
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
       />
       {/* Main content */}

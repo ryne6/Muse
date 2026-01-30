@@ -16,7 +16,6 @@ import type { PendingAttachment } from '@shared/types/attachment'
 export function ChatInput() {
   const [input, setInput] = useState('')
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([])
-  const [thinkingEnabled, setThinkingEnabled] = useState(false)
   const [webSearchEnabled, setWebSearchEnabled] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const { sendMessage, isLoading, abortMessage } = useChatStore()
@@ -25,6 +24,8 @@ export function ChatInput() {
     getCurrentProvider,
     getCurrentModel,
     temperature,
+    thinkingEnabled,
+    setThinkingEnabled,
     loadData,
   } = useSettingsStore()
 

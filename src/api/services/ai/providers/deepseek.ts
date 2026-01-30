@@ -57,7 +57,7 @@ export class DeepSeekProvider extends BaseAIProvider {
         content: msg.content,
       })),
       temperature: config.temperature ?? 1,
-      max_tokens: config.maxTokens ?? 4096,
+      max_tokens: config.maxTokens ?? 10000000,
       stream: true,
     }
 
@@ -150,7 +150,7 @@ export class DeepSeekProvider extends BaseAIProvider {
         content: msg.content,
       })),
       temperature: config.temperature ?? 1,
-      max_tokens: config.maxTokens ?? 4096,
+      max_tokens: config.maxTokens ?? 10000000,
     }
 
     const response = await fetch(`${baseURL}/chat/completions`, {

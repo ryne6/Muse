@@ -9,6 +9,7 @@ interface SettingsStore {
   currentProviderId: string | null
   currentModelId: string | null
   temperature: number
+  thinkingEnabled: boolean
   isLoading: boolean
   error: string | null
   lastUpdated: number
@@ -22,6 +23,7 @@ interface SettingsStore {
   setCurrentProvider: (providerId: string) => Promise<void>
   setCurrentModel: (modelId: string) => Promise<void>
   setTemperature: (temperature: number) => void
+  setThinkingEnabled: (enabled: boolean) => void
   clearError: () => void
   triggerRefresh: () => void
 
@@ -61,6 +63,7 @@ export const useSettingsStore = create<SettingsStore>()(
       currentProviderId: null,
       currentModelId: null,
       temperature: 1,
+      thinkingEnabled: false,
       isLoading: false,
       error: null,
       lastUpdated: Date.now(),
@@ -146,6 +149,9 @@ export const useSettingsStore = create<SettingsStore>()(
       setTemperature: (temperature: number) => {
         set({ temperature })
       },
+      setThinkingEnabled: (enabled: boolean) => {
+        set({ thinkingEnabled: enabled })
+      },
       triggerRefresh: () => {
         set({ lastUpdated: Date.now() })
       },
@@ -192,6 +198,7 @@ export const useSettingsStore = create<SettingsStore>()(
         currentProviderId: state.currentProviderId,
         currentModelId: state.currentModelId,
         temperature: state.temperature,
+        thinkingEnabled: state.thinkingEnabled,
       }),
       migrate: (persistedState) => {
         const state =
@@ -202,6 +209,7 @@ export const useSettingsStore = create<SettingsStore>()(
           currentProviderId: state?.currentProviderId ?? null,
           currentModelId: state?.currentModelId ?? null,
           temperature: typeof state?.temperature === 'number' ? state.temperature : 1,
+          thinkingEnabled: state?.thinkingEnabled ?? false,
         }
       }
     }

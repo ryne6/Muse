@@ -3,6 +3,7 @@ import logoImage from '@/assets/providers/logo.png'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { ToolCallsList } from './ToolCallsList'
 import { MessageImage } from './MessageImage'
+import { ThinkingBlock } from './ThinkingBlock'
 
 function formatTime(timestamp?: number): string {
   if (!timestamp) return ''
@@ -20,6 +21,11 @@ export function MessageItem({ message }: MessageItemProps) {
 
   const contentBody = (
     <>
+      {/* Thinking Process (只在 AI 消息中显示) */}
+      {!isUser && message.thinking && (
+        <ThinkingBlock thinking={message.thinking} />
+      )}
+
       {/* Tool Calls (只在 AI 消息中显示) */}
       {!isUser && message.toolCalls && message.toolCalls.length > 0 && (
         <ToolCallsList toolCalls={message.toolCalls} toolResults={message.toolResults} />

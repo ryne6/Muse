@@ -114,6 +114,7 @@ export function ChatInput() {
         apiFormat: provider.apiFormat || 'chat-completions',
         temperature,
         maxTokens: 4096,
+        thinkingEnabled,
       }
 
       await sendMessage(currentConversation.id, message, provider.type, aiConfig, attachments)

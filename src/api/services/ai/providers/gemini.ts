@@ -27,13 +27,22 @@ interface GeminiStreamChunk {
 export class GeminiProvider extends BaseAIProvider {
   readonly name = 'gemini'
   readonly supportsVision = true
+  readonly supportsThinking = true
   readonly supportedModels = [
     'gemini-pro',
     'gemini-pro-vision',
     'gemini-ultra',
     'gemini-1.5-pro',
     'gemini-1.5-flash',
+    'gemini-2.0-flash-thinking-exp',
   ]
+
+  /**
+   * Check if model is a thinking model
+   */
+  private isThinkingModel(model: string): boolean {
+    return model.includes('thinking')
+  }
 
   getDefaultModel(): string {
     return 'gemini-pro'
@@ -163,14 +172,26 @@ export class GeminiProvider extends BaseAIProvider {
 
               if (parsed.candidates && parsed.candidates[0]) {
                 const candidate = parsed.candidates[0]
-                const text = candidate.content.parts[0]?.text || ''
+                const parts = candidate.content.parts || []
 
-                if (text) {
-                  fullContent += text
-                  onChunk({
-                    content: text,
-                    done: false,
-                  })
+                for (const part of parts) {
+                  // Handle thought content (thinking models)
+                  if ((part as any).thought) {
+                    onChunk({
+                      content: '',
+                      done: false,
+                      thinking: (part as any).thought,
+                    })
+                  }
+
+                  // Handle regular text content
+                  if (part.text) {
+                    fullContent += part.text
+                    onChunk({
+                      content: part.text,
+                      done: false,
+                    })
+                  }
                 }
               }
             } catch (e) {

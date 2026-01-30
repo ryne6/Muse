@@ -3,11 +3,19 @@ import type { AIMessage, AIConfig, AIStreamChunk } from '../../../../shared/type
 
 export class DeepSeekProvider extends BaseAIProvider {
   readonly name = 'deepseek'
+  readonly supportsThinking = true
   readonly supportedModels = [
     'deepseek-chat',
     'deepseek-coder',
     'deepseek-reasoner',
   ]
+
+  /**
+   * Check if model is a reasoning model
+   */
+  private isReasonerModel(model: string): boolean {
+    return model === 'deepseek-reasoner'
+  }
 
   getDefaultModel(): string {
     return 'deepseek-chat'
@@ -94,6 +102,16 @@ export class DeepSeekProvider extends BaseAIProvider {
               const parsed = JSON.parse(data)
               const delta = parsed.choices?.[0]?.delta
               const content = delta?.content
+              const reasoningContent = delta?.reasoning_content
+
+              // Handle reasoning content (deepseek-reasoner)
+              if (reasoningContent) {
+                onChunk({
+                  content: '',
+                  done: false,
+                  thinking: reasoningContent,
+                })
+              }
 
               if (content) {
                 fullContent += content

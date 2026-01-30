@@ -66,6 +66,7 @@ export interface AIStreamChunk {
   done: boolean
   toolCall?: ToolCallData
   toolResult?: ToolResultData
+  thinking?: string
 }
 
 export interface AIConfig {
@@ -75,6 +76,7 @@ export interface AIConfig {
   apiFormat?: string
   temperature?: number
   maxTokens?: number
+  thinkingEnabled?: boolean
 }
 
 export interface AIProvider {

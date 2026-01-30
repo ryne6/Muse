@@ -12,6 +12,7 @@ import { ToolExecutor } from '../tools/executor'
 export class OpenAIProvider extends BaseAIProvider {
   readonly name = 'openai'
   readonly supportsVision = true
+  readonly supportsThinking = true
   readonly supportedModels = [
     'gpt-4-turbo-preview',
     'gpt-4-turbo',
@@ -21,7 +22,19 @@ export class OpenAIProvider extends BaseAIProvider {
     'gpt-3.5-turbo-16k',
     'gpt-4o',
     'gpt-4o-mini',
+    'o1',
+    'o1-mini',
+    'o1-preview',
+    'o3',
+    'o3-mini',
   ]
+
+  /**
+   * Check if model is a reasoning model (o1/o3 series)
+   */
+  private isReasoningModel(model: string): boolean {
+    return /^o[13]/.test(model)
+  }
 
   /**
    * Convert AIMessage content to OpenAI API format
@@ -87,14 +100,26 @@ export class OpenAIProvider extends BaseAIProvider {
     } as OpenAI.ChatCompletionMessageParam))
 
     while (true) {
-      const stream = await client.chat.completions.create({
+      const isReasoning = this.isReasoningModel(config.model)
+
+      // Build request parameters
+      const requestParams: any = {
         model: config.model,
-        max_tokens: config.maxTokens || 4096,
-        temperature: config.temperature || 1,
         messages: conversationMessages,
-        tools: this.convertTools(fileSystemTools),
         stream: true,
-      })
+      }
+
+      if (isReasoning && config.thinkingEnabled) {
+        // o1/o3 models use reasoning_effort
+        requestParams.reasoning_effort = 'medium'
+        // o1/o3 don't support tools currently
+      } else {
+        requestParams.max_tokens = config.maxTokens || 4096
+        requestParams.temperature = config.temperature || 1
+        requestParams.tools = this.convertTools(fileSystemTools)
+      }
+
+      const stream = await client.chat.completions.create(requestParams)
 
       let currentContent = ''
       const toolCalls: OpenAI.ChatCompletionMessageToolCall[] = []
@@ -190,13 +215,23 @@ export class OpenAIProvider extends BaseAIProvider {
     let finalText = ''
 
     while (true) {
-      const response = await client.chat.completions.create({
+      const isReasoning = this.isReasoningModel(config.model)
+
+      // Build request parameters
+      const requestParams: any = {
         model: config.model,
-        max_tokens: config.maxTokens || 4096,
-        temperature: config.temperature || 1,
         messages: conversationMessages,
-        tools: this.convertTools(fileSystemTools),
-      })
+      }
+
+      if (isReasoning && config.thinkingEnabled) {
+        requestParams.reasoning_effort = 'medium'
+      } else {
+        requestParams.max_tokens = config.maxTokens || 4096
+        requestParams.temperature = config.temperature || 1
+        requestParams.tools = this.convertTools(fileSystemTools)
+      }
+
+      const response = await client.chat.completions.create(requestParams)
 
       const message = response.choices[0]?.message
 

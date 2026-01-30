@@ -8,6 +8,7 @@ export interface Message {
   toolCalls?: ToolCall[]
   toolResults?: ToolResult[]
   attachments?: AttachmentPreview[]
+  thinking?: string
 }
 
 export interface ToolCall {

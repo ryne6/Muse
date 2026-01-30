@@ -13,7 +13,11 @@ import { ToolExecutor } from '../tools/executor'
 export class ClaudeProvider extends BaseAIProvider {
   readonly name = 'claude'
   readonly supportsVision = true
+  readonly supportsThinking = true
   readonly supportedModels = [
+    'claude-sonnet-4-20250514',
+    'claude-opus-4-5-20251101',
+    'claude-3-7-sonnet-20250219',
     'claude-3-5-sonnet-20241022',
     'claude-3-opus-20240229',
     'claude-3-sonnet-20240229',
@@ -85,14 +89,28 @@ export class ClaudeProvider extends BaseAIProvider {
     }))
 
     while (true) {
-      const stream = await client.messages.create({
+      // Build request parameters
+      const requestParams: any = {
         model: config.model,
-        max_tokens: config.maxTokens || 4096,
-        temperature: config.temperature || 1,
+        max_tokens: config.maxTokens || 16000,
         messages: conversationMessages,
         tools: fileSystemTools,
         stream: true,
-      })
+      }
+
+      // Add thinking configuration if enabled
+      if (config.thinkingEnabled) {
+        requestParams.thinking = {
+          type: 'enabled',
+          budget_tokens: 10000,
+        }
+        // Temperature MUST be 1 when thinking is enabled
+        requestParams.temperature = 1
+      } else {
+        requestParams.temperature = config.temperature || 1
+      }
+
+      const stream = await client.messages.create(requestParams)
 
       let currentContent = ''
       const toolUses: any[] = []
@@ -107,7 +125,10 @@ export class ClaudeProvider extends BaseAIProvider {
             })
           }
         } else if (chunk.type === 'content_block_delta') {
-          if (chunk.delta.type === 'text_delta') {
+          if (chunk.delta.type === 'thinking_delta') {
+            // Stream thinking content
+            onChunk({ content: '', done: false, thinking: chunk.delta.thinking })
+          } else if (chunk.delta.type === 'text_delta') {
             currentContent += chunk.delta.text
             fullContent += chunk.delta.text
             onChunk({ content: chunk.delta.text, done: false })
@@ -205,13 +226,26 @@ export class ClaudeProvider extends BaseAIProvider {
     let finalText = ''
 
     while (true) {
-      const response = await client.messages.create({
+      // Build request parameters
+      const requestParams: any = {
         model: config.model,
-        max_tokens: config.maxTokens || 4096,
-        temperature: config.temperature || 1,
+        max_tokens: config.maxTokens || 16000,
         messages: conversationMessages,
         tools: fileSystemTools,
-      })
+      }
+
+      // Add thinking configuration if enabled
+      if (config.thinkingEnabled) {
+        requestParams.thinking = {
+          type: 'enabled',
+          budget_tokens: 10000,
+        }
+        requestParams.temperature = 1
+      } else {
+        requestParams.temperature = config.temperature || 1
+      }
+
+      const response = await client.messages.create(requestParams)
 
       // Extract text content
       const textContent = response.content.filter((block) => block.type === 'text')

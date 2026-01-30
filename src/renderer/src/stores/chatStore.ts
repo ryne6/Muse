@@ -161,6 +161,11 @@ export const useChatStore = create<ChatStore>((set) => ({
               updated.content = m.content + chunk.content
             }
 
+            // Update thinking content
+            if (chunk.thinking) {
+              updated.thinking = (m.thinking || '') + chunk.thinking
+            }
+
             // Add tool call
             if (chunk.toolCall) {
               const toolCalls = updated.toolCalls || []

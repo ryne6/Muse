@@ -23,6 +23,11 @@ export abstract class BaseAIProvider implements AIProvider {
    */
   readonly supportsVision: boolean = false
 
+  /**
+   * Whether this provider supports extended thinking/reasoning
+   */
+  readonly supportsThinking: boolean = false
+
   abstract sendMessage(
     messages: AIMessage[],
     config: AIConfig,

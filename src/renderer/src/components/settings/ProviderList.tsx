@@ -5,6 +5,7 @@ import { AddProviderDialog } from './AddProviderDialog'
 import { ManageModelsDialog } from './ManageModelsDialog'
 import { dbClient } from '@/services/dbClient'
 import { fadeInUpClass } from '@/utils/animations'
+import { useSettingsStore } from '@/stores/settingsStore'
 
 interface Provider {
   id: string
@@ -20,6 +21,7 @@ interface ProviderListProps {
 }
 
 export function ProviderList({ onConfigureProvider }: ProviderListProps) {
+  const lastUpdated = useSettingsStore((s) => s.lastUpdated)
   const [providers, setProviders] = useState<Provider[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null)
@@ -27,7 +29,7 @@ export function ProviderList({ onConfigureProvider }: ProviderListProps) {
 
   useEffect(() => {
     loadProviders()
-  }, [])
+  }, [lastUpdated])
 
   const loadProviders = async () => {
     setIsLoading(true)

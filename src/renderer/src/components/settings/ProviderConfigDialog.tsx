@@ -186,7 +186,7 @@ export function ProviderConfigDialog({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="button" disabled={isSubmitting} onClick={handleSubmit}>
               {isSubmitting ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>

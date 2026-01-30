@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { ImagePlus } from 'lucide-react'
+import { Link } from 'lucide-react'
 import { Button } from '../ui/button'
 import { SUPPORTED_IMAGE_TYPES, MAX_ATTACHMENT_SIZE } from '@shared/types/attachment'
 import { notify } from '@/utils/notify'
@@ -60,7 +60,7 @@ export function ImageUploadButton({ onImagesSelected, disabled }: ImageUploadBut
         disabled={disabled}
         title="Add image"
       >
-        <ImagePlus className="w-5 h-5" />
+        <Link className="w-4 h-4" />
       </Button>
     </>
   )

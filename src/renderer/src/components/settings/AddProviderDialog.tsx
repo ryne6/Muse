@@ -13,31 +13,26 @@ interface AddProviderDialogProps {
 
 const PROVIDER_TEMPLATES = [
   {
-    name: 'Google Gemini',
+    name: 'OpenAI',
+    type: 'openai',
+    baseURL: 'https://api.openai.com/v1',
+    models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'o1', 'o3-mini'],
+  },
+  {
+    name: 'Claude',
+    type: 'claude',
+    baseURL: 'https://api.anthropic.com',
+    models: ['claude-sonnet-4-20250514', 'claude-3-5-sonnet-20241022', 'claude-3-haiku-20240307'],
+    apiFormat: 'anthropic-messages',
+  },
+  {
+    name: 'Gemini',
     type: 'gemini',
     baseURL: 'https://generativelanguage.googleapis.com/v1beta',
-    models: ['gemini-pro', 'gemini-pro-vision', 'gemini-ultra'],
+    models: ['gemini-2.0-flash', 'gemini-1.5-pro', 'gemini-1.5-flash'],
   },
   {
-    name: 'DeepSeek',
-    type: 'deepseek',
-    baseURL: 'https://api.deepseek.com/v1',
-    models: ['deepseek-chat', 'deepseek-coder'],
-  },
-  {
-    name: 'Moonshot',
-    type: 'moonshot',
-    baseURL: 'https://api.moonshot.cn/v1',
-    models: ['moonshot-v1-8k', 'moonshot-v1-32k', 'moonshot-v1-128k'],
-  },
-  {
-    name: 'OpenRouter',
-    type: 'openrouter',
-    baseURL: 'https://openrouter.ai/api/v1',
-    models: [],
-  },
-  {
-    name: 'Custom Provider',
+    name: 'Custom',
     type: 'custom',
     baseURL: '',
     models: [],

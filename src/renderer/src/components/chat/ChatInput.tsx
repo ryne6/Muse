@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { Button } from '../ui/button'
 import { useChatStore } from '@/stores/chatStore'
 import { useConversationStore } from '@/stores/conversationStore'
-import { useSettingsStoreV2 } from '@/stores/settingsStoreV2'
+import { useSettingsStore } from '@/stores/settingsStore'
 import { notify } from '@/utils/notify'
 import { ImageUploadButton } from './ImageUploadButton'
 import { ImagePreview } from './ImagePreview'
@@ -26,7 +26,7 @@ export function ChatInput() {
     getCurrentModel,
     temperature,
     loadData,
-  } = useSettingsStoreV2()
+  } = useSettingsStore()
 
   const conversation = getCurrentConversation()
 

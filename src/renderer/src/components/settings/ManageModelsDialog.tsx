@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog'
 import { dbClient } from '@/services/dbClient'
 import { notify } from '@/utils/notify'
-import { useSettingsStoreV2 } from '@/stores/settingsStoreV2'
+import { useSettingsStore } from '@/stores/settingsStore'
 
 interface Model {
   id: string
@@ -36,7 +36,7 @@ export function ManageModelsDialog({
   providerName,
   onUpdate,
 }: ManageModelsDialogProps) {
-  const { triggerRefresh } = useSettingsStoreV2()
+  const { triggerRefresh } = useSettingsStore()
   const [models, setModels] = useState<Model[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isAdding, setIsAdding] = useState(false)

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { ChevronDown, Loader2 } from 'lucide-react'
-import { useSettingsStoreV2 } from '@/stores/settingsStoreV2'
+import { useSettingsStore } from '@/stores/settingsStore'
 import type { Model } from '@shared/types/db'
 import {
   DropdownMenu,
@@ -22,7 +22,7 @@ export function ModelSelector() {
     models,
     loadData,
     lastUpdated,
-  } = useSettingsStoreV2()
+  } = useSettingsStore()
 
   const currentProvider = getCurrentProvider()
   const currentModel = getCurrentModel()

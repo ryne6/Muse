@@ -1,141 +1,209 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import type { ProviderConfig, ModelConfig } from '@shared/types/config'
-import { PRESET_MODELS } from '@shared/constants/models'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import { dbClient } from '../services/dbClient'
+import { notify } from '../utils/notify'
+import type { Provider, Model } from '@shared/types/db'
 
 interface SettingsStore {
   // State
-  currentProvider: string
-  providers: Record<string, ProviderConfig>
+  currentProviderId: string | null
+  currentModelId: string | null
+  temperature: number
+  isLoading: boolean
+  error: string | null
+  lastUpdated: number
+
+  // Cached data
+  providers: Provider[]
+  models: Model[]
 
   // Actions
-  setCurrentProvider: (provider: string) => void
-  updateProvider: (name: string, config: ProviderConfig) => void
-  getProviderConfig: (name: string) => ProviderConfig | undefined
-  setProviderModel: (provider: string, model: string) => void
-  setProviderTemperature: (provider: string, temperature: number) => void
-  addCustomModel: (provider: string, model: ModelConfig) => void
-  removeCustomModel: (provider: string, modelId: string) => void
-  getAvailableModels: (provider: string) => ModelConfig[]
+  loadData: () => Promise<void>
+  setCurrentProvider: (providerId: string) => Promise<void>
+  setCurrentModel: (modelId: string) => Promise<void>
+  setTemperature: (temperature: number) => void
+  clearError: () => void
+  triggerRefresh: () => void
+
+  // Computed
+  getCurrentProvider: () => Provider | null
+  getCurrentModel: () => Model | null
+  getEnabledProviders: () => Provider[]
+  getModelsForProvider: (providerId: string) => Model[]
+  getEnabledModels: () => Model[]
 }
 
-const defaultProviders: Record<string, ProviderConfig> = {
-  claude: {
-    type: 'claude',
-    apiKey: '',
-    model: 'claude-3-5-sonnet-20241022',
-    temperature: 1,
-    maxTokens: 4096,
+const SETTINGS_STORAGE_KEY = 'muse-settings'
+const LEGACY_SETTINGS_KEY = 'muse-settings-v2'
+
+const legacyAwareStorage = {
+  getItem: (name: string) => {
+    if (typeof localStorage === 'undefined') return null
+    const legacy = localStorage.getItem(LEGACY_SETTINGS_KEY)
+    return legacy ?? localStorage.getItem(name)
   },
-  openai: {
-    type: 'openai',
-    apiKey: '',
-    model: 'gpt-4-turbo-preview',
-    temperature: 1,
-    maxTokens: 4096,
+  setItem: (name: string, value: string) => {
+    if (typeof localStorage === 'undefined') return
+    localStorage.setItem(name, value)
+    localStorage.removeItem(LEGACY_SETTINGS_KEY)
   },
+  removeItem: (name: string) => {
+    if (typeof localStorage === 'undefined') return
+    localStorage.removeItem(name)
+    localStorage.removeItem(LEGACY_SETTINGS_KEY)
+  }
 }
 
 export const useSettingsStore = create<SettingsStore>()(
   persist(
     (set, get) => ({
-      currentProvider: 'claude',
-      providers: defaultProviders,
+      // State
+      currentProviderId: null,
+      currentModelId: null,
+      temperature: 1,
+      isLoading: false,
+      error: null,
+      lastUpdated: Date.now(),
 
-      setCurrentProvider: (provider) => set({ currentProvider: provider }),
+      // Cached data
+      providers: [],
+      models: [],
 
-      updateProvider: (name, config) =>
-        set((state) => ({
-          providers: {
-            ...state.providers,
-            [name]: config,
-          },
-        })),
+      // Actions
+      clearError: () => set({ error: null }),
+      loadData: async () => {
+        set({ isLoading: true, error: null })
+        try {
+          const [providers, models] = await Promise.all([
+            dbClient.providers.getAll(),
+            dbClient.models.getAll(),
+          ])
 
-      getProviderConfig: (name) => {
-        const state = get()
-        return state.providers[name]
+          set({ providers, models, isLoading: false })
+
+          // Auto-select first enabled provider/model if none selected
+          const state = get()
+          if (!state.currentProviderId) {
+            const firstProvider = providers.find((p: Provider) => p.enabled)
+            if (firstProvider) {
+              const firstModel = models.find(
+                (m: Model) => m.providerId === firstProvider.id && m.enabled
+              )
+              if (firstModel) {
+                set({
+                  currentProviderId: firstProvider.id,
+                  currentModelId: firstModel.id,
+                })
+              }
+            }
+          }
+        } catch (error) {
+          const errorMessage = error instanceof Error ? error.message : 'Failed to load settings'
+          console.error('Failed to load settings data:', error)
+          set({ isLoading: false, error: errorMessage })
+
+          // Show error notification with retry option
+          notify.errorWithRetry(
+            'Failed to load settings. Please try again.',
+            () => get().loadData()
+          )
+        }
       },
 
-      setProviderModel: (provider, model) =>
-        set((state) => {
-          const providerConfig = state.providers[provider]
-          if (!providerConfig) return state
-
-          return {
-            providers: {
-              ...state.providers,
-              [provider]: {
-                ...providerConfig,
-                model,
-              },
-            },
-          }
-        }),
-
-      setProviderTemperature: (provider, temperature) =>
-        set((state) => {
-          const providerConfig = state.providers[provider]
-          if (!providerConfig) return state
-
-          return {
-            providers: {
-              ...state.providers,
-              [provider]: {
-                ...providerConfig,
-                temperature,
-              },
-            },
-          }
-        }),
-
-      addCustomModel: (provider, model) =>
-        set((state) => {
-          const providerConfig = state.providers[provider]
-          if (!providerConfig) return state
-
-          const customModels = providerConfig.models || []
-          // Avoid duplicates
-          if (customModels.find((m) => m.id === model.id)) {
-            return state
-          }
-
-          return {
-            providers: {
-              ...state.providers,
-              [provider]: {
-                ...providerConfig,
-                models: [...customModels, { ...model, isCustom: true }],
-              },
-            },
-          }
-        }),
-
-      removeCustomModel: (provider, modelId) =>
-        set((state) => {
-          const providerConfig = state.providers[provider]
-          if (!providerConfig) return state
-
-          return {
-            providers: {
-              ...state.providers,
-              [provider]: {
-                ...providerConfig,
-                models: (providerConfig.models || []).filter((m) => m.id !== modelId),
-              },
-            },
-          }
-        }),
-
-      getAvailableModels: (provider) => {
+      setCurrentProvider: async (providerId: string) => {
         const state = get()
-        const presetModels = PRESET_MODELS[provider] || []
-        const customModels = state.providers[provider]?.models || []
-        return [...presetModels, ...customModels]
+        const provider = state.providers.find((p) => p.id === providerId)
+        if (!provider) {
+          notify.warning('Provider not found. Please refresh settings.')
+          return
+        }
+
+        // Find first enabled model for this provider
+        const firstModel = state.models.find(
+          (m) => m.providerId === providerId && m.enabled
+        )
+
+        set({
+          currentProviderId: providerId,
+          currentModelId: firstModel?.id || null,
+        })
+      },
+
+      setCurrentModel: async (modelId: string) => {
+        const state = get()
+        const model = state.models.find((m) => m.id === modelId)
+        if (!model) {
+          notify.warning('Model not found. Please refresh settings.')
+          return
+        }
+
+        set({
+          currentModelId: modelId,
+          currentProviderId: model.providerId,
+        })
+      },
+
+      setTemperature: (temperature: number) => {
+        set({ temperature })
+      },
+      triggerRefresh: () => {
+        set({ lastUpdated: Date.now() })
+      },
+
+      // Computed
+      getCurrentProvider: () => {
+        const state = get()
+        if (!state.currentProviderId) return null
+        return state.providers.find((p) => p.id === state.currentProviderId) || null
+      },
+
+      getCurrentModel: () => {
+        const state = get()
+        if (!state.currentModelId) return null
+        return state.models.find((m) => m.id === state.currentModelId) || null
+      },
+
+      getEnabledProviders: () => {
+        const state = get()
+        return state.providers.filter((p) => p.enabled)
+      },
+
+      getModelsForProvider: (providerId: string) => {
+        const state = get()
+        return state.models.filter((m) => m.providerId === providerId)
+      },
+
+      getEnabledModels: () => {
+        const state = get()
+        const enabledProviderIds = state.providers
+          .filter((p) => p.enabled)
+          .map((p) => p.id)
+        return state.models.filter(
+          (m) => m.enabled && enabledProviderIds.includes(m.providerId)
+        )
       },
     }),
     {
-      name: 'muse-settings',
+      name: SETTINGS_STORAGE_KEY,
+      version: 1,
+      storage: createJSONStorage(() => legacyAwareStorage),
+      // Only persist user preferences, not cached data
+      partialize: (state) => ({
+        currentProviderId: state.currentProviderId,
+        currentModelId: state.currentModelId,
+        temperature: state.temperature,
+      }),
+      migrate: (persistedState) => {
+        const state =
+          persistedState && typeof persistedState === 'object'
+            ? (persistedState as Partial<SettingsStore>)
+            : undefined
+        return {
+          currentProviderId: state?.currentProviderId ?? null,
+          currentModelId: state?.currentModelId ?? null,
+          temperature: typeof state?.temperature === 'number' ? state.temperature : 1,
+        }
+      }
     }
   )
 )

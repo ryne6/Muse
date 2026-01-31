@@ -34,6 +34,17 @@ app.post('/ipc/:channel', async (c) => {
         result = { success: await fsService.writeFile(body.path, body.content) }
         break
 
+      case 'fs:editFile':
+        result = {
+          replaced: await fsService.editFile(
+            body.path,
+            body.oldText,
+            body.newText,
+            body.replaceAll
+          ),
+        }
+        break
+
       case 'fs:listFiles':
         result = { files: await fsService.listFiles(body.path, body.pattern) }
         break

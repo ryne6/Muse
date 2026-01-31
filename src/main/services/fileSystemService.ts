@@ -33,6 +33,50 @@ export class FileSystemService {
     }
   }
 
+  async editFile(
+    path: string,
+    oldText: string,
+    newText: string,
+    replaceAll = false
+  ): Promise<number> {
+    try {
+      if (!oldText) {
+        throw new Error('oldText must be a non-empty string')
+      }
+
+      const stats = await fs.stat(path)
+      if (stats.size > 10 * 1024 * 1024) {
+        throw new Error('File too large (max 10MB)')
+      }
+
+      const content = await fs.readFile(path, 'utf-8')
+      if (!content.includes(oldText)) {
+        throw new Error('Text not found in file')
+      }
+
+      let replaced = 0
+      let updated = content
+
+      if (replaceAll) {
+        const parts = content.split(oldText)
+        replaced = parts.length - 1
+        updated = parts.join(newText)
+      } else {
+        const index = content.indexOf(oldText)
+        if (index >= 0) {
+          replaced = 1
+          updated =
+            content.slice(0, index) + newText + content.slice(index + oldText.length)
+        }
+      }
+
+      await fs.writeFile(path, updated, 'utf-8')
+      return replaced
+    } catch (error: any) {
+      throw new Error(`Failed to edit file: ${error.message}`)
+    }
+  }
+
   async listFiles(path: string, pattern?: string): Promise<FileInfo[]> {
     try {
       const entries = await fs.readdir(path, { withFileTypes: true })

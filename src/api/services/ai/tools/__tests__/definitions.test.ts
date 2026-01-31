@@ -8,12 +8,17 @@ describe('Tool Definitions', () => {
       expect(fileSystemTools.length).toBeGreaterThan(0)
     })
 
-    it('should have 4 file system tools', () => {
-      expect(fileSystemTools).toHaveLength(4)
+    it('should have 6 file system tools', () => {
+      expect(fileSystemTools).toHaveLength(6)
+    })
+
+    it('should include expected tool names', () => {
+      const names = fileSystemTools.map((tool) => tool.name)
+      expect(names).toEqual(['Bash', 'Read', 'Write', 'Edit', 'LS', 'TodoWrite'])
     })
 
     it('each tool should have required fields', () => {
-      fileSystemTools.forEach(tool => {
+      fileSystemTools.forEach((tool) => {
         expect(tool).toHaveProperty('name')
         expect(tool).toHaveProperty('description')
         expect(tool).toHaveProperty('input_schema')
@@ -24,72 +29,94 @@ describe('Tool Definitions', () => {
     })
 
     it('each input_schema should have type object', () => {
-      fileSystemTools.forEach(tool => {
+      fileSystemTools.forEach((tool) => {
         expect(tool.input_schema.type).toBe('object')
       })
     })
   })
 
-  describe('read_file tool', () => {
-    const readFileTool = fileSystemTools.find(t => t.name === 'read_file')
+  describe('Bash tool', () => {
+    const bashTool = fileSystemTools.find((t) => t.name === 'Bash')
 
     it('should exist', () => {
-      expect(readFileTool).toBeDefined()
-    })
-
-    it('should require path parameter', () => {
-      expect(readFileTool?.input_schema.required).toContain('path')
-    })
-
-    it('should have path property with string type', () => {
-      expect(readFileTool?.input_schema.properties.path.type).toBe('string')
-    })
-  })
-
-  describe('write_file tool', () => {
-    const writeFileTool = fileSystemTools.find(t => t.name === 'write_file')
-
-    it('should exist', () => {
-      expect(writeFileTool).toBeDefined()
-    })
-
-    it('should require path and content parameters', () => {
-      expect(writeFileTool?.input_schema.required).toContain('path')
-      expect(writeFileTool?.input_schema.required).toContain('content')
-    })
-  })
-
-  describe('list_files tool', () => {
-    const listFilesTool = fileSystemTools.find(t => t.name === 'list_files')
-
-    it('should exist', () => {
-      expect(listFilesTool).toBeDefined()
-    })
-
-    it('should require path parameter', () => {
-      expect(listFilesTool?.input_schema.required).toContain('path')
-    })
-
-    it('should have optional pattern parameter', () => {
-      expect(listFilesTool?.input_schema.properties.pattern).toBeDefined()
-      expect(listFilesTool?.input_schema.required).not.toContain('pattern')
-    })
-  })
-
-  describe('execute_command tool', () => {
-    const execTool = fileSystemTools.find(t => t.name === 'execute_command')
-
-    it('should exist', () => {
-      expect(execTool).toBeDefined()
+      expect(bashTool).toBeDefined()
     })
 
     it('should require command parameter', () => {
-      expect(execTool?.input_schema.required).toContain('command')
+      expect(bashTool?.input_schema.required).toContain('command')
     })
 
     it('should have optional cwd parameter', () => {
-      expect(execTool?.input_schema.properties.cwd).toBeDefined()
-      expect(execTool?.input_schema.required).not.toContain('cwd')
+      expect(bashTool?.input_schema.properties.cwd).toBeDefined()
+      expect(bashTool?.input_schema.required).not.toContain('cwd')
+    })
+  })
+
+  describe('Read tool', () => {
+    const readTool = fileSystemTools.find((t) => t.name === 'Read')
+
+    it('should exist', () => {
+      expect(readTool).toBeDefined()
+    })
+
+    it('should require path parameter', () => {
+      expect(readTool?.input_schema.required).toContain('path')
+    })
+  })
+
+  describe('Write tool', () => {
+    const writeTool = fileSystemTools.find((t) => t.name === 'Write')
+
+    it('should exist', () => {
+      expect(writeTool).toBeDefined()
+    })
+
+    it('should require path and content parameters', () => {
+      expect(writeTool?.input_schema.required).toContain('path')
+      expect(writeTool?.input_schema.required).toContain('content')
+    })
+  })
+
+  describe('Edit tool', () => {
+    const editTool = fileSystemTools.find((t) => t.name === 'Edit')
+
+    it('should exist', () => {
+      expect(editTool).toBeDefined()
+    })
+
+    it('should require path, old_text, and new_text parameters', () => {
+      expect(editTool?.input_schema.required).toContain('path')
+      expect(editTool?.input_schema.required).toContain('old_text')
+      expect(editTool?.input_schema.required).toContain('new_text')
+    })
+  })
+
+  describe('LS tool', () => {
+    const lsTool = fileSystemTools.find((t) => t.name === 'LS')
+
+    it('should exist', () => {
+      expect(lsTool).toBeDefined()
+    })
+
+    it('should require path parameter', () => {
+      expect(lsTool?.input_schema.required).toContain('path')
+    })
+
+    it('should have optional pattern parameter', () => {
+      expect(lsTool?.input_schema.properties.pattern).toBeDefined()
+      expect(lsTool?.input_schema.required).not.toContain('pattern')
+    })
+  })
+
+  describe('TodoWrite tool', () => {
+    const todoTool = fileSystemTools.find((t) => t.name === 'TodoWrite')
+
+    it('should exist', () => {
+      expect(todoTool).toBeDefined()
+    })
+
+    it('should require todos parameter', () => {
+      expect(todoTool?.input_schema.required).toContain('todos')
     })
   })
 })

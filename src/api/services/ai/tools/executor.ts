@@ -2,21 +2,38 @@ import axios from 'axios'
 
 const IPC_BRIDGE_BASE = 'http://localhost:3001'
 
+const TODO_STATUS_MARKERS: Record<string, string> = {
+  todo: ' ',
+  in_progress: '~',
+  done: 'x',
+}
+
 export class ToolExecutor {
   async execute(toolName: string, input: any): Promise<string> {
     try {
       switch (toolName) {
-        case 'read_file':
+        case 'Read':
           return await this.readFile(input.path)
 
-        case 'write_file':
+        case 'Write':
           return await this.writeFile(input.path, input.content)
 
-        case 'list_files':
+        case 'Edit':
+          return await this.editFile(
+            input.path,
+            input.old_text,
+            input.new_text,
+            input.replace_all
+          )
+
+        case 'LS':
           return await this.listFiles(input.path, input.pattern)
 
-        case 'execute_command':
+        case 'Bash':
           return await this.executeCommand(input.command, input.cwd)
+
+        case 'TodoWrite':
+          return this.formatTodoList(input)
 
         default:
           throw new Error(`Unknown tool: ${toolName}`)
@@ -50,6 +67,50 @@ export class ToolExecutor {
     } catch (error: any) {
       throw new Error(`Failed to write file: ${error.response?.data?.error || error.message}`)
     }
+  }
+
+  private async editFile(
+    path: string,
+    oldText: string,
+    newText: string,
+    replaceAll?: boolean
+  ): Promise<string> {
+    try {
+      const response = await axios.post(`${IPC_BRIDGE_BASE}/ipc/fs:editFile`, {
+        path,
+        oldText,
+        newText,
+        replaceAll,
+      })
+
+      const replaced = response.data.replaced
+      return `Replaced ${replaced} occurrence${replaced === 1 ? '' : 's'} in ${path}`
+    } catch (error: any) {
+      throw new Error(`Failed to edit file: ${error.response?.data?.error || error.message}`)
+    }
+  }
+
+  private formatTodoList(input: any): string {
+    const todos = Array.isArray(input?.todos) ? input.todos : null
+    if (!todos) {
+      throw new Error('Todos must be provided as an array')
+    }
+
+    const lines = todos.map((todo: any) => {
+      const marker = TODO_STATUS_MARKERS[todo.status]
+      if (!marker) {
+        throw new Error(`Invalid todo status: ${todo.status}`)
+      }
+
+      const title = todo.title ?? ''
+      const mainLine = `- [${marker}] ${title}`
+      const notes = typeof todo.notes === 'string' && todo.notes.trim().length > 0
+        ? `\n  - ${todo.notes.trim()}`
+        : ''
+      return `${mainLine}${notes}`
+    })
+
+    return lines.join('\n')
   }
 
   private async listFiles(path: string, pattern?: string): Promise<string> {

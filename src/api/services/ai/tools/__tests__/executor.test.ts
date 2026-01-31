@@ -14,12 +14,12 @@ describe('ToolExecutor', () => {
   })
 
   describe('execute', () => {
-    it('should route to readFile for read_file tool', async () => {
+    it('should route to readFile for Read tool', async () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: { content: 'file content' }
       })
 
-      const result = await executor.execute('read_file', { path: '/test/file.txt' })
+      const result = await executor.execute('Read', { path: '/test/file.txt' })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/fs:readFile',
@@ -28,12 +28,12 @@ describe('ToolExecutor', () => {
       expect(result).toBe('file content')
     })
 
-    it('should route to writeFile for write_file tool', async () => {
+    it('should route to writeFile for Write tool', async () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: { success: true }
       })
 
-      const result = await executor.execute('write_file', {
+      const result = await executor.execute('Write', {
         path: '/test/file.txt',
         content: 'new content'
       })
@@ -45,7 +45,7 @@ describe('ToolExecutor', () => {
       expect(result).toContain('Successfully wrote')
     })
 
-    it('should route to listFiles for list_files tool', async () => {
+    it('should route to listFiles for LS tool', async () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: {
           files: [
@@ -55,7 +55,7 @@ describe('ToolExecutor', () => {
         }
       })
 
-      const result = await executor.execute('list_files', { path: '/test' })
+      const result = await executor.execute('LS', { path: '/test' })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/fs:listFiles',
@@ -64,12 +64,12 @@ describe('ToolExecutor', () => {
       expect(result).toContain('Contents of /test')
     })
 
-    it('should route to executeCommand for execute_command tool', async () => {
+    it('should route to executeCommand for Bash tool', async () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: { output: 'command output', error: '' }
       })
 
-      const result = await executor.execute('execute_command', {
+      const result = await executor.execute('Bash', {
         command: 'npm test',
         cwd: '/test'
       })
@@ -79,6 +79,40 @@ describe('ToolExecutor', () => {
         { command: 'npm test', cwd: '/test' }
       )
       expect(result).toContain('Command: npm test')
+    })
+
+    it('should route to editFile for Edit tool', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { replaced: 2 }
+      })
+
+      const result = await executor.execute('Edit', {
+        path: '/test/file.txt',
+        old_text: 'old',
+        new_text: 'new',
+        replace_all: true
+      })
+
+      expect(axios.post).toHaveBeenCalledWith(
+        'http://localhost:3001/ipc/fs:editFile',
+        { path: '/test/file.txt', oldText: 'old', newText: 'new', replaceAll: true }
+      )
+      expect(result).toContain('Replaced 2 occurrence')
+    })
+
+    it('should return markdown list for TodoWrite tool', async () => {
+      const result = await executor.execute('TodoWrite', {
+        todos: [
+          { id: '1', title: 'Do thing', status: 'todo' },
+          { id: '2', title: 'In progress', status: 'in_progress', notes: 'Working on it' },
+          { id: '3', title: 'Done', status: 'done' }
+        ]
+      })
+
+      expect(result).toContain('- [ ] Do thing')
+      expect(result).toContain('- [~] In progress')
+      expect(result).toContain('- [x] Done')
+      expect(result).toContain('  - Working on it')
     })
 
     it('should return error message for unknown tool', async () => {
@@ -91,25 +125,25 @@ describe('ToolExecutor', () => {
         response: { data: { error: 'File not found' } }
       })
 
-      const result = await executor.execute('read_file', { path: '/nonexistent.txt' })
+      const result = await executor.execute('Read', { path: '/nonexistent.txt' })
       expect(result).toContain('Error: Failed to read file')
     })
   })
 
-  describe('readFile', () => {
+  describe('Read', () => {
     it('should read file content successfully', async () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: { content: 'const x = 1;' }
       })
 
-      const result = await executor.execute('read_file', { path: '/src/index.ts' })
+      const result = await executor.execute('Read', { path: '/src/index.ts' })
       expect(result).toBe('const x = 1;')
     })
 
     it('should handle network errors', async () => {
       vi.mocked(axios.post).mockRejectedValue(new Error('Network error'))
 
-      const result = await executor.execute('read_file', { path: '/test.txt' })
+      const result = await executor.execute('Read', { path: '/test.txt' })
       expect(result).toContain('Error: Failed to read file')
       expect(result).toContain('Network error')
     })
@@ -119,19 +153,19 @@ describe('ToolExecutor', () => {
         response: { data: { error: 'Permission denied' } }
       })
 
-      const result = await executor.execute('read_file', { path: '/etc/passwd' })
+      const result = await executor.execute('Read', { path: '/etc/passwd' })
       expect(result).toContain('Permission denied')
     })
   })
 
-  describe('writeFile', () => {
+  describe('Write', () => {
     it('should write file content successfully', async () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: { success: true }
       })
 
       const content = 'Hello, World!'
-      const result = await executor.execute('write_file', {
+      const result = await executor.execute('Write', {
         path: '/test/output.txt',
         content
       })
@@ -145,7 +179,7 @@ describe('ToolExecutor', () => {
         data: { success: false }
       })
 
-      const result = await executor.execute('write_file', {
+      const result = await executor.execute('Write', {
         path: '/readonly/file.txt',
         content: 'test'
       })
@@ -156,7 +190,7 @@ describe('ToolExecutor', () => {
     it('should handle network errors during write', async () => {
       vi.mocked(axios.post).mockRejectedValue(new Error('Connection refused'))
 
-      const result = await executor.execute('write_file', {
+      const result = await executor.execute('Write', {
         path: '/test.txt',
         content: 'test'
       })
@@ -165,7 +199,7 @@ describe('ToolExecutor', () => {
     })
   })
 
-  describe('listFiles', () => {
+  describe('LS', () => {
     it('should list files with proper formatting', async () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: {
@@ -177,7 +211,7 @@ describe('ToolExecutor', () => {
         }
       })
 
-      const result = await executor.execute('list_files', { path: '/project' })
+      const result = await executor.execute('LS', { path: '/project' })
 
       expect(result).toContain('[FILE] file1.txt')
       expect(result).toContain('[FILE] file2.js')
@@ -191,7 +225,7 @@ describe('ToolExecutor', () => {
         data: { files: [] }
       })
 
-      const result = await executor.execute('list_files', { path: '/empty' })
+      const result = await executor.execute('LS', { path: '/empty' })
 
       expect(result).toContain('is empty')
     })
@@ -201,7 +235,7 @@ describe('ToolExecutor', () => {
         data: { files: [{ name: 'test.ts', isDirectory: false, size: 100 }] }
       })
 
-      await executor.execute('list_files', { path: '/src', pattern: '*.ts' })
+      await executor.execute('LS', { path: '/src', pattern: '*.ts' })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/fs:listFiles',
@@ -220,7 +254,7 @@ describe('ToolExecutor', () => {
         }
       })
 
-      const result = await executor.execute('list_files', { path: '/test' })
+      const result = await executor.execute('LS', { path: '/test' })
 
       expect(result).toContain('100B')
       expect(result).toContain('10.0KB')
@@ -228,7 +262,7 @@ describe('ToolExecutor', () => {
     })
   })
 
-  describe('executeCommand', () => {
+  describe('Bash', () => {
     it('should execute command successfully', async () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: {
@@ -237,7 +271,7 @@ describe('ToolExecutor', () => {
         }
       })
 
-      const result = await executor.execute('execute_command', {
+      const result = await executor.execute('Bash', {
         command: 'npm test',
         cwd: '/project'
       })
@@ -254,7 +288,7 @@ describe('ToolExecutor', () => {
         }
       })
 
-      const result = await executor.execute('execute_command', {
+      const result = await executor.execute('Bash', {
         command: 'npm install'
       })
 
@@ -267,7 +301,7 @@ describe('ToolExecutor', () => {
         data: { output: 'output', error: '' }
       })
 
-      await executor.execute('execute_command', { command: 'pwd' })
+      await executor.execute('Bash', { command: 'pwd' })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/exec:command',
@@ -280,7 +314,7 @@ describe('ToolExecutor', () => {
         response: { data: { error: 'Command not found' } }
       })
 
-      const result = await executor.execute('execute_command', {
+      const result = await executor.execute('Bash', {
         command: 'unknown_command'
       })
 
@@ -292,12 +326,12 @@ describe('ToolExecutor', () => {
     it('should return generic error message for non-Error throws', async () => {
       vi.mocked(axios.post).mockRejectedValue('string error')
 
-      const result = await executor.execute('read_file', { path: '/test.txt' })
+      const result = await executor.execute('Read', { path: '/test.txt' })
       expect(result).toContain('Error:')
     })
 
     it('should not crash on undefined input', async () => {
-      const result = await executor.execute('read_file', undefined)
+      const result = await executor.execute('Read', undefined)
       expect(result).toContain('Error')
     })
   })

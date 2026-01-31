@@ -50,6 +50,7 @@ describe('AIManager', () => {
       expect(mockProvider.sendMessage).toHaveBeenCalledWith(
         mockMessages,
         mockConfig,
+        undefined,
         undefined
       )
       expect(result).toBe('Response')
@@ -75,7 +76,8 @@ describe('AIManager', () => {
       expect(mockProvider.sendMessage).toHaveBeenCalledWith(
         mockMessages,
         mockConfig,
-        expect.any(Function)
+        expect.any(Function),
+        undefined
       )
       expect(chunks).toHaveLength(2)
       expect(chunks[0].content).toBe('Hello ')

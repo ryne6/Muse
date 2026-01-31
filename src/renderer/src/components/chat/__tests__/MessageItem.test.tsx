@@ -24,7 +24,7 @@ const baseMessage = {
 describe('MessageItem', () => {
   it('renders assistant header with name and timestamp', () => {
     render(<MessageItem message={baseMessage} />)
-    expect(screen.getByText('Lobe AI')).toBeInTheDocument()
+    expect(screen.getByText('Muse')).toBeInTheDocument()
     expect(screen.getByText(/\d{2}:\d{2}/)).toBeInTheDocument()
   })
 

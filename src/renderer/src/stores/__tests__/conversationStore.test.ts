@@ -31,7 +31,9 @@ describe('ConversationStore', () => {
     useConversationStore.setState({
       conversations: [],
       currentConversationId: null,
-      isLoading: false
+      isLoading: false,
+      loadedConversationIds: new Set<string>(),
+      loadingConversationId: null
     })
   })
 
@@ -49,18 +51,15 @@ describe('ConversationStore', () => {
       const mockConversations = [
         { id: 'conv-1', title: 'Chat 1', createdAt: new Date(), updatedAt: new Date() }
       ]
-      const mockMessages = [
-        { id: 'msg-1', role: 'user', content: 'Hello', timestamp: new Date() }
-      ]
 
       mockDbClient.conversations.getAll.mockResolvedValue(mockConversations)
-      mockDbClient.messages.getAllWithTools.mockResolvedValue(mockMessages)
 
       await useConversationStore.getState().loadConversations()
 
       expect(mockDbClient.conversations.getAll).toHaveBeenCalled()
-      expect(mockDbClient.messages.getAllWithTools).toHaveBeenCalledWith('conv-1')
+      expect(mockDbClient.messages.getAllWithTools).not.toHaveBeenCalled()
       expect(useConversationStore.getState().conversations).toHaveLength(1)
+      expect(useConversationStore.getState().conversations[0]?.messages).toEqual([])
       expect(useConversationStore.getState().isLoading).toBe(false)
     })
 

@@ -57,7 +57,8 @@ describe('Chat Routes', () => {
         'openai',
         mockMessages,
         mockConfig,
-        expect.any(Function)
+        expect.any(Function),
+        expect.objectContaining({ toolPermissions: undefined, allowOnceTools: undefined })
       )
     })
 
@@ -175,7 +176,9 @@ describe('Chat Routes', () => {
       expect(AIManager.prototype.sendMessage).toHaveBeenCalledWith(
         'openai',
         mockMessages,
-        mockConfig
+        mockConfig,
+        undefined,
+        expect.objectContaining({ toolPermissions: undefined, allowOnceTools: undefined })
       )
     })
 
@@ -537,7 +540,9 @@ describe('Chat Routes', () => {
       expect(AIManager.prototype.sendMessage).toHaveBeenCalledWith(
         'openai',
         [{ role: 'user', content: longContent }],
-        expect.any(Object)
+        expect.any(Object),
+        undefined,
+        expect.objectContaining({ toolPermissions: undefined, allowOnceTools: undefined })
       )
     })
 
@@ -581,7 +586,9 @@ describe('Chat Routes', () => {
       expect(AIManager.prototype.sendMessage).toHaveBeenCalledWith(
         'openai',
         messages,
-        expect.any(Object)
+        expect.any(Object),
+        undefined,
+        expect.objectContaining({ toolPermissions: undefined, allowOnceTools: undefined })
       )
     })
 
@@ -647,7 +654,9 @@ describe('Chat Routes', () => {
       expect(AIManager.prototype.sendMessage).toHaveBeenCalledWith(
         'openai',
         expect.any(Array),
-        fullConfig
+        fullConfig,
+        undefined,
+        expect.objectContaining({ toolPermissions: undefined, allowOnceTools: undefined })
       )
     })
   })

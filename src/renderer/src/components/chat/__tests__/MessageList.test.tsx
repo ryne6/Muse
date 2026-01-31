@@ -17,12 +17,15 @@ import { MessageList } from '../MessageList'
 // Mock conversationStore
 const mockConversationStore = vi.hoisted(() => {
   return {
-    getCurrentConversation: vi.fn(() => null)
+    getCurrentConversation: vi.fn(() => null),
+    loadingConversationId: null as string | null,
+    currentConversationId: null as string | null
   }
 })
 
 vi.mock('@/stores/conversationStore', () => ({
-  useConversationStore: () => mockConversationStore
+  useConversationStore: (selector?: (state: typeof mockConversationStore) => unknown) =>
+    selector ? selector(mockConversationStore) : mockConversationStore
 }))
 
 // Mock MessageItem component
@@ -40,6 +43,8 @@ describe('MessageList', () => {
     vi.clearAllMocks()
     // Mock scrollIntoView since jsdom doesn't support it
     Element.prototype.scrollIntoView = vi.fn()
+    mockConversationStore.loadingConversationId = null
+    mockConversationStore.currentConversationId = null
   })
 
   describe('空状态测试', () => {
@@ -53,6 +58,7 @@ describe('MessageList', () => {
     })
 
     it('should show empty state when conversation has no messages', () => {
+      mockConversationStore.currentConversationId = 'conv-1'
       mockConversationStore.getCurrentConversation.mockReturnValue({
         id: 'conv-1',
         title: 'Test Conversation',
@@ -68,6 +74,7 @@ describe('MessageList', () => {
 
   describe('消息列表渲染测试', () => {
     it('should render message list with messages', () => {
+      mockConversationStore.currentConversationId = 'conv-1'
       mockConversationStore.getCurrentConversation.mockReturnValue({
         id: 'conv-1',
         title: 'Test Conversation',
@@ -96,6 +103,7 @@ describe('MessageList', () => {
     })
 
     it('should render multiple messages in order', () => {
+      mockConversationStore.currentConversationId = 'conv-1'
       mockConversationStore.getCurrentConversation.mockReturnValue({
         id: 'conv-1',
         title: 'Test Conversation',

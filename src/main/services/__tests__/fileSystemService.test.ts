@@ -18,8 +18,13 @@ vi.mock('child_process', () => ({
   exec: vi.fn()
 }))
 
+vi.mock('fast-glob', () => ({
+  default: vi.fn()
+}))
+
 import { promises as fs } from 'fs'
 import { exec } from 'child_process'
+import fg from 'fast-glob'
 
 describe('FileSystemService', () => {
   let service: FileSystemService
@@ -70,6 +75,38 @@ describe('FileSystemService', () => {
 
       await expect(service.writeFile('/readonly/file.txt', 'content'))
         .rejects.toThrow('Failed to write file')
+    })
+  })
+
+  describe('glob', () => {
+    it('should return matched files', async () => {
+      vi.mocked(fg).mockResolvedValue(['/base/a.ts', '/base/b.ts'])
+
+      const result = await service.glob('**/*.ts', '/base')
+
+      expect(fg).toHaveBeenCalled()
+      expect(result).toEqual(['/base/a.ts', '/base/b.ts'])
+    })
+
+    it('should limit results to 500 files', async () => {
+      const manyFiles = Array.from({ length: 600 }, (_, i) => `/base/file-${i}.ts`)
+      vi.mocked(fg).mockResolvedValue(manyFiles)
+
+      const result = await service.glob('**/*.ts', '/base')
+
+      expect(result).toHaveLength(500)
+    })
+  })
+
+  describe('grep', () => {
+    it('should find matching lines', async () => {
+      vi.mocked(fg).mockResolvedValue(['/base/a.ts'])
+      vi.mocked(fs.readFile).mockResolvedValue('const a = 1\nconst b = 2')
+
+      const result = await service.grep('const', '/base', { glob: '**/*.ts' })
+
+      expect(result).toHaveLength(2)
+      expect(result[0]).toEqual({ file: '/base/a.ts', line: 1, content: 'const a = 1' })
     })
   })
 

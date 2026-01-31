@@ -2,6 +2,7 @@ import { promises as fs } from 'fs'
 import { join } from 'path'
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import fg from 'fast-glob'
 import type { FileInfo, CommandResult } from '../../shared/types/ipc'
 
 const execAsync = promisify(exec)
@@ -30,6 +31,54 @@ export class FileSystemService {
       return true
     } catch (error: any) {
       throw new Error(`Failed to write file: ${error.message}`)
+    }
+  }
+
+  async glob(pattern: string, basePath?: string): Promise<string[]> {
+    try {
+      const cwd = basePath || this.workspacePath || process.cwd()
+      const files = await fg(pattern, {
+        cwd,
+        ignore: ['**/node_modules/**', '**/.git/**'],
+        absolute: true,
+        onlyFiles: true,
+      })
+      return files.slice(0, 500)
+    } catch (error: any) {
+      throw new Error(`Failed to glob files: ${error.message}`)
+    }
+  }
+
+  async grep(
+    pattern: string,
+    basePath?: string,
+    options?: { glob?: string; ignoreCase?: boolean; maxResults?: number }
+  ): Promise<{ file: string; line: number; content: string }[]> {
+    try {
+      const files = await this.glob(options?.glob || '**/*', basePath)
+      const flags = options?.ignoreCase ? 'i' : ''
+      const results: { file: string; line: number; content: string }[] = []
+      const limit = options?.maxResults ?? 100
+
+      for (const file of files) {
+        if (results.length >= limit) break
+        try {
+          const content = await fs.readFile(file, 'utf-8')
+          content.split('\n').forEach((line, index) => {
+            if (results.length >= limit) return
+            const lineRegex = new RegExp(pattern, flags)
+            if (lineRegex.test(line)) {
+              results.push({ file, line: index + 1, content: line.trim() })
+            }
+          })
+        } catch {
+          // skip unreadable files
+        }
+      }
+
+      return results
+    } catch (error: any) {
+      throw new Error(`Failed to grep files: ${error.message}`)
     }
   }
 

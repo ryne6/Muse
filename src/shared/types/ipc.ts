@@ -24,6 +24,12 @@ export interface IpcApi {
       newText: string,
       replaceAll?: boolean
     ) => Promise<{ replaced: number }>
+    glob: (pattern: string, path?: string) => Promise<{ files: string[] }>
+    grep: (
+      pattern: string,
+      path?: string,
+      options?: { glob?: string; ignoreCase?: boolean; maxResults?: number }
+    ) => Promise<{ results: { file: string; line: number; content: string }[] }>
     listFiles: (path: string, pattern?: string) => Promise<{ files: FileInfo[] }>
     exists: (path: string) => Promise<{ exists: boolean }>
     mkdir: (path: string) => Promise<{ success: boolean }>

@@ -45,6 +45,20 @@ app.post('/ipc/:channel', async (c) => {
         }
         break
 
+      case 'fs:glob':
+        result = { files: await fsService.glob(body.pattern, body.path) }
+        break
+
+      case 'fs:grep':
+        result = {
+          results: await fsService.grep(body.pattern, body.path, {
+            glob: body.glob,
+            ignoreCase: body.ignoreCase,
+            maxResults: body.maxResults,
+          }),
+        }
+        break
+
       case 'fs:listFiles':
         result = { files: await fsService.listFiles(body.path, body.pattern) }
         break

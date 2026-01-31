@@ -132,4 +132,136 @@ export const fileSystemTools = [
       required: ['todos'],
     },
   },
+  {
+    name: 'Glob',
+    description: 'Fast file pattern matching using glob patterns.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        pattern: {
+          type: 'string',
+          description: 'Glob pattern (e.g., "**/*.ts", "src/**/*.tsx")',
+        },
+        path: {
+          type: 'string',
+          description: 'Base directory. Defaults to workspace root.',
+        },
+      },
+      required: ['pattern'],
+    },
+  },
+  {
+    name: 'Grep',
+    description: 'Search file contents using a regular expression.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        pattern: { type: 'string', description: 'Regex pattern' },
+        path: { type: 'string', description: 'Search directory' },
+        glob: { type: 'string', description: 'File filter (e.g., "*.ts")' },
+        ignoreCase: { type: 'boolean', description: 'Case insensitive' },
+        maxResults: { type: 'number', description: 'Maximum number of matches' },
+      },
+      required: ['pattern'],
+    },
+  },
+  {
+    name: 'GitStatus',
+    description: 'Get git repository status.',
+    input_schema: {
+      type: 'object' as const,
+      properties: { path: { type: 'string', description: 'Repository path' } },
+      required: [],
+    },
+  },
+  {
+    name: 'GitDiff',
+    description: 'Show git diff.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        path: { type: 'string', description: 'Repository path' },
+        staged: { type: 'boolean', description: 'Show staged diff only' },
+        file: { type: 'string', description: 'File path filter' },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'GitLog',
+    description: 'Show git commit history.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        path: { type: 'string', description: 'Repository path' },
+        maxCount: { type: 'number', description: 'Max commits to return' },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'GitCommit',
+    description: 'Create a git commit.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        path: { type: 'string', description: 'Repository path' },
+        message: { type: 'string', description: 'Commit message' },
+        files: { type: 'array', items: { type: 'string' }, description: 'Files to stage' },
+      },
+      required: ['message'],
+    },
+  },
+  {
+    name: 'GitPush',
+    description: 'Push commits to remote.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        path: { type: 'string', description: 'Repository path' },
+        remote: { type: 'string', description: 'Remote name (default: origin)' },
+        branch: { type: 'string', description: 'Branch name' },
+      },
+      required: [],
+    },
+  },
+  {
+    name: 'GitCheckout',
+    description: 'Switch branches.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        path: { type: 'string', description: 'Repository path' },
+        branch: { type: 'string', description: 'Branch name' },
+        create: { type: 'boolean', description: 'Create the branch if it does not exist' },
+      },
+      required: ['branch'],
+    },
+  },
+  {
+    name: 'WebFetch',
+    description: 'Fetch content from a URL.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        url: { type: 'string', description: 'URL to fetch (HTTPS only)' },
+        maxLength: { type: 'number', description: 'Max content length' },
+      },
+      required: ['url'],
+    },
+  },
+  {
+    name: 'WebSearch',
+    description: 'Search the web and return relevant results.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        query: { type: 'string', description: 'Search query' },
+        limit: { type: 'number', description: 'Max number of results' },
+        recencyDays: { type: 'number', description: 'Filter by recency (days)' },
+        domains: { type: 'array', items: { type: 'string' }, description: 'Domain allowlist' },
+      },
+      required: ['query'],
+    },
+  },
 ]

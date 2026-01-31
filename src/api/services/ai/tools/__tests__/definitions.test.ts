@@ -8,13 +8,30 @@ describe('Tool Definitions', () => {
       expect(fileSystemTools.length).toBeGreaterThan(0)
     })
 
-    it('should have 6 file system tools', () => {
-      expect(fileSystemTools).toHaveLength(6)
+    it('should have 16 file system tools', () => {
+      expect(fileSystemTools).toHaveLength(16)
     })
 
     it('should include expected tool names', () => {
       const names = fileSystemTools.map((tool) => tool.name)
-      expect(names).toEqual(['Bash', 'Read', 'Write', 'Edit', 'LS', 'TodoWrite'])
+      expect(names).toEqual([
+        'Bash',
+        'Read',
+        'Write',
+        'Edit',
+        'LS',
+        'TodoWrite',
+        'Glob',
+        'Grep',
+        'GitStatus',
+        'GitDiff',
+        'GitLog',
+        'GitCommit',
+        'GitPush',
+        'GitCheckout',
+        'WebFetch',
+        'WebSearch',
+      ])
     })
 
     it('each tool should have required fields', () => {

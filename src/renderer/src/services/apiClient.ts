@@ -173,7 +173,7 @@ export class APIClient {
         messages,
         config,
         toolPermissions: options?.toolPermissions,
-        allowOnceToolCallIds: options?.allowOnceToolCallIds,
+        allowOnceTools: options?.allowOnceTools,
       }),
       signal,
     })
@@ -250,7 +250,7 @@ export class APIClient {
           messages,
           config,
           toolPermissions: options?.toolPermissions,
-          allowOnceToolCallIds: options?.allowOnceToolCallIds,
+          allowOnceTools: options?.allowOnceTools,
         }),
       }
     )

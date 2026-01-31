@@ -30,7 +30,7 @@ describe('ToolExecutor', () => {
       expect(axios.post).not.toHaveBeenCalled()
     })
 
-    it('should allow dangerous tool when allowOnceToolCallIds includes id', async () => {
+    it('should allow dangerous tool when allowOnceTools includes name', async () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: { output: 'ok' }
       })
@@ -38,7 +38,7 @@ describe('ToolExecutor', () => {
       await executor.execute(
         'Bash',
         { command: 'ls' },
-        { toolCallId: 'tc-1', allowOnceToolCallIds: ['tc-1'] }
+        { toolCallId: 'tc-1', allowOnceTools: ['Bash'] }
       )
 
       expect(axios.post).toHaveBeenCalled()

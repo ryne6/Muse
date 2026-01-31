@@ -181,7 +181,7 @@ export class ClaudeProvider extends BaseAIProvider {
         const result = await toolExecutor.execute(toolUse.name, toolUse.input, {
           toolCallId: toolUse.id,
           toolPermissions: options?.toolPermissions,
-          allowOnceToolCallIds: options?.allowOnceToolCallIds,
+          allowOnceTools: options?.allowOnceTools,
         })
         toolResults.push({
           type: 'tool_result',
@@ -280,7 +280,7 @@ export class ClaudeProvider extends BaseAIProvider {
           const result = await toolExecutor.execute(toolUse.name, toolUse.input, {
             toolCallId: toolUse.id,
             toolPermissions: options?.toolPermissions,
-            allowOnceToolCallIds: options?.allowOnceToolCallIds,
+            allowOnceTools: options?.allowOnceTools,
           })
           toolResults.push({
             type: 'tool_result',

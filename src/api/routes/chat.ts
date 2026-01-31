@@ -27,7 +27,7 @@ interface ChatRequest {
   messages: AIMessage[]
   config: AIConfig
   toolPermissions?: AIRequestOptions['toolPermissions']
-  allowOnceToolCallIds?: AIRequestOptions['allowOnceToolCallIds']
+  allowOnceTools?: AIRequestOptions['allowOnceTools']
 }
 
 interface ValidateRequest {
@@ -39,7 +39,7 @@ interface ValidateRequest {
 app.post('/chat/stream', async (c) => {
   try {
     const body = await c.req.json<ChatRequest>()
-    const { provider, messages, config, toolPermissions, allowOnceToolCallIds } = body
+    const { provider, messages, config, toolPermissions, allowOnceTools } = body
 
     // Validate required fields
     if (!provider || !messages || !config) {
@@ -56,7 +56,7 @@ app.post('/chat/stream', async (c) => {
           async (chunk: AIStreamChunk) => {
             await stream.write(JSON.stringify(chunk) + '\n')
           },
-          { toolPermissions, allowOnceToolCallIds }
+          { toolPermissions, allowOnceTools }
         )
       } catch (error) {
         const aiError = AIError.fromUnknown(error)
@@ -73,7 +73,7 @@ app.post('/chat/stream', async (c) => {
 app.post('/chat', async (c) => {
   try {
     const body = await c.req.json<ChatRequest>()
-    const { provider, messages, config, toolPermissions, allowOnceToolCallIds } = body
+    const { provider, messages, config, toolPermissions, allowOnceTools } = body
 
     // Validate required fields
     if (!provider || !messages || !config) {
@@ -83,7 +83,7 @@ app.post('/chat', async (c) => {
 
     const response = await aiManager.sendMessage(provider, messages, config, undefined, {
       toolPermissions,
-      allowOnceToolCallIds,
+      allowOnceTools,
     })
 
     return c.json({

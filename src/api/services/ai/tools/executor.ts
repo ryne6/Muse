@@ -4,7 +4,7 @@ import { DANGEROUS_TOOLS, TOOL_PERMISSION_PREFIX } from '@shared/types/toolPermi
 export interface ToolExecutionOptions {
   toolCallId?: string
   toolPermissions?: { allowAll: boolean }
-  allowOnceToolCallIds?: string[]
+  allowOnceTools?: string[]
 }
 
 const IPC_BRIDGE_BASE = 'http://localhost:3001'
@@ -18,9 +18,7 @@ const TODO_STATUS_MARKERS: Record<string, string> = {
 export class ToolExecutor {
   async execute(toolName: string, input: any, options: ToolExecutionOptions = {}): Promise<string> {
     const allowAll = options.toolPermissions?.allowAll ?? false
-    const allowOnce = options.toolCallId
-      ? options.allowOnceToolCallIds?.includes(options.toolCallId)
-      : false
+    const allowOnce = options.allowOnceTools?.includes(toolName) ?? false
     const isDangerous = DANGEROUS_TOOLS.includes(toolName as any)
 
     if (isDangerous && !allowAll && !allowOnce) {

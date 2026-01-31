@@ -84,7 +84,7 @@ export interface AIConfig {
 
 export interface AIRequestOptions {
   toolPermissions?: ToolPermissionState
-  allowOnceToolCallIds?: string[]
+  allowOnceTools?: string[]
 }
 
 export interface AIProvider {

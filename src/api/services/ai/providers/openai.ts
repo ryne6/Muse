@@ -188,7 +188,7 @@ export class OpenAIProvider extends BaseAIProvider {
         const result = await toolExecutor.execute(functionName, functionArgs, {
           toolCallId: toolCall.id,
           toolPermissions: options?.toolPermissions,
-          allowOnceToolCallIds: options?.allowOnceToolCallIds,
+          allowOnceTools: options?.allowOnceTools,
         })
 
         conversationMessages.push({
@@ -263,7 +263,7 @@ export class OpenAIProvider extends BaseAIProvider {
         const result = await toolExecutor.execute(functionName, functionArgs, {
           toolCallId: toolCall.id,
           toolPermissions: options?.toolPermissions,
-          allowOnceToolCallIds: options?.allowOnceToolCallIds,
+          allowOnceTools: options?.allowOnceTools,
         })
 
         conversationMessages.push({

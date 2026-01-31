@@ -30,7 +30,6 @@ interface ChatStore {
   ) => Promise<void>
   approveToolCall: (
     conversationId: string,
-    toolCallId: string,
     toolName: string,
     allowAll?: boolean
   ) => Promise<void>
@@ -267,7 +266,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         controller.signal,
         {
           toolPermissions,
-          allowOnceToolCallIds: options?.allowOnceToolCallIds,
+          allowOnceTools: options?.allowOnceTools,
         }
       )
 
@@ -335,7 +334,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
   },
 
-  approveToolCall: async (conversationId, toolCallId, toolName, allowAll = false) => {
+  approveToolCall: async (conversationId, toolName, allowAll = false) => {
     const settingsState = useSettingsStore.getState()
     const workspacePath = useWorkspaceStore.getState().workspacePath
     const provider = settingsState.getCurrentProvider()
@@ -373,7 +372,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       provider.type,
       aiConfig,
       [],
-      { allowOnceToolCallIds: [toolCallId] }
+      { allowOnceTools: [toolName] }
     )
   },
 }))

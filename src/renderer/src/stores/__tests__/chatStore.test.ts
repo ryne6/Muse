@@ -455,7 +455,7 @@ describe('ChatStore', () => {
       mockGetCurrentModel.mockReturnValue(mockModel)
       mockSendMessageStream.mockResolvedValue(undefined)
 
-      await useChatStore.getState().approveToolCall('conv-1', 'tc-1', 'Bash', false)
+      await useChatStore.getState().approveToolCall('conv-1', 'Bash', false)
 
       expect(mockSendMessageStream).toHaveBeenCalledWith(
         'openai',
@@ -463,7 +463,7 @@ describe('ChatStore', () => {
         expect.objectContaining({ apiKey: 'key', model: 'gpt-4' }),
         expect.any(Function),
         expect.any(AbortSignal),
-        expect.objectContaining({ allowOnceToolCallIds: ['tc-1'] })
+        expect.objectContaining({ allowOnceTools: ['Bash'] })
       )
     })
   })

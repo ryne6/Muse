@@ -119,7 +119,7 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
               <button
                 onClick={() => {
                   if (!currentConversationId) return
-                  approveToolCall(currentConversationId, toolCall.id, toolCall.name, false)
+                  approveToolCall(currentConversationId, toolCall.name, false)
                 }}
                 className="text-xs px-2 py-1 rounded bg-[hsl(var(--surface-2))] hover:bg-[hsl(var(--surface-3))] transition-colors"
               >
@@ -128,7 +128,7 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
               <button
                 onClick={() => {
                   if (!currentConversationId) return
-                  approveToolCall(currentConversationId, toolCall.id, toolCall.name, true)
+                  approveToolCall(currentConversationId, toolCall.name, true)
                 }}
                 className="text-xs px-2 py-1 rounded bg-[hsl(var(--surface-2))] hover:bg-[hsl(var(--surface-3))] transition-colors"
               >

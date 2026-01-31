@@ -2,9 +2,11 @@ import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { FileSystemService } from './services/fileSystemService'
+import { GitService } from './services/gitService'
 
 const app = new Hono()
 const fsService = new FileSystemService()
+const gitService = new GitService()
 
 // CORS for local API access
 app.use('*', cors({
@@ -73,6 +75,30 @@ app.post('/ipc/:channel', async (c) => {
 
       case 'exec:command':
         result = await fsService.executeCommand(body.command, body.cwd)
+        break
+
+      case 'git:status':
+        result = await gitService.status(body.path)
+        break
+
+      case 'git:diff':
+        result = await gitService.diff(body.path, body.staged, body.file)
+        break
+
+      case 'git:log':
+        result = await gitService.log(body.path, body.maxCount)
+        break
+
+      case 'git:commit':
+        result = await gitService.commit(body.path, body.message, body.files)
+        break
+
+      case 'git:push':
+        result = await gitService.push(body.path, body.remote, body.branch)
+        break
+
+      case 'git:checkout':
+        result = await gitService.checkout(body.path, body.branch, body.create)
         break
 
       case 'workspace:get':

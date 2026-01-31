@@ -37,6 +37,14 @@ export interface IpcApi {
   exec: {
     command: (command: string, cwd?: string) => Promise<CommandResult>
   }
+  git: {
+    status: (path?: string) => Promise<CommandResult>
+    diff: (path?: string, staged?: boolean, file?: string) => Promise<CommandResult>
+    log: (path?: string, maxCount?: number) => Promise<CommandResult>
+    commit: (path: string | undefined, message: string, files?: string[]) => Promise<CommandResult>
+    push: (path?: string, remote?: string, branch?: string) => Promise<CommandResult>
+    checkout: (path: string | undefined, branch: string, create?: boolean) => Promise<CommandResult>
+  }
   workspace: {
     get: () => Promise<{ path: string | null }>
     set: (path: string) => Promise<{ success: boolean }>

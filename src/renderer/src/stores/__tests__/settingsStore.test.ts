@@ -175,6 +175,17 @@ describe('SettingsStore', () => {
     })
   })
 
+  describe('tool permissions', () => {
+    it('should set and read allowAll per workspace', () => {
+      useSettingsStore.setState({ toolPermissionsByWorkspace: {} as any })
+
+      useSettingsStore.getState().setToolAllowAll('/repo', true)
+
+      const permissions = useSettingsStore.getState().getToolPermissions('/repo')
+      expect(permissions.allowAll).toBe(true)
+    })
+  })
+
   describe('getCurrentProvider', () => {
     it('should return current provider', () => {
       useSettingsStore.setState({

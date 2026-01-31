@@ -13,6 +13,7 @@ interface SettingsStore {
   isLoading: boolean
   error: string | null
   lastUpdated: number
+  toolPermissionsByWorkspace: Record<string, { allowAll: boolean }>
 
   // Cached data
   providers: Provider[]
@@ -24,6 +25,7 @@ interface SettingsStore {
   setCurrentModel: (modelId: string) => Promise<void>
   setTemperature: (temperature: number) => void
   setThinkingEnabled: (enabled: boolean) => void
+  setToolAllowAll: (workspacePath: string, allowAll: boolean) => void
   clearError: () => void
   triggerRefresh: () => void
 
@@ -33,6 +35,7 @@ interface SettingsStore {
   getEnabledProviders: () => Provider[]
   getModelsForProvider: (providerId: string) => Model[]
   getEnabledModels: () => Model[]
+  getToolPermissions: (workspacePath: string | null | undefined) => { allowAll: boolean }
 }
 
 const SETTINGS_STORAGE_KEY = 'muse-settings'
@@ -67,6 +70,7 @@ export const useSettingsStore = create<SettingsStore>()(
       isLoading: false,
       error: null,
       lastUpdated: Date.now(),
+      toolPermissionsByWorkspace: {},
 
       // Cached data
       providers: [],
@@ -152,6 +156,15 @@ export const useSettingsStore = create<SettingsStore>()(
       setThinkingEnabled: (enabled: boolean) => {
         set({ thinkingEnabled: enabled })
       },
+      setToolAllowAll: (workspacePath: string, allowAll: boolean) => {
+        const key = workspacePath?.trim() || '__no_workspace__'
+        set((state) => ({
+          toolPermissionsByWorkspace: {
+            ...state.toolPermissionsByWorkspace,
+            [key]: { allowAll },
+          },
+        }))
+      },
       triggerRefresh: () => {
         set({ lastUpdated: Date.now() })
       },
@@ -188,6 +201,11 @@ export const useSettingsStore = create<SettingsStore>()(
           (m) => m.enabled && enabledProviderIds.includes(m.providerId)
         )
       },
+      getToolPermissions: (workspacePath: string | null | undefined) => {
+        const state = get()
+        const key = workspacePath?.trim() || '__no_workspace__'
+        return state.toolPermissionsByWorkspace[key] || { allowAll: false }
+      },
     }),
     {
       name: SETTINGS_STORAGE_KEY,
@@ -199,6 +217,7 @@ export const useSettingsStore = create<SettingsStore>()(
         currentModelId: state.currentModelId,
         temperature: state.temperature,
         thinkingEnabled: state.thinkingEnabled,
+        toolPermissionsByWorkspace: state.toolPermissionsByWorkspace,
       }),
       migrate: (persistedState) => {
         const state =
@@ -210,6 +229,7 @@ export const useSettingsStore = create<SettingsStore>()(
           currentModelId: state?.currentModelId ?? null,
           temperature: typeof state?.temperature === 'number' ? state.temperature : 1,
           thinkingEnabled: state?.thinkingEnabled ?? false,
+          toolPermissionsByWorkspace: state?.toolPermissionsByWorkspace ?? {},
         }
       }
     }

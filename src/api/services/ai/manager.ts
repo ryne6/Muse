@@ -3,6 +3,7 @@ import type {
   AIMessage,
   AIConfig,
   AIStreamChunk,
+  AIRequestOptions,
 } from '../../../shared/types/ai'
 
 export class AIManager {
@@ -10,7 +11,8 @@ export class AIManager {
     providerType: string,
     messages: AIMessage[],
     config: AIConfig,
-    onChunk?: (chunk: AIStreamChunk) => void
+    onChunk?: (chunk: AIStreamChunk) => void,
+    options?: AIRequestOptions
   ): Promise<string> {
     const provider = AIProviderFactory.getProvider(providerType)
 
@@ -18,7 +20,7 @@ export class AIManager {
       throw new Error('Invalid AI configuration')
     }
 
-    return await provider.sendMessage(messages, config, onChunk)
+    return await provider.sendMessage(messages, config, onChunk, options)
   }
 
   getDefaultModel(providerType: string): string {

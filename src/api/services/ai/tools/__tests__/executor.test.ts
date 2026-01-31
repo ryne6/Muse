@@ -63,10 +63,14 @@ describe('ToolExecutor', () => {
         data: { success: true }
       })
 
-      const result = await executor.execute('Write', {
-        path: '/test/file.txt',
-        content: 'new content'
-      })
+      const result = await executor.execute(
+        'Write',
+        {
+          path: '/test/file.txt',
+          content: 'new content'
+        },
+        { toolPermissions: { allowAll: true } }
+      )
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/fs:writeFile',
@@ -99,10 +103,14 @@ describe('ToolExecutor', () => {
         data: { output: 'command output', error: '' }
       })
 
-      const result = await executor.execute('Bash', {
-        command: 'npm test',
-        cwd: '/test'
-      })
+      const result = await executor.execute(
+        'Bash',
+        {
+          command: 'npm test',
+          cwd: '/test'
+        },
+        { toolPermissions: { allowAll: true } }
+      )
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/exec:command',
@@ -116,12 +124,16 @@ describe('ToolExecutor', () => {
         data: { replaced: 2 }
       })
 
-      const result = await executor.execute('Edit', {
-        path: '/test/file.txt',
-        old_text: 'old',
-        new_text: 'new',
-        replace_all: true
-      })
+      const result = await executor.execute(
+        'Edit',
+        {
+          path: '/test/file.txt',
+          old_text: 'old',
+          new_text: 'new',
+          replace_all: true
+        },
+        { toolPermissions: { allowAll: true } }
+      )
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/fs:editFile',
@@ -268,10 +280,14 @@ describe('ToolExecutor', () => {
       })
 
       const content = 'Hello, World!'
-      const result = await executor.execute('Write', {
-        path: '/test/output.txt',
-        content
-      })
+      const result = await executor.execute(
+        'Write',
+        {
+          path: '/test/output.txt',
+          content
+        },
+        { toolPermissions: { allowAll: true } }
+      )
 
       expect(result).toContain(`Successfully wrote ${content.length} characters`)
       expect(result).toContain('/test/output.txt')
@@ -282,10 +298,14 @@ describe('ToolExecutor', () => {
         data: { success: false }
       })
 
-      const result = await executor.execute('Write', {
-        path: '/readonly/file.txt',
-        content: 'test'
-      })
+      const result = await executor.execute(
+        'Write',
+        {
+          path: '/readonly/file.txt',
+          content: 'test'
+        },
+        { toolPermissions: { allowAll: true } }
+      )
 
       expect(result).toContain('Error: Failed to write file')
     })
@@ -293,10 +313,14 @@ describe('ToolExecutor', () => {
     it('should handle network errors during write', async () => {
       vi.mocked(axios.post).mockRejectedValue(new Error('Connection refused'))
 
-      const result = await executor.execute('Write', {
-        path: '/test.txt',
-        content: 'test'
-      })
+      const result = await executor.execute(
+        'Write',
+        {
+          path: '/test.txt',
+          content: 'test'
+        },
+        { toolPermissions: { allowAll: true } }
+      )
 
       expect(result).toContain('Error: Failed to write file')
     })
@@ -374,10 +398,14 @@ describe('ToolExecutor', () => {
         }
       })
 
-      const result = await executor.execute('Bash', {
-        command: 'npm test',
-        cwd: '/project'
-      })
+      const result = await executor.execute(
+        'Bash',
+        {
+          command: 'npm test',
+          cwd: '/project'
+        },
+        { toolPermissions: { allowAll: true } }
+      )
 
       expect(result).toContain('Command: npm test')
       expect(result).toContain('Test passed')
@@ -391,9 +419,13 @@ describe('ToolExecutor', () => {
         }
       })
 
-      const result = await executor.execute('Bash', {
-        command: 'npm install'
-      })
+      const result = await executor.execute(
+        'Bash',
+        {
+          command: 'npm install'
+        },
+        { toolPermissions: { allowAll: true } }
+      )
 
       expect(result).toContain('Error/Warning')
       expect(result).toContain('deprecated package')
@@ -404,7 +436,7 @@ describe('ToolExecutor', () => {
         data: { output: 'output', error: '' }
       })
 
-      await executor.execute('Bash', { command: 'pwd' })
+      await executor.execute('Bash', { command: 'pwd' }, { toolPermissions: { allowAll: true } })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/exec:command',
@@ -417,9 +449,13 @@ describe('ToolExecutor', () => {
         response: { data: { error: 'Command not found' } }
       })
 
-      const result = await executor.execute('Bash', {
-        command: 'unknown_command'
-      })
+      const result = await executor.execute(
+        'Bash',
+        {
+          command: 'unknown_command'
+        },
+        { toolPermissions: { allowAll: true } }
+      )
 
       expect(result).toContain('Error: Failed to execute command')
     })

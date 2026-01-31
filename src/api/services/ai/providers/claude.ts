@@ -6,6 +6,7 @@ import type {
   AIStreamChunk,
   MessageContent,
   isMultimodalContent,
+  AIRequestOptions,
 } from '../../../../shared/types/ai'
 import { fileSystemTools } from '../tools/definitions'
 import { ToolExecutor } from '../tools/executor'
@@ -52,7 +53,8 @@ export class ClaudeProvider extends BaseAIProvider {
   async sendMessage(
     messages: AIMessage[],
     config: AIConfig,
-    onChunk?: (chunk: AIStreamChunk) => void
+    onChunk?: (chunk: AIStreamChunk) => void,
+    options?: AIRequestOptions
   ): Promise<string> {
     if (!this.validateConfig(config)) {
       throw new Error('Invalid configuration')
@@ -65,9 +67,9 @@ export class ClaudeProvider extends BaseAIProvider {
 
     try {
       if (onChunk) {
-        return await this.streamResponseWithTools(client, messages, config, onChunk)
+        return await this.streamResponseWithTools(client, messages, config, onChunk, options)
       } else {
-        return await this.simpleResponseWithTools(client, messages, config)
+        return await this.simpleResponseWithTools(client, messages, config, options)
       }
     } catch (error) {
       this.logError(error)
@@ -79,7 +81,8 @@ export class ClaudeProvider extends BaseAIProvider {
     client: Anthropic,
     messages: AIMessage[],
     config: AIConfig,
-    onChunk: (chunk: AIStreamChunk) => void
+    onChunk: (chunk: AIStreamChunk) => void,
+    options?: AIRequestOptions
   ): Promise<string> {
     let fullContent = ''
     const toolExecutor = new ToolExecutor()
@@ -175,7 +178,11 @@ export class ClaudeProvider extends BaseAIProvider {
           },
         })
 
-        const result = await toolExecutor.execute(toolUse.name, toolUse.input)
+        const result = await toolExecutor.execute(toolUse.name, toolUse.input, {
+          toolCallId: toolUse.id,
+          toolPermissions: options?.toolPermissions,
+          allowOnceToolCallIds: options?.allowOnceToolCallIds,
+        })
         toolResults.push({
           type: 'tool_result',
           tool_use_id: toolUse.id,
@@ -218,7 +225,8 @@ export class ClaudeProvider extends BaseAIProvider {
   private async simpleResponseWithTools(
     client: Anthropic,
     messages: AIMessage[],
-    config: AIConfig
+    config: AIConfig,
+    options?: AIRequestOptions
   ): Promise<string> {
     const toolExecutor = new ToolExecutor()
     const conversationMessages: any[] = messages.map((m) => ({
@@ -269,7 +277,11 @@ export class ClaudeProvider extends BaseAIProvider {
       const toolResults: any[] = []
       for (const toolUse of toolUses) {
         if (toolUse.type === 'tool_use') {
-          const result = await toolExecutor.execute(toolUse.name, toolUse.input)
+          const result = await toolExecutor.execute(toolUse.name, toolUse.input, {
+            toolCallId: toolUse.id,
+            toolPermissions: options?.toolPermissions,
+            allowOnceToolCallIds: options?.allowOnceToolCallIds,
+          })
           toolResults.push({
             type: 'tool_result',
             tool_use_id: toolUse.id,

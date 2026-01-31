@@ -1,4 +1,11 @@
 import axios from 'axios'
+import { DANGEROUS_TOOLS, TOOL_PERMISSION_PREFIX } from '@shared/types/toolPermissions'
+
+export interface ToolExecutionOptions {
+  toolCallId?: string
+  toolPermissions?: { allowAll: boolean }
+  allowOnceToolCallIds?: string[]
+}
 
 const IPC_BRIDGE_BASE = 'http://localhost:3001'
 
@@ -9,7 +16,22 @@ const TODO_STATUS_MARKERS: Record<string, string> = {
 }
 
 export class ToolExecutor {
-  async execute(toolName: string, input: any): Promise<string> {
+  async execute(toolName: string, input: any, options: ToolExecutionOptions = {}): Promise<string> {
+    const allowAll = options.toolPermissions?.allowAll ?? false
+    const allowOnce = options.toolCallId
+      ? options.allowOnceToolCallIds?.includes(options.toolCallId)
+      : false
+    const isDangerous = DANGEROUS_TOOLS.includes(toolName as any)
+
+    if (isDangerous && !allowAll && !allowOnce) {
+      const payload = {
+        kind: 'permission_request',
+        toolName,
+        toolCallId: options.toolCallId,
+      }
+      return `${TOOL_PERMISSION_PREFIX}${JSON.stringify(payload)}`
+    }
+
     try {
       switch (toolName) {
         case 'Read':

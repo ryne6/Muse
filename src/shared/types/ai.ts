@@ -1,3 +1,5 @@
+import type { ToolPermissionState } from './toolPermissions'
+
 /**
  * Text content block
  */
@@ -80,6 +82,11 @@ export interface AIConfig {
   thinkingBudget?: number
 }
 
+export interface AIRequestOptions {
+  toolPermissions?: ToolPermissionState
+  allowOnceToolCallIds?: string[]
+}
+
 export interface AIProvider {
   readonly name: string
   readonly supportedModels: string[]
@@ -87,7 +94,8 @@ export interface AIProvider {
   sendMessage(
     messages: AIMessage[],
     config: AIConfig,
-    onChunk?: (chunk: AIStreamChunk) => void
+    onChunk?: (chunk: AIStreamChunk) => void,
+    options?: AIRequestOptions
   ): Promise<string>
 
   validateConfig(config: AIConfig): boolean

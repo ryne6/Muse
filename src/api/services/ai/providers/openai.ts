@@ -5,6 +5,7 @@ import type {
   AIConfig,
   AIStreamChunk,
   MessageContent,
+  AIRequestOptions,
 } from '../../../../shared/types/ai'
 import { fileSystemTools } from '../tools/definitions'
 import { ToolExecutor } from '../tools/executor'
@@ -63,7 +64,8 @@ export class OpenAIProvider extends BaseAIProvider {
   async sendMessage(
     messages: AIMessage[],
     config: AIConfig,
-    onChunk?: (chunk: AIStreamChunk) => void
+    onChunk?: (chunk: AIStreamChunk) => void,
+    options?: AIRequestOptions
   ): Promise<string> {
     if (!this.validateConfig(config)) {
       throw new Error('Invalid configuration')
@@ -76,9 +78,9 @@ export class OpenAIProvider extends BaseAIProvider {
 
     try {
       if (onChunk) {
-        return await this.streamResponseWithTools(client, messages, config, onChunk)
+        return await this.streamResponseWithTools(client, messages, config, onChunk, options)
       } else {
-        return await this.simpleResponseWithTools(client, messages, config)
+        return await this.simpleResponseWithTools(client, messages, config, options)
       }
     } catch (error) {
       this.logError(error)
@@ -90,7 +92,8 @@ export class OpenAIProvider extends BaseAIProvider {
     client: OpenAI,
     messages: AIMessage[],
     config: AIConfig,
-    onChunk: (chunk: AIStreamChunk) => void
+    onChunk: (chunk: AIStreamChunk) => void,
+    options?: AIRequestOptions
   ): Promise<string> {
     let fullContent = ''
     const toolExecutor = new ToolExecutor()
@@ -182,7 +185,11 @@ export class OpenAIProvider extends BaseAIProvider {
           done: false,
         })
 
-        const result = await toolExecutor.execute(functionName, functionArgs)
+        const result = await toolExecutor.execute(functionName, functionArgs, {
+          toolCallId: toolCall.id,
+          toolPermissions: options?.toolPermissions,
+          allowOnceToolCallIds: options?.allowOnceToolCallIds,
+        })
 
         conversationMessages.push({
           role: 'tool',
@@ -204,7 +211,8 @@ export class OpenAIProvider extends BaseAIProvider {
   private async simpleResponseWithTools(
     client: OpenAI,
     messages: AIMessage[],
-    config: AIConfig
+    config: AIConfig,
+    options?: AIRequestOptions
   ): Promise<string> {
     const toolExecutor = new ToolExecutor()
     const conversationMessages: OpenAI.ChatCompletionMessageParam[] = messages.map((m) => ({
@@ -252,7 +260,11 @@ export class OpenAIProvider extends BaseAIProvider {
         const functionName = toolCall.function.name
         const functionArgs = JSON.parse(toolCall.function.arguments)
 
-        const result = await toolExecutor.execute(functionName, functionArgs)
+        const result = await toolExecutor.execute(functionName, functionArgs, {
+          toolCallId: toolCall.id,
+          toolPermissions: options?.toolPermissions,
+          allowOnceToolCallIds: options?.allowOnceToolCallIds,
+        })
 
         conversationMessages.push({
           role: 'tool',

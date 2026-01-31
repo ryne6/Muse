@@ -3,6 +3,7 @@ import type {
   AIMessage,
   AIConfig,
   AIStreamChunk,
+  AIRequestOptions,
 } from '../../../../shared/types/ai'
 
 /**
@@ -31,7 +32,8 @@ export abstract class BaseAIProvider implements AIProvider {
   abstract sendMessage(
     messages: AIMessage[],
     config: AIConfig,
-    onChunk?: (chunk: AIStreamChunk) => void
+    onChunk?: (chunk: AIStreamChunk) => void,
+    options?: AIRequestOptions
   ): Promise<string>
 
   abstract getDefaultModel(): string

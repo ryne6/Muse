@@ -34,6 +34,7 @@ const { mockChatStore, mockConversationStore, mockSettingsStore, mockNotify } = 
     currentProviderId: 'provider-1',
     currentModelId: 'model-1',
     temperature: 1,
+    thinkingEnabled: false,
     providers: [
       {
         id: 'provider-1',
@@ -62,6 +63,7 @@ const { mockChatStore, mockConversationStore, mockSettingsStore, mockNotify } = 
         await new Promise(resolve => setTimeout(resolve, 10))
         chatStoreState.isLoading = false
       }),
+      abortMessage: vi.fn(),
       getState: vi.fn(() => ({ ...chatStoreState })),
       setState: vi.fn((newState: any) => {
         Object.assign(chatStoreState, typeof newState === 'function' ? newState(chatStoreState) : newState)
@@ -89,6 +91,9 @@ const { mockChatStore, mockConversationStore, mockSettingsStore, mockNotify } = 
       loadData: vi.fn(async () => {}),
       getCurrentProvider: vi.fn(() => settingsStoreState.providers[0]),
       getCurrentModel: vi.fn(() => settingsStoreState.models[0]),
+      setThinkingEnabled: vi.fn((value: boolean) => {
+        settingsStoreState.thinkingEnabled = value
+      }),
       setCurrentProvider: vi.fn(async (providerId: string) => {
         settingsStoreState.currentProviderId = providerId
       }),
@@ -134,6 +139,18 @@ describe('ChatInput', () => {
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks()
+    mockChatStore.isLoading = false
+    mockConversationStore.getCurrentConversation.mockReturnValue(null)
+    mockConversationStore.createConversation.mockResolvedValue({
+      id: 'new-conv-id',
+      title: 'New Conversation',
+      messages: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now()
+    })
+    mockSettingsStore.getCurrentProvider.mockReturnValue(mockSettingsStore.providers[0])
+    mockSettingsStore.getCurrentModel.mockReturnValue(mockSettingsStore.models[0])
+    mockSettingsStore.thinkingEnabled = false
   })
 
   describe('渲染测试', () => {
@@ -148,7 +165,7 @@ describe('ChatInput', () => {
     it('should render send button', () => {
       render(<ChatInput />)
 
-      const sendButton = screen.getByRole('button', { name: 'Send message' })
+      const sendButton = screen.getByLabelText('Send message')
       expect(sendButton).toBeInTheDocument()
     })
 
@@ -183,7 +200,7 @@ describe('ChatInput', () => {
       render(<ChatInput />)
 
       const textarea = screen.getByLabelText('Message input')
-      const sendButton = screen.getByRole('button', { name: 'Send message' })
+      const sendButton = screen.getByLabelText('Send message')
 
       await user.type(textarea, 'Test message')
       await user.click(sendButton)
@@ -198,7 +215,7 @@ describe('ChatInput', () => {
     it('should disable send button when input is empty', () => {
       render(<ChatInput />)
 
-      const sendButton = screen.getByRole('button', { name: 'Send message' })
+      const sendButton = screen.getByLabelText('Send message')
       expect(sendButton).toBeDisabled()
     })
 
@@ -207,7 +224,7 @@ describe('ChatInput', () => {
       render(<ChatInput />)
 
       const textarea = screen.getByLabelText('Message input')
-      const sendButton = screen.getByRole('button', { name: 'Send message' })
+      const sendButton = screen.getByLabelText('Send message')
 
       await user.type(textarea, '   ')
       expect(sendButton).toBeDisabled()
@@ -218,23 +235,24 @@ describe('ChatInput', () => {
       render(<ChatInput />)
 
       const textarea = screen.getByLabelText('Message input')
-      const sendButton = screen.getByRole('button', { name: 'Send message' })
+      const sendButton = screen.getByLabelText('Send message')
 
       await user.type(textarea, 'Hello')
       expect(sendButton).not.toBeDisabled()
     })
 
-    it('should disable send button and textarea when loading', () => {
+    it('should show stop button when loading', () => {
       // Setup: isLoading = true
       mockChatStore.isLoading = true
 
       render(<ChatInput />)
 
       const textarea = screen.getByLabelText('Message input')
-      const sendButton = screen.getByRole('button', { name: 'Send message' })
+      const stopButton = screen.getByLabelText('Stop generation')
 
-      expect(textarea).toBeDisabled()
-      expect(sendButton).toBeDisabled()
+      expect(textarea).not.toBeDisabled()
+      expect(stopButton).toBeInTheDocument()
+      expect(screen.queryByLabelText('Send message')).not.toBeInTheDocument()
 
       // Reset
       mockChatStore.isLoading = false
@@ -255,7 +273,7 @@ describe('ChatInput', () => {
       render(<ChatInput />)
 
       const textarea = screen.getByLabelText('Message input')
-      const sendButton = screen.getByRole('button', { name: 'Send message' })
+      const sendButton = screen.getByLabelText('Send message')
 
       await user.type(textarea, 'Test message')
       await user.click(sendButton)
@@ -287,7 +305,7 @@ describe('ChatInput', () => {
       render(<ChatInput />)
 
       const textarea = screen.getByLabelText('Message input')
-      const sendButton = screen.getByRole('button', { name: 'Send message' })
+      const sendButton = screen.getByLabelText('Send message')
 
       await user.type(textarea, 'Test message')
       await user.click(sendButton)
@@ -325,7 +343,7 @@ describe('ChatInput', () => {
       render(<ChatInput />)
 
       const textarea = screen.getByLabelText('Message input')
-      const sendButton = screen.getByRole('button', { name: 'Send message' })
+      const sendButton = screen.getByLabelText('Send message')
 
       await user.type(textarea, 'Test message')
       await user.click(sendButton)
@@ -366,8 +384,7 @@ describe('ChatInput', () => {
 
       const textarea = screen.getByLabelText('Message input')
 
-      await user.type(textarea, 'Test message')
-      await user.keyboard('{Enter}')
+      await user.type(textarea, 'Test message{Enter}')
 
       await waitFor(() => {
         expect(mockChatStore.sendMessage).toHaveBeenCalled()
@@ -430,7 +447,7 @@ describe('ChatInput', () => {
       render(<ChatInput />)
 
       const textarea = screen.getByLabelText('Message input')
-      const sendButton = screen.getByRole('button', { name: 'Send message' })
+      const sendButton = screen.getByLabelText('Send message')
 
       await user.type(textarea, 'First message')
       await user.click(sendButton)
@@ -452,7 +469,7 @@ describe('ChatInput', () => {
       render(<ChatInput />)
 
       const textarea = screen.getByLabelText('Message input')
-      const sendButton = screen.getByRole('button', { name: 'Send message' })
+      const sendButton = screen.getByLabelText('Send message')
 
       await user.type(textarea, 'Test message')
       await user.click(sendButton)
@@ -490,7 +507,7 @@ describe('ChatInput', () => {
       render(<ChatInput />)
 
       const textarea = screen.getByLabelText('Message input')
-      const sendButton = screen.getByRole('button', { name: 'Send message' })
+      const sendButton = screen.getByLabelText('Send message')
 
       await user.type(textarea, 'Test message')
       await user.click(sendButton)
@@ -535,7 +552,7 @@ describe('ChatInput', () => {
       render(<ChatInput />)
 
       const textarea = screen.getByLabelText('Message input')
-      const sendButton = screen.getByRole('button', { name: 'Send message' })
+      const sendButton = screen.getByLabelText('Send message')
 
       await user.type(textarea, '  Test message with spaces  ')
       await user.click(sendButton)

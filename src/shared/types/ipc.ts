@@ -45,6 +45,15 @@ export interface IpcApi {
     push: (path?: string, remote?: string, branch?: string) => Promise<CommandResult>
     checkout: (path: string | undefined, branch: string, create?: boolean) => Promise<CommandResult>
   }
+  web: {
+    fetch: (url: string, maxLength?: number) => Promise<{ content: string }>
+    search: (
+      query: string,
+      limit?: number,
+      recencyDays?: number,
+      domains?: string[]
+    ) => Promise<{ results: { title: string; url: string; snippet?: string }[] }>
+  }
   workspace: {
     get: () => Promise<{ path: string | null }>
     set: (path: string) => Promise<{ success: boolean }>

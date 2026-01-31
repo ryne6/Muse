@@ -3,10 +3,12 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { FileSystemService } from './services/fileSystemService'
 import { GitService } from './services/gitService'
+import { WebService } from './services/webService'
 
 const app = new Hono()
 const fsService = new FileSystemService()
 const gitService = new GitService()
+const webService = new WebService()
 
 // CORS for local API access
 app.use('*', cors({
@@ -99,6 +101,21 @@ app.post('/ipc/:channel', async (c) => {
 
       case 'git:checkout':
         result = await gitService.checkout(body.path, body.branch, body.create)
+        break
+
+      case 'web:fetch':
+        result = { content: await webService.fetch(body.url, body.maxLength) }
+        break
+
+      case 'web:search':
+        result = {
+          results: await webService.search(
+            body.query,
+            body.limit,
+            body.recencyDays,
+            body.domains
+          ),
+        }
         break
 
       case 'workspace:get':

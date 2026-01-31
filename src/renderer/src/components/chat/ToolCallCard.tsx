@@ -3,7 +3,6 @@ import {
   FileText,
   FilePlus,
   FileEdit,
-  Search,
   Folder,
   Wrench,
   CheckCircle2,
@@ -11,6 +10,8 @@ import {
   Loader2,
   ChevronDown,
   ChevronUp,
+  Terminal,
+  ListTodo,
 } from 'lucide-react'
 import type { ToolCall, ToolResult } from '@shared/types/conversation'
 import { cn } from '@/utils/cn'
@@ -21,11 +22,12 @@ interface ToolCallCardProps {
 }
 
 const TOOL_ICONS: Record<string, React.ReactNode> = {
-  read_file: <FileText className="w-4 h-4" />,
-  write_file: <FilePlus className="w-4 h-4" />,
-  edit_file: <FileEdit className="w-4 h-4" />,
-  search_files: <Search className="w-4 h-4" />,
-  list_directory: <Folder className="w-4 h-4" />,
+  Read: <FileText className="w-4 h-4" />,
+  Write: <FilePlus className="w-4 h-4" />,
+  Edit: <FileEdit className="w-4 h-4" />,
+  LS: <Folder className="w-4 h-4" />,
+  Bash: <Terminal className="w-4 h-4" />,
+  TodoWrite: <ListTodo className="w-4 h-4" />,
 }
 
 export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {

@@ -35,6 +35,55 @@ export class ToolExecutor {
         case 'TodoWrite':
           return this.formatTodoList(input)
 
+        case 'Glob':
+          return await this.globFiles(input.pattern, input.path)
+
+        case 'Grep':
+          return await this.grepFiles(input)
+
+        case 'GitStatus':
+          return await this.gitCommand('git:status', { path: input?.path })
+
+        case 'GitDiff':
+          return await this.gitCommand('git:diff', {
+            path: input?.path,
+            staged: input?.staged,
+            file: input?.file,
+          })
+
+        case 'GitLog':
+          return await this.gitCommand('git:log', {
+            path: input?.path,
+            maxCount: input?.maxCount,
+          })
+
+        case 'GitCommit':
+          return await this.gitCommand('git:commit', {
+            path: input?.path,
+            message: input?.message,
+            files: input?.files,
+          })
+
+        case 'GitPush':
+          return await this.gitCommand('git:push', {
+            path: input?.path,
+            remote: input?.remote,
+            branch: input?.branch,
+          })
+
+        case 'GitCheckout':
+          return await this.gitCommand('git:checkout', {
+            path: input?.path,
+            branch: input?.branch,
+            create: input?.create,
+          })
+
+        case 'WebFetch':
+          return await this.webFetch(input?.url, input?.maxLength)
+
+        case 'WebSearch':
+          return await this.webSearch(input)
+
         default:
           throw new Error(`Unknown tool: ${toolName}`)
       }
@@ -111,6 +160,94 @@ export class ToolExecutor {
     })
 
     return lines.join('\n')
+  }
+
+  private async globFiles(pattern: string, path?: string): Promise<string> {
+    try {
+      const response = await axios.post(`${IPC_BRIDGE_BASE}/ipc/fs:glob`, {
+        pattern,
+        path,
+      })
+      const files = response.data.files || []
+      if (files.length === 0) {
+        return 'No matches found.'
+      }
+      return files.join('\n')
+    } catch (error: any) {
+      throw new Error(`Failed to glob files: ${error.response?.data?.error || error.message}`)
+    }
+  }
+
+  private async grepFiles(input: any): Promise<string> {
+    try {
+      const response = await axios.post(`${IPC_BRIDGE_BASE}/ipc/fs:grep`, {
+        pattern: input?.pattern,
+        path: input?.path,
+        glob: input?.glob,
+        ignoreCase: input?.ignoreCase,
+        maxResults: input?.maxResults,
+      })
+      const results = response.data.results || []
+      if (results.length === 0) {
+        return 'No matches found.'
+      }
+      return results
+        .map((result: any) => `${result.file}:${result.line} ${result.content}`)
+        .join('\n')
+    } catch (error: any) {
+      throw new Error(`Failed to grep files: ${error.response?.data?.error || error.message}`)
+    }
+  }
+
+  private async gitCommand(channel: string, payload: Record<string, any>): Promise<string> {
+    try {
+      const response = await axios.post(`${IPC_BRIDGE_BASE}/ipc/${channel}`, payload)
+      const output = response.data.output ?? ''
+      const error = response.data.error
+      if (error) {
+        return output ? `${output}\n${error}` : error
+      }
+      return output
+    } catch (error: any) {
+      throw new Error(`Failed to run git command: ${error.response?.data?.error || error.message}`)
+    }
+  }
+
+  private async webFetch(url: string, maxLength?: number): Promise<string> {
+    try {
+      const response = await axios.post(`${IPC_BRIDGE_BASE}/ipc/web:fetch`, {
+        url,
+        maxLength,
+      })
+      return response.data.content
+    } catch (error: any) {
+      throw new Error(`Failed to fetch URL: ${error.response?.data?.error || error.message}`)
+    }
+  }
+
+  private async webSearch(input: any): Promise<string> {
+    try {
+      const response = await axios.post(`${IPC_BRIDGE_BASE}/ipc/web:search`, {
+        query: input?.query,
+        limit: input?.limit,
+        recencyDays: input?.recencyDays,
+        domains: input?.domains,
+      })
+      const results = response.data.results || []
+      if (results.length === 0) {
+        return 'No results found.'
+      }
+      return results
+        .map((result: any, index: number) => {
+          const lines = [`${index + 1}. ${result.title}`]
+          if (result.url) lines.push(`   ${result.url}`)
+          if (result.snippet) lines.push(`   ${result.snippet}`)
+          return lines.join('\n')
+        })
+        .join('\n')
+    } catch (error: any) {
+      throw new Error(`Failed to search web: ${error.response?.data?.error || error.message}`)
+    }
   }
 
   private async listFiles(path: string, pattern?: string): Promise<string> {

@@ -115,6 +115,79 @@ describe('ToolExecutor', () => {
       expect(result).toContain('  - Working on it')
     })
 
+    it('should route to fs:glob for Glob tool', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { files: ['/test/a.ts', '/test/b.ts'] }
+      })
+
+      const result = await executor.execute('Glob', { pattern: '**/*.ts', path: '/test' })
+
+      expect(axios.post).toHaveBeenCalledWith(
+        'http://localhost:3001/ipc/fs:glob',
+        { pattern: '**/*.ts', path: '/test' }
+      )
+      expect(result).toContain('/test/a.ts')
+      expect(result).toContain('/test/b.ts')
+    })
+
+    it('should route to fs:grep for Grep tool', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { results: [{ file: '/test/a.ts', line: 12, content: 'const a = 1' }] }
+      })
+
+      const result = await executor.execute('Grep', { pattern: 'const', path: '/test' })
+
+      expect(axios.post).toHaveBeenCalledWith(
+        'http://localhost:3001/ipc/fs:grep',
+        { pattern: 'const', path: '/test', glob: undefined, ignoreCase: undefined, maxResults: undefined }
+      )
+      expect(result).toContain('/test/a.ts:12 const a = 1')
+    })
+
+    it('should route to git:status for GitStatus tool', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { output: 'On branch main' }
+      })
+
+      const result = await executor.execute('GitStatus', { path: '/repo' })
+
+      expect(axios.post).toHaveBeenCalledWith(
+        'http://localhost:3001/ipc/git:status',
+        { path: '/repo' }
+      )
+      expect(result).toContain('On branch main')
+    })
+
+    it('should route to web:fetch for WebFetch tool', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { content: 'Example content' }
+      })
+
+      const result = await executor.execute('WebFetch', { url: 'https://example.com' })
+
+      expect(axios.post).toHaveBeenCalledWith(
+        'http://localhost:3001/ipc/web:fetch',
+        { url: 'https://example.com', maxLength: undefined }
+      )
+      expect(result).toContain('Example content')
+    })
+
+    it('should route to web:search for WebSearch tool', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { results: [{ title: 'Result', url: 'https://example.com', snippet: 'Snippet' }] }
+      })
+
+      const result = await executor.execute('WebSearch', { query: 'test' })
+
+      expect(axios.post).toHaveBeenCalledWith(
+        'http://localhost:3001/ipc/web:search',
+        { query: 'test', limit: undefined, recencyDays: undefined, domains: undefined }
+      )
+      expect(result).toContain('1. Result')
+      expect(result).toContain('https://example.com')
+      expect(result).toContain('Snippet')
+    })
+
     it('should return error message for unknown tool', async () => {
       const result = await executor.execute('unknown_tool', {})
       expect(result).toContain('Error: Unknown tool: unknown_tool')

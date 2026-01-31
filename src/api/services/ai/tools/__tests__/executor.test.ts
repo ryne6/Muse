@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ToolExecutor } from '../executor'
 import axios from 'axios'
+import { TOOL_PERMISSION_PREFIX } from '@shared/types/toolPermissions'
 
 // Mock axios
 vi.mock('axios')
@@ -14,6 +15,35 @@ describe('ToolExecutor', () => {
   })
 
   describe('execute', () => {
+    it('should return permission request for dangerous tool when not allowed', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { output: 'ok' }
+      })
+
+      const result = await executor.execute(
+        'Bash',
+        { command: 'ls' },
+        { toolCallId: 'tc-1', toolPermissions: { allowAll: false } }
+      )
+
+      expect(result.startsWith(TOOL_PERMISSION_PREFIX)).toBe(true)
+      expect(axios.post).not.toHaveBeenCalled()
+    })
+
+    it('should allow dangerous tool when allowOnceToolCallIds includes id', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { output: 'ok' }
+      })
+
+      await executor.execute(
+        'Bash',
+        { command: 'ls' },
+        { toolCallId: 'tc-1', allowOnceToolCallIds: ['tc-1'] }
+      )
+
+      expect(axios.post).toHaveBeenCalled()
+    })
+
     it('should route to readFile for Read tool', async () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: { content: 'file content' }

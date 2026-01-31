@@ -73,6 +73,38 @@ describe('FileSystemService', () => {
     })
   })
 
+  describe('editFile', () => {
+    it('should replace the first occurrence by default', async () => {
+      vi.mocked(fs.stat).mockResolvedValue({ size: 100 } as any)
+      vi.mocked(fs.readFile).mockResolvedValue('hello world hello')
+      vi.mocked(fs.writeFile).mockResolvedValue(undefined)
+
+      const result = await service.editFile('/test/file.txt', 'hello', 'hi')
+
+      expect(result).toBe(1)
+      expect(fs.writeFile).toHaveBeenCalledWith('/test/file.txt', 'hi world hello', 'utf-8')
+    })
+
+    it('should replace all occurrences when replaceAll is true', async () => {
+      vi.mocked(fs.stat).mockResolvedValue({ size: 100 } as any)
+      vi.mocked(fs.readFile).mockResolvedValue('hello world hello')
+      vi.mocked(fs.writeFile).mockResolvedValue(undefined)
+
+      const result = await service.editFile('/test/file.txt', 'hello', 'hi', true)
+
+      expect(result).toBe(2)
+      expect(fs.writeFile).toHaveBeenCalledWith('/test/file.txt', 'hi world hi', 'utf-8')
+    })
+
+    it('should throw when text is not found', async () => {
+      vi.mocked(fs.stat).mockResolvedValue({ size: 100 } as any)
+      vi.mocked(fs.readFile).mockResolvedValue('no match here')
+
+      await expect(service.editFile('/test/file.txt', 'missing', 'new'))
+        .rejects.toThrow('Text not found')
+    })
+  })
+
   describe('listFiles', () => {
     it('should list files in directory', async () => {
       vi.mocked(fs.readdir).mockResolvedValue([

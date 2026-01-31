@@ -18,6 +18,12 @@ export interface IpcApi {
   fs: {
     readFile: (path: string) => Promise<{ content: string }>
     writeFile: (path: string, content: string) => Promise<{ success: boolean }>
+    editFile: (
+      path: string,
+      oldText: string,
+      newText: string,
+      replaceAll?: boolean
+    ) => Promise<{ replaced: number }>
     listFiles: (path: string, pattern?: string) => Promise<{ files: FileInfo[] }>
     exists: (path: string) => Promise<{ exists: boolean }>
     mkdir: (path: string) => Promise<{ success: boolean }>

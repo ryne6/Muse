@@ -39,6 +39,24 @@ describe('APIClient', () => {
       )
     })
 
+    it('should include tool permissions in request body when provided', async () => {
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({ content: 'Hello response' })
+      } as Response)
+
+      await client.sendMessage(
+        'openai',
+        [{ role: 'user', content: 'Hello' }],
+        { apiKey: 'key', model: 'gpt-4' },
+        { toolPermissions: { allowAll: true } }
+      )
+
+      const body = (vi.mocked(global.fetch).mock.calls[0]?.[1] as RequestInit)?.body as string
+      expect(body).toContain('\"toolPermissions\"')
+      expect(body).toContain('\"allowAll\":true')
+    })
+
     it('should throw error on non-ok response', async () => {
       vi.mocked(global.fetch).mockResolvedValue({
         ok: false,

@@ -8,6 +8,7 @@ import type {
   AIMessage,
   AIConfig,
   AIStreamChunk,
+  AIRequestOptions,
 } from '../../shared/types/ai'
 
 const app = new Hono()
@@ -25,6 +26,8 @@ interface ChatRequest {
   provider: string
   messages: AIMessage[]
   config: AIConfig
+  toolPermissions?: AIRequestOptions['toolPermissions']
+  allowOnceToolCallIds?: AIRequestOptions['allowOnceToolCallIds']
 }
 
 interface ValidateRequest {
@@ -36,7 +39,7 @@ interface ValidateRequest {
 app.post('/chat/stream', async (c) => {
   try {
     const body = await c.req.json<ChatRequest>()
-    const { provider, messages, config } = body
+    const { provider, messages, config, toolPermissions, allowOnceToolCallIds } = body
 
     // Validate required fields
     if (!provider || !messages || !config) {
@@ -46,9 +49,15 @@ app.post('/chat/stream', async (c) => {
 
     return stream(c, async (stream) => {
       try {
-        await aiManager.sendMessage(provider, messages, config, async (chunk: AIStreamChunk) => {
-          await stream.write(JSON.stringify(chunk) + '\n')
-        })
+        await aiManager.sendMessage(
+          provider,
+          messages,
+          config,
+          async (chunk: AIStreamChunk) => {
+            await stream.write(JSON.stringify(chunk) + '\n')
+          },
+          { toolPermissions, allowOnceToolCallIds }
+        )
       } catch (error) {
         const aiError = AIError.fromUnknown(error)
         await stream.write(JSON.stringify({ error: aiError.toAPIError() }) + '\n')
@@ -64,7 +73,7 @@ app.post('/chat/stream', async (c) => {
 app.post('/chat', async (c) => {
   try {
     const body = await c.req.json<ChatRequest>()
-    const { provider, messages, config } = body
+    const { provider, messages, config, toolPermissions, allowOnceToolCallIds } = body
 
     // Validate required fields
     if (!provider || !messages || !config) {
@@ -72,7 +81,10 @@ app.post('/chat', async (c) => {
       return c.json(createErrorResponse(error), error.httpStatus)
     }
 
-    const response = await aiManager.sendMessage(provider, messages, config)
+    const response = await aiManager.sendMessage(provider, messages, config, undefined, {
+      toolPermissions,
+      allowOnceToolCallIds,
+    })
 
     return c.json({
       content: response,

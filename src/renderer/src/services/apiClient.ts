@@ -1,4 +1,4 @@
-import type { AIMessage, AIConfig, AIStreamChunk } from '@shared/types/ai'
+import type { AIMessage, AIConfig, AIStreamChunk, AIRequestOptions } from '@shared/types/ai'
 import type { APIError } from '@shared/types/error'
 import { ErrorCode } from '@shared/types/error'
 
@@ -160,14 +160,21 @@ export class APIClient {
     messages: AIMessage[],
     config: AIConfig,
     onChunk: (chunk: AIStreamChunk) => void,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    options?: AIRequestOptions
   ): Promise<void> {
     const response = await fetch(`${API_BASE_URL}/chat/stream`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ provider, messages, config }),
+      body: JSON.stringify({
+        provider,
+        messages,
+        config,
+        toolPermissions: options?.toolPermissions,
+        allowOnceToolCallIds: options?.allowOnceToolCallIds,
+      }),
       signal,
     })
 
@@ -228,7 +235,8 @@ export class APIClient {
   async sendMessage(
     provider: string,
     messages: AIMessage[],
-    config: AIConfig
+    config: AIConfig,
+    options?: AIRequestOptions
   ): Promise<string> {
     const response = await this.fetchWithRetry(
       `${API_BASE_URL}/chat`,
@@ -237,7 +245,13 @@ export class APIClient {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ provider, messages, config }),
+        body: JSON.stringify({
+          provider,
+          messages,
+          config,
+          toolPermissions: options?.toolPermissions,
+          allowOnceToolCallIds: options?.allowOnceToolCallIds,
+        }),
       }
     )
 

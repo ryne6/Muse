@@ -59,6 +59,30 @@ vi.mock('../conversationStore', () => ({
   }
 }))
 
+const mockGetCurrentProvider = vi.fn()
+const mockGetCurrentModel = vi.fn()
+const mockGetToolPermissions = vi.fn(() => ({ allowAll: false }))
+const mockSetToolAllowAll = vi.fn()
+
+vi.mock('../settingsStore', () => ({
+  useSettingsStore: {
+    getState: () => ({
+      getCurrentProvider: mockGetCurrentProvider,
+      getCurrentModel: mockGetCurrentModel,
+      getToolPermissions: mockGetToolPermissions,
+      setToolAllowAll: mockSetToolAllowAll,
+      temperature: 1,
+      thinkingEnabled: false,
+    })
+  }
+}))
+
+vi.mock('../workspaceStore', () => ({
+  useWorkspaceStore: {
+    getState: () => ({ workspacePath: '/test/workspace' })
+  }
+}))
+
 describe('ChatStore', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -162,7 +186,9 @@ describe('ChatStore', () => {
         'openai',
         expect.any(Array),
         mockConfig,
-        expect.any(Function)
+        expect.any(Function),
+        expect.any(AbortSignal),
+        expect.objectContaining({ toolPermissions: { allowAll: false } })
       )
     })
 
@@ -394,6 +420,51 @@ describe('ChatStore', () => {
       )
 
       expect(useChatStore.getState().lastError).toEqual(apiError)
+    })
+  })
+
+  describe('approveToolCall', () => {
+    const mockProvider = {
+      id: 'p1',
+      name: 'OpenAI',
+      type: 'openai',
+      apiKey: 'key',
+      baseURL: null,
+      apiFormat: 'chat-completions',
+      enabled: true,
+      createdAt: new Date(),
+    }
+
+    const mockModel = {
+      id: 'm1',
+      providerId: 'p1',
+      modelId: 'gpt-4',
+      name: 'GPT-4',
+      description: null,
+      enabled: true,
+      createdAt: new Date(),
+    }
+
+    it('should send allow-once approval message', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+      mockGetCurrentProvider.mockReturnValue(mockProvider)
+      mockGetCurrentModel.mockReturnValue(mockModel)
+      mockSendMessageStream.mockResolvedValue(undefined)
+
+      await useChatStore.getState().approveToolCall('conv-1', 'tc-1', 'Bash', false)
+
+      expect(mockSendMessageStream).toHaveBeenCalledWith(
+        'openai',
+        expect.any(Array),
+        expect.objectContaining({ apiKey: 'key', model: 'gpt-4' }),
+        expect.any(Function),
+        expect.any(AbortSignal),
+        expect.objectContaining({ allowOnceToolCallIds: ['tc-1'] })
+      )
     })
   })
 })

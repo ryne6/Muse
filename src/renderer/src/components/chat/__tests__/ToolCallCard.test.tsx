@@ -5,6 +5,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ToolCallCard } from '../ToolCallCard'
 import type { ToolCall, ToolResult } from '@shared/types/conversation'
+import { TOOL_PERMISSION_PREFIX } from '@shared/types/toolPermissions'
 
 vi.mock('lucide-react', () => {
   const make = (name: string) => {
@@ -28,6 +29,16 @@ vi.mock('lucide-react', () => {
     ListTodo: make('ListTodo'),
   }
 })
+
+const mockApproveToolCall = vi.fn()
+
+vi.mock('@/stores/chatStore', () => ({
+  useChatStore: (selector: any) => selector({ approveToolCall: mockApproveToolCall })
+}))
+
+vi.mock('@/stores/conversationStore', () => ({
+  useConversationStore: (selector: any) => selector({ currentConversationId: 'conv-1' })
+}))
 
 const renderCard = (name: string) => {
   const toolCall: ToolCall = { id: 'tool-1', name, input: {} }
@@ -64,5 +75,23 @@ describe('ToolCallCard', () => {
   it('renders TodoWrite icon', () => {
     renderCard('TodoWrite')
     expect(screen.getByTestId('ListTodo')).toBeTruthy()
+  })
+
+  it('renders permission prompt buttons when permission is required', () => {
+    const toolCall: ToolCall = { id: 'tool-1', name: 'Bash', input: {} }
+    const toolResult: ToolResult = {
+      toolCallId: 'tool-1',
+      output: `${TOOL_PERMISSION_PREFIX}${JSON.stringify({
+        kind: 'permission_request',
+        toolName: 'Bash',
+        toolCallId: 'tool-1',
+      })}`,
+    }
+
+    render(<ToolCallCard toolCall={toolCall} toolResult={toolResult} />)
+
+    expect(screen.getByText('允许')).toBeTruthy()
+    expect(screen.getByText('允许所有')).toBeTruthy()
+    expect(screen.getByText('拒绝')).toBeTruthy()
   })
 })

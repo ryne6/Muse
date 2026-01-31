@@ -2,12 +2,14 @@ import { create } from 'zustand'
 import { v4 as uuidv4 } from 'uuid'
 import { apiClient, APIClientError } from '../services/apiClient'
 import { dbClient } from '../services/dbClient'
-import type { AIMessage, AIConfig, MessageContent } from '@shared/types/ai'
+import type { AIMessage, AIConfig, MessageContent, AIRequestOptions } from '@shared/types/ai'
 import type { APIError } from '@shared/types/error'
 import { getErrorMessage } from '@shared/types/error'
 import type { Message, ToolCall, ToolResult } from '@shared/types/conversation'
 import type { PendingAttachment } from '@shared/types/attachment'
 import { useConversationStore } from './conversationStore'
+import { useSettingsStore } from './settingsStore'
+import { useWorkspaceStore } from './workspaceStore'
 
 interface ChatStore {
   // State
@@ -23,7 +25,14 @@ interface ChatStore {
     content: string,
     providerType: string,
     config: AIConfig,
-    attachments?: PendingAttachment[]
+    attachments?: PendingAttachment[],
+    options?: AIRequestOptions
+  ) => Promise<void>
+  approveToolCall: (
+    conversationId: string,
+    toolCallId: string,
+    toolName: string,
+    allowAll?: boolean
   ) => Promise<void>
   abortMessage: () => void
   clearError: () => void
@@ -48,7 +57,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
   },
 
-  sendMessage: async (conversationId, content, providerType, config, attachments = []) => {
+  sendMessage: async (conversationId, content, providerType, config, attachments = [], options) => {
     const controller = new AbortController()
     set({ isLoading: true, error: null, abortController: controller })
 
@@ -194,6 +203,11 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     useConversationStore.getState().addMessage(assistantMessage)
 
     try {
+      const settingsState = useSettingsStore.getState()
+      const workspacePath = useWorkspaceStore.getState().workspacePath
+      const toolPermissions = options?.toolPermissions
+        ?? settingsState.getToolPermissions(workspacePath)
+
       // Send message with streaming
       await apiClient.sendMessageStream(
         providerType,
@@ -250,7 +264,11 @@ export const useChatStore = create<ChatStore>((set, get) => ({
             messages: updatedMessages,
           })
         },
-        controller.signal
+        controller.signal,
+        {
+          toolPermissions,
+          allowOnceToolCallIds: options?.allowOnceToolCallIds,
+        }
       )
 
       // Persist assistant message to database after streaming completes
@@ -315,5 +333,47 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     } finally {
       set({ isLoading: false, abortController: null })
     }
+  },
+
+  approveToolCall: async (conversationId, toolCallId, toolName, allowAll = false) => {
+    const settingsState = useSettingsStore.getState()
+    const workspacePath = useWorkspaceStore.getState().workspacePath
+    const provider = settingsState.getCurrentProvider()
+    const model = settingsState.getCurrentModel()
+
+    if (!provider || !model) {
+      set({ error: 'No provider or model selected' })
+      return
+    }
+
+    if (!provider.apiKey) {
+      set({ error: 'Provider API key missing' })
+      return
+    }
+
+    if (allowAll) {
+      settingsState.setToolAllowAll(workspacePath ?? '', true)
+    }
+
+    const aiConfig: AIConfig = {
+      apiKey: provider.apiKey,
+      model: model.modelId,
+      baseURL: provider.baseURL || undefined,
+      apiFormat: provider.apiFormat || 'chat-completions',
+      temperature: settingsState.temperature,
+      maxTokens: 4096,
+      thinkingEnabled: settingsState.thinkingEnabled,
+    }
+
+    const message = `已允许工具: ${toolName}`
+
+    await get().sendMessage(
+      conversationId,
+      message,
+      provider.type,
+      aiConfig,
+      [],
+      { allowOnceToolCallIds: [toolCallId] }
+    )
   },
 }))

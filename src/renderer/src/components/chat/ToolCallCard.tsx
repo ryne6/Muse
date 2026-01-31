@@ -14,7 +14,25 @@ import {
   ListTodo,
 } from 'lucide-react'
 import type { ToolCall, ToolResult } from '@shared/types/conversation'
+import type { PermissionRequestPayload } from '@shared/types/toolPermissions'
+import { TOOL_PERMISSION_PREFIX } from '@shared/types/toolPermissions'
 import { cn } from '@/utils/cn'
+import { useChatStore } from '@/stores/chatStore'
+import { useConversationStore } from '@/stores/conversationStore'
+
+function parsePermissionRequest(output?: string): PermissionRequestPayload | null {
+  if (!output?.startsWith(TOOL_PERMISSION_PREFIX)) return null
+  const raw = output.slice(TOOL_PERMISSION_PREFIX.length)
+  try {
+    const parsed = JSON.parse(raw) as PermissionRequestPayload
+    if (parsed?.kind === 'permission_request' && typeof parsed.toolName === 'string') {
+      return parsed
+    }
+  } catch {
+    return null
+  }
+  return null
+}
 
 interface ToolCallCardProps {
   toolCall: ToolCall
@@ -32,12 +50,20 @@ const TOOL_ICONS: Record<string, React.ReactNode> = {
 
 export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const approveToolCall = useChatStore((state) => state.approveToolCall)
+  const currentConversationId = useConversationStore((state) => state.currentConversationId)
+
+  const rawPermissionRequest = toolResult?.output?.startsWith(TOOL_PERMISSION_PREFIX) ?? false
+  const permissionRequest = parsePermissionRequest(toolResult?.output)
+  const isPermissionRequest = rawPermissionRequest
 
   const status: 'pending' | 'success' | 'error' = !toolResult
     ? 'pending'
-    : toolResult.isError
-      ? 'error'
-      : 'success'
+    : isPermissionRequest
+      ? 'pending'
+      : toolResult.isError
+        ? 'error'
+        : 'success'
 
   const icon = TOOL_ICONS[toolCall.name] || <Wrench className="w-4 h-4" />
 
@@ -76,6 +102,48 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
   // 格式化输出结果
   const renderOutput = () => {
     if (!toolResult) return null
+
+    if (isPermissionRequest) {
+      const canApprove = Boolean(currentConversationId)
+      const showButtons = Boolean(permissionRequest && canApprove)
+
+      return (
+        <div className="space-y-2">
+          <div className="text-xs text-muted-foreground">
+            {permissionRequest
+              ? '此工具需要权限才能运行。'
+              : '需要权限，但请求无效。'}
+          </div>
+          {showButtons && (
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => {
+                  if (!currentConversationId) return
+                  approveToolCall(currentConversationId, toolCall.id, toolCall.name, false)
+                }}
+                className="text-xs px-2 py-1 rounded bg-[hsl(var(--surface-2))] hover:bg-[hsl(var(--surface-3))] transition-colors"
+              >
+                允许
+              </button>
+              <button
+                onClick={() => {
+                  if (!currentConversationId) return
+                  approveToolCall(currentConversationId, toolCall.id, toolCall.name, true)
+                }}
+                className="text-xs px-2 py-1 rounded bg-[hsl(var(--surface-2))] hover:bg-[hsl(var(--surface-3))] transition-colors"
+              >
+                允许所有
+              </button>
+              <button
+                className="text-xs px-2 py-1 rounded text-muted-foreground hover:text-foreground transition-colors"
+              >
+                拒绝
+              </button>
+            </div>
+          )}
+        </div>
+      )
+    }
 
     const output = toolResult.output
     const isLong = output.length > 300
@@ -130,7 +198,7 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
         <div className="flex-1" />
         {statusIcon}
         <span className="text-xs text-muted-foreground">
-          {status === 'pending' && 'Running...'}
+          {status === 'pending' && (isPermissionRequest ? '需要权限' : 'Running...')}
           {status === 'success' && 'Success'}
           {status === 'error' && 'Error'}
         </span>

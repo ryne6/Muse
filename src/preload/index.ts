@@ -46,6 +46,18 @@ const api: IpcApi = {
   mcp: {
     getServerStates: () => ipcRenderer.invoke('mcp:getServerStates'),
   },
+  dialog: {
+    selectDirectory: () => ipcRenderer.invoke('dialog:selectDirectory'),
+  },
+  skills: {
+    getDirectories: () => ipcRenderer.invoke('db:skills:getDirectories'),
+    addDirectory: (path: string) => ipcRenderer.invoke('db:skills:addDirectory', { path }),
+    removeDirectory: (id: string) => ipcRenderer.invoke('db:skills:removeDirectory', { id }),
+    toggleDirectory: (id: string) => ipcRenderer.invoke('db:skills:toggleDirectory', { id }),
+    getAll: () => ipcRenderer.invoke('db:skills:getAll'),
+    getContent: (path: string) => ipcRenderer.invoke('db:skills:getContent', { path }),
+    getCount: (path: string) => ipcRenderer.invoke('db:skills:getCount', { path }),
+  },
 }
 
 contextBridge.exposeInMainWorld('api', api)

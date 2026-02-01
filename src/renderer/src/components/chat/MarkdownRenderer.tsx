@@ -6,11 +6,13 @@ interface MarkdownRendererProps {
 
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   return (
-    <Markdown
-      className="prose prose-sm max-w-none"
-      enableImageGallery
-    >
-      {content}
-    </Markdown>
+    <div className="overflow-x-auto max-w-full">
+      <Markdown
+        className="prose prose-sm max-w-none"
+        enableImageGallery
+      >
+        {content}
+      </Markdown>
+    </div>
   )
 }

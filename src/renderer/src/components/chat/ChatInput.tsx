@@ -11,6 +11,7 @@ import { ImagePreview } from './ImagePreview'
 import { ImageDropZone } from './ImageDropZone'
 import { FullscreenEditor } from './FullscreenEditor'
 import { ToolsDropdown } from './ToolsDropdown'
+import { SkillsDropdown } from './SkillsDropdown'
 import type { AIConfig } from '@shared/types/ai'
 import type { PendingAttachment } from '@shared/types/attachment'
 
@@ -196,6 +197,9 @@ export function ChatInput() {
 
                   {/* Tools Dropdown */}
                   <ToolsDropdown />
+
+                  {/* Skills Dropdown */}
+                  <SkillsDropdown />
 
                   {/* Thinking Toggle */}
                   <button

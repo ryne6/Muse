@@ -162,6 +162,28 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
     // Build system prompt with tool instructions
     const workspacePath = useWorkspaceStore.getState().workspacePath
+
+    // Get skills content based on selection mode
+    const selectedSkill = useSettingsStore.getState().selectedSkill
+    let skillsSection = ''
+
+    try {
+      if (selectedSkill) {
+        // Manual mode: load specific skill content
+        const skillContent = await dbClient.skills.getContent(selectedSkill)
+        skillsSection = `\n\n## Active Skill\n\n${skillContent}`
+      } else {
+        // Auto mode: load all skills for AI to choose
+        const skills = await dbClient.skills.getAll()
+        if (skills.length > 0) {
+          const skillsList = skills.map((s: any) => `- **${s.name}**: ${s.description || 'No description'}`).join('\n')
+          skillsSection = `\n\n## Available Skills\n\nThe following skills are available. Use them when relevant to the user's request:\n\n${skillsList}`
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load skills:', error)
+    }
+
     const systemPrompt = `You are Muse, an AI coding assistant with access to the following tools:
 
 ## Available Tools
@@ -199,7 +221,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   2. Ask the user for clarification
   3. Inform the user that the operation failed and explain why
 - Never loop on the same failing tool call
-
+${skillsSection}
 Current workspace: ${workspacePath || 'Not set'}`
 
     // Combine system prompt with history messages

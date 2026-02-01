@@ -5,6 +5,7 @@ import { Settings as SettingsIcon } from 'lucide-react'
 import { ProviderList } from '../settings/ProviderList'
 import { ProviderConfigDialog } from '../settings/ProviderConfigDialog'
 import { MCPSettings } from '../settings/MCPSettings'
+import { SkillsSettings } from '../settings/SkillsSettings'
 import { dbClient } from '@/services/dbClient'
 import { applyUIFont, getSystemFonts } from '@/services/fontService'
 
@@ -17,7 +18,7 @@ interface Provider {
   enabled: boolean
 }
 
-type Tab = 'providers' | 'mcp' | 'general'
+type Tab = 'providers' | 'mcp' | 'skills' | 'general'
 
 export function Settings() {
   const [isOpen, setIsOpen] = useState(false)
@@ -159,6 +160,18 @@ export function Settings() {
               </button>
 
               <button
+                onClick={() => setActiveTab('skills')}
+                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                  activeTab === 'skills'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-accent hover:text-accent-foreground'
+                }`}
+              >
+                <div className="font-medium">Skills</div>
+                <div className="text-xs opacity-70">AI skill directories</div>
+              </button>
+
+              <button
                 onClick={() => setActiveTab('general')}
                 className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
                   activeTab === 'general' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-accent-foreground'
@@ -177,6 +190,10 @@ export function Settings() {
 
               {activeTab === 'mcp' && (
                 <MCPSettings />
+              )}
+
+              {activeTab === 'skills' && (
+                <SkillsSettings />
               )}
 
               {activeTab === 'general' && (

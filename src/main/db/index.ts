@@ -73,6 +73,22 @@ function runSchemaMigrations(sqlite: Database.Database) {
       `)
       console.log('✅ Created mcp_servers table')
     }
+
+    // Create skills_directories table if not exists
+    const hasSkillsDirectories = tables.some((t) => t.name === 'skills_directories')
+
+    if (!hasSkillsDirectories) {
+      console.log('📦 Creating skills_directories table...')
+      sqlite.exec(`
+        CREATE TABLE skills_directories (
+          id TEXT PRIMARY KEY NOT NULL,
+          path TEXT NOT NULL UNIQUE,
+          enabled INTEGER DEFAULT 1 NOT NULL,
+          created_at INTEGER DEFAULT (unixepoch()) NOT NULL
+        )
+      `)
+      console.log('✅ Created skills_directories table')
+    }
   } catch (error) {
     console.error('❌ Schema migration failed:', error)
   }

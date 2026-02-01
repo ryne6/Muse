@@ -14,6 +14,7 @@ interface SettingsStore {
   error: string | null
   lastUpdated: number
   toolPermissionsByWorkspace: Record<string, { allowAll: boolean }>
+  selectedSkill: string | null  // null = Auto mode
 
   // Cached data
   providers: Provider[]
@@ -26,6 +27,7 @@ interface SettingsStore {
   setTemperature: (temperature: number) => void
   setThinkingEnabled: (enabled: boolean) => void
   setToolAllowAll: (workspacePath: string, allowAll: boolean) => void
+  setSelectedSkill: (skillPath: string | null) => void
   clearError: () => void
   triggerRefresh: () => void
 
@@ -71,6 +73,7 @@ export const useSettingsStore = create<SettingsStore>()(
       error: null,
       lastUpdated: Date.now(),
       toolPermissionsByWorkspace: {},
+      selectedSkill: null,
 
       // Cached data
       providers: [],
@@ -165,6 +168,9 @@ export const useSettingsStore = create<SettingsStore>()(
           },
         }))
       },
+      setSelectedSkill: (skillPath: string | null) => {
+        set({ selectedSkill: skillPath })
+      },
       triggerRefresh: () => {
         set({ lastUpdated: Date.now() })
       },
@@ -218,6 +224,7 @@ export const useSettingsStore = create<SettingsStore>()(
         temperature: state.temperature,
         thinkingEnabled: state.thinkingEnabled,
         toolPermissionsByWorkspace: state.toolPermissionsByWorkspace,
+        selectedSkill: state.selectedSkill,
       }),
       migrate: (persistedState) => {
         const state =
@@ -230,6 +237,7 @@ export const useSettingsStore = create<SettingsStore>()(
           temperature: typeof state?.temperature === 'number' ? state.temperature : 1,
           thinkingEnabled: state?.thinkingEnabled ?? false,
           toolPermissionsByWorkspace: state?.toolPermissionsByWorkspace ?? {},
+          selectedSkill: state?.selectedSkill ?? null,
         }
       }
     }

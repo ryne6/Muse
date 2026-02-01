@@ -138,3 +138,16 @@ export const mcpServers = sqliteTable('mcp_servers', {
 
 export type MCPServer = typeof mcpServers.$inferSelect
 export type NewMCPServer = typeof mcpServers.$inferInsert
+
+// 10. Skills Directories table
+export const skillsDirectories = sqliteTable('skills_directories', {
+  id: text('id').primaryKey(),
+  path: text('path').notNull().unique(),
+  enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+})
+
+export type SkillsDirectory = typeof skillsDirectories.$inferSelect
+export type NewSkillsDirectory = typeof skillsDirectories.$inferInsert

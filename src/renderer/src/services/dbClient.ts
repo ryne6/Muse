@@ -155,4 +155,29 @@ export const dbClient = {
       return await window.api.mcp.getServerStates()
     },
   },
+
+  // Skills
+  skills: {
+    getDirectories: async () => {
+      return await window.api.skills.getDirectories()
+    },
+    addDirectory: async (path: string) => {
+      return await window.api.skills.addDirectory(path)
+    },
+    removeDirectory: async (id: string) => {
+      return await window.api.skills.removeDirectory(id)
+    },
+    toggleDirectory: async (id: string) => {
+      return await window.api.skills.toggleDirectory(id)
+    },
+    getAll: async () => {
+      return await window.api.skills.getAll()
+    },
+    getContent: async (path: string) => {
+      return await window.api.skills.getContent(path)
+    },
+    getCount: async (path: string) => {
+      return await window.api.skills.getCount(path)
+    },
+  },
 }

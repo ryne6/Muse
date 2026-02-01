@@ -14,6 +14,21 @@ export interface MCPServerState {
   error?: string
 }
 
+// Skills types
+export interface SkillsDirectory {
+  id: string
+  path: string
+  enabled: boolean
+  createdAt: Date
+}
+
+export interface Skill {
+  name: string
+  description: string
+  path: string
+  directory: string
+}
+
 export interface FileInfo {
   name: string
   path: string
@@ -90,6 +105,18 @@ export interface IpcApi {
   }
   mcp: {
     getServerStates: () => Promise<MCPServerState[]>
+  }
+  dialog: {
+    selectDirectory: () => Promise<string | null>
+  }
+  skills: {
+    getDirectories: () => Promise<SkillsDirectory[]>
+    addDirectory: (path: string) => Promise<SkillsDirectory>
+    removeDirectory: (id: string) => Promise<{ success: boolean }>
+    toggleDirectory: (id: string) => Promise<{ success: boolean }>
+    getAll: () => Promise<Skill[]>
+    getContent: (path: string) => Promise<string>
+    getCount: (path: string) => Promise<number>
   }
 }
 

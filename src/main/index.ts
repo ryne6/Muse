@@ -13,6 +13,7 @@ import {
   SearchService,
 } from './db/services'
 import { MCPService } from './db/services/mcpService'
+import { SkillsService } from './db/services/skillsService'
 import { DataMigration } from './db/migration'
 
 function createWindow() {
@@ -129,6 +130,15 @@ function registerIpcHandlers() {
     }
 
     return { path: null }
+  })
+
+  // Dialog - Select directory (with hidden files support)
+  ipcMain.handle('dialog:selectDirectory', async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory', 'showHiddenFiles'],
+      title: 'Select Directory',
+    })
+    return result.canceled ? null : result.filePaths[0]
   })
 
   // Database - Conversations
@@ -401,6 +411,37 @@ function registerIpcHandlers() {
     } catch {
       return false
     }
+  })
+
+  // Database - Skills Directories
+  ipcMain.handle('db:skills:getDirectories', async () => {
+    return await SkillsService.getAll()
+  })
+
+  ipcMain.handle('db:skills:addDirectory', async (_, { path }) => {
+    return await SkillsService.create(path)
+  })
+
+  ipcMain.handle('db:skills:removeDirectory', async (_, { id }) => {
+    await SkillsService.delete(id)
+    return { success: true }
+  })
+
+  ipcMain.handle('db:skills:toggleDirectory', async (_, { id }) => {
+    await SkillsService.toggleEnabled(id)
+    return { success: true }
+  })
+
+  ipcMain.handle('db:skills:getAll', async () => {
+    return await SkillsService.getAllSkills()
+  })
+
+  ipcMain.handle('db:skills:getContent', async (_, { path }) => {
+    return SkillsService.getSkillContent(path)
+  })
+
+  ipcMain.handle('db:skills:getCount', async (_, { path }) => {
+    return SkillsService.getSkillCount(path)
   })
 }
 

@@ -1,9 +1,9 @@
 {
   "name": "muse",
   "version": "0.0.1",
-  "description": "AI-powered desktop coding assistant",
+  "description": "AI-powered desktop coding assistant with multi-provider support",
   "main": "./out/main/index.js",
-  "author": "Muse Team",
+  "author": "ryne6",
   "license": "MIT",
   "private": true,
   "engines": {

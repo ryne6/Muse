@@ -89,6 +89,16 @@ function runSchemaMigrations(sqlite: Database.Database) {
       `)
       console.log('✅ Created skills_directories table')
     }
+
+    // Add workspace column to conversations table if not exists
+    const convColumns = sqlite.pragma('table_info(conversations)') as { name: string }[]
+    const hasWorkspace = convColumns.some((col) => col.name === 'workspace')
+
+    if (!hasWorkspace) {
+      console.log('📦 Adding workspace column to conversations table...')
+      sqlite.exec('ALTER TABLE conversations ADD COLUMN workspace TEXT')
+      console.log('✅ Added workspace column')
+    }
   } catch (error) {
     console.error('❌ Schema migration failed:', error)
   }

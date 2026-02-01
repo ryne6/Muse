@@ -85,4 +85,14 @@ export class ConversationService {
   static async updateProviderModel(id: string, provider: string, model: string) {
     return this.update(id, { provider, model })
   }
+
+  // Update workspace
+  static async updateWorkspace(id: string, workspace: string | null) {
+    const db = getDatabase()
+    await db
+      .update(conversations)
+      .set({ workspace, updatedAt: new Date() })
+      .where(eq(conversations.id, id))
+    return this.getById(id)
+  }
 }

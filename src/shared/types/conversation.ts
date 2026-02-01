@@ -32,6 +32,7 @@ export interface Conversation {
   provider?: string
   model?: string
   contextFiles?: string[]
+  workspace?: string | null
 }
 
 export interface ConversationGroup {

@@ -162,6 +162,10 @@ function registerIpcHandlers() {
     return await ConversationService.update(id, data)
   })
 
+  ipcMain.handle('db:conversations:updateWorkspace', async (_, { id, workspace }) => {
+    return await ConversationService.updateWorkspace(id, workspace)
+  })
+
   ipcMain.handle('db:conversations:delete', async (_, { id }) => {
     return await ConversationService.delete(id)
   })

@@ -12,6 +12,7 @@ import { ImageDropZone } from './ImageDropZone'
 import { FullscreenEditor } from './FullscreenEditor'
 import { ToolsDropdown } from './ToolsDropdown'
 import { SkillsDropdown } from './SkillsDropdown'
+import { WorkspaceDropdown } from './WorkspaceDropdown'
 import type { AIConfig } from '@shared/types/ai'
 import type { PendingAttachment } from '@shared/types/attachment'
 
@@ -194,6 +195,9 @@ export function ChatInput() {
                     <span>{modelLabel}</span>
                     <ChevronDown className="w-3 h-3" />
                   </button>
+
+                  {/* Workspace Dropdown */}
+                  <WorkspaceDropdown />
 
                   {/* Tools Dropdown */}
                   <ToolsDropdown />

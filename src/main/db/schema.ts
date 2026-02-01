@@ -13,6 +13,7 @@ export const conversations = sqliteTable('conversations', {
     .default(sql`(unixepoch())`),
   provider: text('provider'),
   model: text('model'),
+  workspace: text('workspace'),
 })
 
 // 2. Messages table

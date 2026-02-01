@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { v4 as uuidv4 } from 'uuid'
 import type { Conversation, Message } from '@shared/types/conversation'
 import { dbClient } from '@/services/dbClient'
+import { useWorkspaceStore } from './workspaceStore'
 
 interface ConversationStore {
   // State
@@ -22,6 +23,8 @@ interface ConversationStore {
   getCurrentConversation: () => Conversation | null
   getConversationsByDate: () => Record<string, Conversation[]>
   clearCurrentConversation: () => void
+  setWorkspace: (id: string, workspace: string | null) => Promise<void>
+  getEffectiveWorkspace: () => string | null
 }
 
 export const useConversationStore = create<ConversationStore>((set, get) => ({
@@ -43,6 +46,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         title: conv.title,
         createdAt: new Date(conv.createdAt).getTime(),
         updatedAt: new Date(conv.updatedAt).getTime(),
+        workspace: conv.workspace || null,
         messages: [],
       }))
 
@@ -211,4 +215,20 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
   },
 
   clearCurrentConversation: () => set({ currentConversationId: null }),
+
+  setWorkspace: async (id: string, workspace: string | null) => {
+    await window.api.ipc.invoke('db:conversations:updateWorkspace', { id, workspace })
+    set((state) => ({
+      conversations: state.conversations.map((c) =>
+        c.id === id ? { ...c, workspace } : c
+      ),
+    }))
+  },
+
+  getEffectiveWorkspace: () => {
+    const state = get()
+    const current = state.conversations.find((c) => c.id === state.currentConversationId)
+    if (current?.workspace) return current.workspace
+    return useWorkspaceStore.getState().workspacePath
+  },
 }))

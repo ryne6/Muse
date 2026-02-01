@@ -161,7 +161,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     )
 
     // Build system prompt with tool instructions
-    const workspacePath = useWorkspaceStore.getState().workspacePath
+    const workspacePath = useConversationStore.getState().getEffectiveWorkspace()
 
     // Get skills content based on selection mode
     const selectedSkill = useSettingsStore.getState().selectedSkill
@@ -273,7 +273,7 @@ Current workspace: ${workspacePath || 'Not set'}`
 
     try {
       const settingsState = useSettingsStore.getState()
-      const workspacePath = useWorkspaceStore.getState().workspacePath
+      const workspacePath = useConversationStore.getState().getEffectiveWorkspace()
       const toolPermissions = options?.toolPermissions
         ?? settingsState.getToolPermissions(workspacePath)
 
@@ -406,7 +406,7 @@ Current workspace: ${workspacePath || 'Not set'}`
 
   approveToolCall: async (conversationId, toolName, allowAll = false) => {
     const settingsState = useSettingsStore.getState()
-    const workspacePath = useWorkspaceStore.getState().workspacePath
+    const workspacePath = useConversationStore.getState().getEffectiveWorkspace()
     const provider = settingsState.getCurrentProvider()
     const model = settingsState.getCurrentModel()
 

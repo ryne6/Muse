@@ -122,3 +122,19 @@ export type NewSetting = typeof settings.$inferInsert
 
 export type Attachment = typeof attachments.$inferSelect
 export type NewAttachment = typeof attachments.$inferInsert
+
+// 9. MCP Servers table
+export const mcpServers = sqliteTable('mcp_servers', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull().unique(),
+  command: text('command').notNull(),
+  args: text('args', { mode: 'json' }).$type<string[]>(),
+  env: text('env', { mode: 'json' }).$type<Record<string, string>>(),
+  enabled: integer('enabled', { mode: 'boolean' }).notNull().default(true),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+})
+
+export type MCPServer = typeof mcpServers.$inferSelect
+export type NewMCPServer = typeof mcpServers.$inferInsert

@@ -192,6 +192,14 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 - When asked to modify code, use Read to understand context before Edit/Write
 - Always explain what you're doing when using tools
 
+## Tool Error Handling
+- If a tool returns an error or empty result, DO NOT retry the same tool with the same parameters
+- Instead, either:
+  1. Try a different approach or tool
+  2. Ask the user for clarification
+  3. Inform the user that the operation failed and explain why
+- Never loop on the same failing tool call
+
 Current workspace: ${workspacePath || 'Not set'}`
 
     // Combine system prompt with history messages

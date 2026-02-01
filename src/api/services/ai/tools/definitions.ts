@@ -265,3 +265,26 @@ export const fileSystemTools = [
     },
   },
 ]
+
+// Lazy-loaded MCP manager to avoid SDK side effects at import time
+let mcpManagerInstance: typeof import('../../mcp/manager').mcpManager | null = null
+
+async function getMcpManager() {
+  if (!mcpManagerInstance) {
+    const { mcpManager } = await import('../../mcp/manager')
+    mcpManagerInstance = mcpManager
+  }
+  return mcpManagerInstance
+}
+
+// Get all available tools (built-in + MCP)
+// MCP tools are only included after initMcpTools() is called
+export function getAllTools() {
+  const mcpTools = mcpManagerInstance?.getToolDefinitions() ?? []
+  return [...fileSystemTools, ...mcpTools]
+}
+
+// Initialize MCP tools (call this at app startup)
+export async function initMcpTools() {
+  await getMcpManager()
+}

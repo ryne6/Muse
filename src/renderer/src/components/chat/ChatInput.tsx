@@ -1,5 +1,5 @@
 import { useState, KeyboardEvent, useEffect, useCallback } from 'react'
-import { Send, Square, Maximize2, Brain, Globe, ChevronDown } from 'lucide-react'
+import { Send, Square, Maximize2, Brain, ChevronDown, Wrench } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { Button } from '../ui/button'
 import { useChatStore } from '@/stores/chatStore'
@@ -10,13 +10,13 @@ import { ImageUploadButton } from './ImageUploadButton'
 import { ImagePreview } from './ImagePreview'
 import { ImageDropZone } from './ImageDropZone'
 import { FullscreenEditor } from './FullscreenEditor'
+import { ToolsDropdown } from './ToolsDropdown'
 import type { AIConfig } from '@shared/types/ai'
 import type { PendingAttachment } from '@shared/types/attachment'
 
 export function ChatInput() {
   const [input, setInput] = useState('')
   const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([])
-  const [webSearchEnabled, setWebSearchEnabled] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const { sendMessage, isLoading, abortMessage } = useChatStore()
   const { getCurrentConversation, createConversation } = useConversationStore()
@@ -194,6 +194,9 @@ export function ChatInput() {
                     <ChevronDown className="w-3 h-3" />
                   </button>
 
+                  {/* Tools Dropdown */}
+                  <ToolsDropdown />
+
                   {/* Thinking Toggle */}
                   <button
                     onClick={() => setThinkingEnabled(!thinkingEnabled)}
@@ -205,19 +208,6 @@ export function ChatInput() {
                   >
                     <Brain className="w-4 h-4" />
                     <span>Thinking</span>
-                  </button>
-
-                  {/* Web Search Toggle */}
-                  <button
-                    onClick={() => setWebSearchEnabled(!webSearchEnabled)}
-                    className={`flex items-center gap-1.5 px-2 py-1 rounded text-sm transition-colors ${
-                      webSearchEnabled
-                        ? 'bg-green-100 text-green-600'
-                        : 'hover:bg-[hsl(var(--surface-2))] text-[hsl(var(--text-muted))]'
-                    }`}
-                  >
-                    <Globe className="w-4 h-4" />
-                    <span>联网</span>
                   </button>
                 </div>
 

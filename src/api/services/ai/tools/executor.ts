@@ -1,6 +1,17 @@
 import axios from 'axios'
 import { DANGEROUS_TOOLS, TOOL_PERMISSION_PREFIX } from '@shared/types/toolPermissions'
 
+// Lazy-loaded MCP manager to avoid SDK side effects at import time
+let mcpManagerInstance: typeof import('../../mcp/manager').mcpManager | null = null
+
+async function getMcpManager() {
+  if (!mcpManagerInstance) {
+    const { mcpManager } = await import('../../mcp/manager')
+    mcpManagerInstance = mcpManager
+  }
+  return mcpManagerInstance
+}
+
 export interface ToolExecutionOptions {
   toolCallId?: string
   toolPermissions?: { allowAll: boolean }
@@ -28,6 +39,16 @@ export class ToolExecutor {
         toolCallId: options.toolCallId,
       }
       return `${TOOL_PERMISSION_PREFIX}${JSON.stringify(payload)}`
+    }
+
+    // Initialize MCP manager and check for MCP tools
+    const mcpManager = await getMcpManager()
+    if (mcpManager.isMCPTool(toolName)) {
+      try {
+        return await mcpManager.callTool(toolName, input)
+      } catch (error: any) {
+        return `Error: ${error.message || 'MCP tool execution failed'}`
+      }
     }
 
     try {

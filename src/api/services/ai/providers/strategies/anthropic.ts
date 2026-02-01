@@ -1,6 +1,6 @@
 import type { AIConfig, AIMessage, MessageContent } from '../../../../../shared/types/ai'
 import type { ProviderStrategy, StrategyOptions, StreamChunkResult } from './index'
-import { fileSystemTools } from '../../tools/definitions'
+import { getAllTools } from '../../tools/definitions'
 
 function convertContent(content: string | MessageContent[]): string | any[] {
   if (typeof content === 'string') return content
@@ -40,7 +40,7 @@ export const anthropicStrategy: ProviderStrategy = {
         role: msg.role,
         content: convertContent(msg.content),
       })),
-      tools: fileSystemTools,
+      tools: getAllTools(),
       max_tokens: config.maxTokens ?? 10000000,
       stream: options.stream,
     }

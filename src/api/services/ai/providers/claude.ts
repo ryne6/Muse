@@ -8,7 +8,7 @@ import type {
   isMultimodalContent,
   AIRequestOptions,
 } from '../../../../shared/types/ai'
-import { fileSystemTools } from '../tools/definitions'
+import { getAllTools } from '../tools/definitions'
 import { ToolExecutor } from '../tools/executor'
 
 export class ClaudeProvider extends BaseAIProvider {
@@ -102,7 +102,7 @@ export class ClaudeProvider extends BaseAIProvider {
         model: config.model,
         max_tokens: config.maxTokens || 10000000,
         messages: conversationMessages,
-        tools: fileSystemTools,
+        tools: getAllTools(),
         stream: true,
       }
 
@@ -259,7 +259,7 @@ export class ClaudeProvider extends BaseAIProvider {
         model: config.model,
         max_tokens: config.maxTokens || 10000000,
         messages: conversationMessages,
-        tools: fileSystemTools,
+        tools: getAllTools(),
       }
 
       // Add system prompt if present

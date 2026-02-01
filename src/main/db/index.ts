@@ -53,6 +53,26 @@ function runSchemaMigrations(sqlite: Database.Database) {
       sqlite.exec('ALTER TABLE messages ADD COLUMN thinking TEXT')
       console.log('✅ Added thinking column')
     }
+
+    // Create mcp_servers table if not exists
+    const tables = sqlite.pragma('table_list') as { name: string }[]
+    const hasMcpServers = tables.some((t) => t.name === 'mcp_servers')
+
+    if (!hasMcpServers) {
+      console.log('📦 Creating mcp_servers table...')
+      sqlite.exec(`
+        CREATE TABLE mcp_servers (
+          id TEXT PRIMARY KEY NOT NULL,
+          name TEXT NOT NULL UNIQUE,
+          command TEXT NOT NULL,
+          args TEXT,
+          env TEXT,
+          enabled INTEGER DEFAULT 1 NOT NULL,
+          created_at INTEGER DEFAULT (unixepoch()) NOT NULL
+        )
+      `)
+      console.log('✅ Created mcp_servers table')
+    }
   } catch (error) {
     console.error('❌ Schema migration failed:', error)
   }

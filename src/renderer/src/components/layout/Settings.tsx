@@ -4,6 +4,7 @@ import { Button } from '../ui/button'
 import { Settings as SettingsIcon } from 'lucide-react'
 import { ProviderList } from '../settings/ProviderList'
 import { ProviderConfigDialog } from '../settings/ProviderConfigDialog'
+import { MCPSettings } from '../settings/MCPSettings'
 import { dbClient } from '@/services/dbClient'
 import { applyUIFont, getSystemFonts } from '@/services/fontService'
 
@@ -16,7 +17,7 @@ interface Provider {
   enabled: boolean
 }
 
-type Tab = 'providers' | 'general'
+type Tab = 'providers' | 'mcp' | 'general'
 
 export function Settings() {
   const [isOpen, setIsOpen] = useState(false)
@@ -146,6 +147,18 @@ export function Settings() {
               </button>
 
               <button
+                onClick={() => setActiveTab('mcp')}
+                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                  activeTab === 'mcp'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-accent hover:text-accent-foreground'
+                }`}
+              >
+                <div className="font-medium">MCP Servers</div>
+                <div className="text-xs opacity-70">External tool servers</div>
+              </button>
+
+              <button
                 onClick={() => setActiveTab('general')}
                 className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
                   activeTab === 'general' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-accent-foreground'
@@ -160,6 +173,10 @@ export function Settings() {
             <div className="flex-1 overflow-y-auto p-6">
               {activeTab === 'providers' && (
                 <ProviderList onConfigureProvider={handleConfigureProvider} />
+              )}
+
+              {activeTab === 'mcp' && (
+                <MCPSettings />
               )}
 
               {activeTab === 'general' && (

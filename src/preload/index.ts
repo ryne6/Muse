@@ -43,6 +43,9 @@ const api: IpcApi = {
     updateNote: (id, note) => ipcRenderer.invoke('db:attachments:updateNote', { id, note }),
     delete: (id) => ipcRenderer.invoke('db:attachments:delete', { id }),
   },
+  mcp: {
+    getServerStates: () => ipcRenderer.invoke('mcp:getServerStates'),
+  },
 }
 
 contextBridge.exposeInMainWorld('api', api)

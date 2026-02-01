@@ -12,6 +12,7 @@ import {
   AttachmentService,
   SearchService,
 } from './db/services'
+import { MCPService } from './db/services/mcpService'
 import { DataMigration } from './db/migration'
 
 function createWindow() {
@@ -280,6 +281,81 @@ function registerIpcHandlers() {
   ipcMain.handle('db:search:rebuild', async () => {
     await SearchService.rebuildIndex()
     return { success: true }
+  })
+
+  // Database - MCP Servers
+  ipcMain.handle('db:mcp:getAll', async () => {
+    return await MCPService.getAll()
+  })
+
+  ipcMain.handle('db:mcp:getEnabled', async () => {
+    return await MCPService.getEnabled()
+  })
+
+  ipcMain.handle('db:mcp:getById', async (_, { id }) => {
+    return await MCPService.getById(id)
+  })
+
+  ipcMain.handle('db:mcp:create', async (_, data) => {
+    // Drizzle handles JSON serialization automatically via mode: 'json'
+    const result = await MCPService.create(data)
+    // Connect the new server if enabled
+    if (result && result.enabled) {
+      try {
+        const { connectMcpServer } = await import('../api/services/mcp/init')
+        await connectMcpServer(result)
+      } catch (error) {
+        console.error('Failed to connect MCP server:', error)
+      }
+    }
+    return result
+  })
+
+  ipcMain.handle('db:mcp:update', async (_, { id, data }) => {
+    return await MCPService.update(id, data)
+  })
+
+  ipcMain.handle('db:mcp:delete', async (_, { id }) => {
+    // Get server name before deleting
+    const server = await MCPService.getById(id)
+    if (server) {
+      try {
+        const { disconnectMcpServer } = await import('../api/services/mcp/init')
+        await disconnectMcpServer(server.name)
+      } catch (error) {
+        console.error('Failed to disconnect MCP server:', error)
+      }
+    }
+    return await MCPService.delete(id)
+  })
+
+  ipcMain.handle('db:mcp:toggleEnabled', async (_, { id }) => {
+    const result = await MCPService.toggleEnabled(id)
+    if (result) {
+      try {
+        if (result.enabled) {
+          const { connectMcpServer } = await import('../api/services/mcp/init')
+          await connectMcpServer(result)
+        } else {
+          const { disconnectMcpServer } = await import('../api/services/mcp/init')
+          await disconnectMcpServer(result.name)
+        }
+      } catch (error) {
+        console.error('Failed to toggle MCP server connection:', error)
+      }
+    }
+    return result
+  })
+
+  // MCP Runtime Status
+  ipcMain.handle('mcp:getServerStates', async () => {
+    try {
+      const { mcpManager } = await import('../api/services/mcp/manager')
+      return mcpManager.getServerStates()
+    } catch (error) {
+      console.error('Failed to get MCP server states:', error)
+      return []
+    }
   })
 
   // Database - Attachments

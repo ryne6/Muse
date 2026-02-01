@@ -1,6 +1,19 @@
 import type { SearchQuery, SearchResponse } from './search'
 import type { AttachmentPreview, NewAttachmentData } from './attachment'
 
+// MCP Server State for IPC
+export interface MCPServerState {
+  config: {
+    name: string
+    command: string
+    args?: string[]
+    enabled: boolean
+  }
+  status: 'disconnected' | 'connecting' | 'connected' | 'error'
+  tools: Array<{ name: string; description?: string; serverName: string }>
+  error?: string
+}
+
 export interface FileInfo {
   name: string
   path: string
@@ -74,6 +87,9 @@ export interface IpcApi {
     getBase64: (id: string) => Promise<string | null>
     updateNote: (id: string, note: string | null) => Promise<{ success: boolean }>
     delete: (id: string) => Promise<{ success: boolean }>
+  }
+  mcp: {
+    getServerStates: () => Promise<MCPServerState[]>
   }
 }
 

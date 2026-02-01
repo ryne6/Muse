@@ -7,7 +7,7 @@ import type {
   MessageContent,
   AIRequestOptions,
 } from '../../../../shared/types/ai'
-import { fileSystemTools } from '../tools/definitions'
+import { getAllTools } from '../tools/definitions'
 import { ToolExecutor } from '../tools/executor'
 
 export class OpenAIProvider extends BaseAIProvider {
@@ -119,7 +119,7 @@ export class OpenAIProvider extends BaseAIProvider {
       } else {
         requestParams.max_tokens = config.maxTokens || 10000000
         requestParams.temperature = config.temperature || 1
-        requestParams.tools = this.convertTools(fileSystemTools)
+        requestParams.tools = this.convertTools(getAllTools())
       }
 
       const stream = await client.chat.completions.create(requestParams)
@@ -236,7 +236,7 @@ export class OpenAIProvider extends BaseAIProvider {
       } else {
         requestParams.max_tokens = config.maxTokens || 10000000
         requestParams.temperature = config.temperature || 1
-        requestParams.tools = this.convertTools(fileSystemTools)
+        requestParams.tools = this.convertTools(getAllTools())
       }
 
       const response = await client.chat.completions.create(requestParams)

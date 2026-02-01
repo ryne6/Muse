@@ -126,4 +126,33 @@ export const dbClient = {
       return await window.api.ipc.invoke('db:migration:clear')
     },
   },
+
+  // MCP Servers
+  mcp: {
+    getAll: async () => {
+      return await window.api.ipc.invoke('db:mcp:getAll')
+    },
+    getEnabled: async () => {
+      return await window.api.ipc.invoke('db:mcp:getEnabled')
+    },
+    getById: async (id: string) => {
+      return await window.api.ipc.invoke('db:mcp:getById', { id })
+    },
+    create: async (data: any) => {
+      return await window.api.ipc.invoke('db:mcp:create', data)
+    },
+    update: async (id: string, data: any) => {
+      return await window.api.ipc.invoke('db:mcp:update', { id, data })
+    },
+    delete: async (id: string) => {
+      return await window.api.ipc.invoke('db:mcp:delete', { id })
+    },
+    toggleEnabled: async (id: string) => {
+      return await window.api.ipc.invoke('db:mcp:toggleEnabled', { id })
+    },
+    // Runtime status
+    getServerStates: async () => {
+      return await window.api.mcp.getServerStates()
+    },
+  },
 }

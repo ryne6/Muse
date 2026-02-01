@@ -144,7 +144,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
 
     // Prepare messages for API (include history attachments)
-    const aiMessages: AIMessage[] = await Promise.all(
+    const historyMessages: AIMessage[] = await Promise.all(
       conversation.messages.map(async (m) => {
         if (m.attachments && m.attachments.length > 0) {
           return {
@@ -159,6 +159,46 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         }
       })
     )
+
+    // Build system prompt with tool instructions
+    const workspacePath = useWorkspaceStore.getState().workspacePath
+    const systemPrompt = `You are Muse, an AI coding assistant with access to the following tools:
+
+## Available Tools
+
+### File Operations
+- **Read**: Read file contents
+- **Write**: Create or overwrite files
+- **Edit**: Make targeted edits to files
+- **LS**: List directory contents
+- **Glob**: Find files by pattern (e.g., "**/*.ts")
+- **Grep**: Search file contents with regex
+
+### Git Operations
+- **GitStatus**: Check repository status
+- **GitDiff**: View changes
+- **GitLog**: View commit history
+- **GitCommit**: Create commits (requires approval)
+- **GitPush**: Push to remote (requires approval)
+- **GitCheckout**: Switch branches (requires approval)
+
+### Web Operations
+- **WebFetch**: Fetch URL content
+- **WebSearch**: Search the web
+
+## Guidelines
+- Use tools proactively to help users with coding tasks
+- When asked about code, use Glob/Grep to find relevant files first
+- When asked to modify code, use Read to understand context before Edit/Write
+- Always explain what you're doing when using tools
+
+Current workspace: ${workspacePath || 'Not set'}`
+
+    // Combine system prompt with history messages
+    const aiMessages: AIMessage[] = [
+      { role: 'system', content: systemPrompt },
+      ...historyMessages,
+    ]
 
     // Add current message with attachments to API messages
     if (attachments.length > 0) {

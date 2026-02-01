@@ -1,5 +1,6 @@
 import type { AIConfig, AIMessage, MessageContent } from '../../../../../shared/types/ai'
 import type { ProviderStrategy, StrategyOptions, StreamChunkResult } from './index'
+import { fileSystemTools } from '../../tools/definitions'
 
 function convertContent(content: string | MessageContent[]): string | any[] {
   if (typeof content === 'string') return content
@@ -29,14 +30,26 @@ export const anthropicStrategy: ProviderStrategy = {
     'anthropic-version': '2023-06-01',
   }),
   buildBody: (messages: AIMessage[], config: AIConfig, options: StrategyOptions) => {
+    // Extract system message
+    const systemMessage = messages.find((m) => m.role === 'system')
+    const conversationMessages = messages.filter((m) => m.role !== 'system')
+
     const body: Record<string, unknown> = {
       model: config.model,
-      messages: messages.map((msg) => ({
+      messages: conversationMessages.map((msg) => ({
         role: msg.role,
         content: convertContent(msg.content),
       })),
+      tools: fileSystemTools,
       max_tokens: config.maxTokens ?? 10000000,
       stream: options.stream,
+    }
+
+    // Add system prompt if present
+    if (systemMessage) {
+      body.system = typeof systemMessage.content === 'string'
+        ? systemMessage.content
+        : (systemMessage.content as any[]).map((b: any) => b.text || '').join('\n')
     }
 
     if (config.thinkingEnabled) {
@@ -52,7 +65,28 @@ export const anthropicStrategy: ProviderStrategy = {
     return body
   },
   parseStreamChunk: (parsed: any): StreamChunkResult | undefined => {
+    // Handle tool_use block start
+    if (parsed.type === 'content_block_start') {
+      if (parsed.content_block?.type === 'tool_use') {
+        return {
+          toolCalls: [{
+            index: parsed.index,
+            id: parsed.content_block.id,
+            function: { name: parsed.content_block.name, arguments: '' }
+          }]
+        }
+      }
+    }
     if (parsed.type === 'content_block_delta') {
+      // Handle tool input JSON delta
+      if (parsed.delta?.type === 'input_json_delta') {
+        return {
+          toolCalls: [{
+            index: parsed.index,
+            function: { arguments: parsed.delta.partial_json }
+          }]
+        }
+      }
       if (parsed.delta?.type === 'thinking_delta') {
         console.log('[anthropic-strategy] Got thinking_delta:', parsed.delta.thinking?.slice(0, 50))
         return { thinking: parsed.delta.thinking }

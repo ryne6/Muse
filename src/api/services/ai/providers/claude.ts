@@ -86,10 +86,15 @@ export class ClaudeProvider extends BaseAIProvider {
   ): Promise<string> {
     let fullContent = ''
     const toolExecutor = new ToolExecutor()
-    const conversationMessages: any[] = messages.map((m) => ({
-      role: m.role === 'system' ? 'user' : m.role,
-      content: this.convertContent(m.content),
-    }))
+
+    // Extract system message and conversation messages
+    const systemMessage = messages.find((m) => m.role === 'system')
+    const conversationMessages: any[] = messages
+      .filter((m) => m.role !== 'system')
+      .map((m) => ({
+        role: m.role,
+        content: this.convertContent(m.content),
+      }))
 
     while (true) {
       // Build request parameters
@@ -99,6 +104,13 @@ export class ClaudeProvider extends BaseAIProvider {
         messages: conversationMessages,
         tools: fileSystemTools,
         stream: true,
+      }
+
+      // Add system prompt if present
+      if (systemMessage) {
+        requestParams.system = typeof systemMessage.content === 'string'
+          ? systemMessage.content
+          : systemMessage.content.map((b: any) => b.text || '').join('\n')
       }
 
       // Add thinking configuration if enabled
@@ -229,10 +241,15 @@ export class ClaudeProvider extends BaseAIProvider {
     options?: AIRequestOptions
   ): Promise<string> {
     const toolExecutor = new ToolExecutor()
-    const conversationMessages: any[] = messages.map((m) => ({
-      role: m.role === 'system' ? 'user' : m.role,
-      content: this.convertContent(m.content),
-    }))
+
+    // Extract system message and conversation messages
+    const systemMessage = messages.find((m) => m.role === 'system')
+    const conversationMessages: any[] = messages
+      .filter((m) => m.role !== 'system')
+      .map((m) => ({
+        role: m.role,
+        content: this.convertContent(m.content),
+      }))
 
     let finalText = ''
 
@@ -243,6 +260,13 @@ export class ClaudeProvider extends BaseAIProvider {
         max_tokens: config.maxTokens || 10000000,
         messages: conversationMessages,
         tools: fileSystemTools,
+      }
+
+      // Add system prompt if present
+      if (systemMessage) {
+        requestParams.system = typeof systemMessage.content === 'string'
+          ? systemMessage.content
+          : systemMessage.content.map((b: any) => b.text || '').join('\n')
       }
 
       // Add thinking configuration if enabled

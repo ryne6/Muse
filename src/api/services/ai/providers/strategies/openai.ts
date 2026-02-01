@@ -1,5 +1,6 @@
 import type { AIConfig, AIMessage, MessageContent } from '../../../../../shared/types/ai'
 import type { ProviderStrategy, StrategyOptions, StreamChunkResult } from './index'
+import { fileSystemTools } from '../../tools/definitions'
 
 function convertContent(content: string | MessageContent[]): string | any[] {
   if (typeof content === 'string') return content
@@ -20,6 +21,17 @@ function convertContent(content: string | MessageContent[]): string | any[] {
   })
 }
 
+function convertTools(tools: any[]): any[] {
+  return tools.map((tool) => ({
+    type: 'function',
+    function: {
+      name: tool.name,
+      description: tool.description,
+      parameters: tool.input_schema,
+    },
+  }))
+}
+
 function getEndpoint(apiFormat?: string): string {
   if (apiFormat === 'responses') return '/responses'
   return '/chat/completions'
@@ -37,14 +49,19 @@ export const openAIStrategy: ProviderStrategy = {
       role: msg.role,
       content: convertContent(msg.content),
     })),
+    tools: convertTools(fileSystemTools),
     temperature: config.temperature ?? 1,
     max_tokens: config.maxTokens ?? 10000000,
     stream: options.stream,
   }),
   parseStreamChunk: (parsed: any): StreamChunkResult | undefined => {
     const content = parsed.choices?.[0]?.delta?.content
+    const toolCalls = parsed.choices?.[0]?.delta?.tool_calls
     if (content) {
       return { content }
+    }
+    if (toolCalls) {
+      return { toolCalls }
     }
     return undefined
   },

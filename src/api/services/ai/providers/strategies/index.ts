@@ -9,6 +9,7 @@ export interface StrategyOptions {
 export interface StreamChunkResult {
   content?: string
   thinking?: string
+  toolCalls?: any[]
 }
 
 export interface ProviderStrategy {

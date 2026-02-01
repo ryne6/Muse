@@ -9,9 +9,11 @@ import { app } from 'electron'
 let db: ReturnType<typeof drizzle> | null = null
 
 // Get database path (in user data directory)
+// Use different database files for development and production
 export function getDbPath(): string {
   const userDataPath = app.getPath('userData')
-  return path.join(userDataPath, 'muse.db')
+  const dbName = app.isPackaged ? 'muse-ai.db' : 'muse.db'
+  return path.join(userDataPath, dbName)
 }
 
 // Initialize database

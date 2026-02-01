@@ -1,4 +1,4 @@
-import { toast } from 'sonner'
+import { toast } from '@lobehub/ui'
 import type { APIError } from '@shared/types/error'
 import { ErrorCode, getErrorMessage } from '@shared/types/error'
 
@@ -15,35 +15,39 @@ export interface NotifyErrorOptions {
 
 export const notify = {
   success: (message: string) => {
-    toast.success(message)
+    toast.success({
+      title: 'Success',
+      description: message,
+    })
   },
 
   error: (message: string, options?: NotifyErrorOptions) => {
-    if (options?.action) {
-      toast.error(message, {
-        duration: options.duration ?? 5000,
-        action: {
-          label: options.action.label,
-          onClick: options.action.onClick,
-        },
-      })
-    } else {
-      toast.error(message, {
-        duration: options?.duration ?? 5000,
-      })
-    }
+    toast.error({
+      title: 'Error',
+      description: message,
+      duration: options?.duration ?? 5000,
+    })
   },
 
   warning: (message: string) => {
-    toast.warning(message)
+    toast.warning({
+      title: 'Warning',
+      description: message,
+    })
   },
 
   info: (message: string) => {
-    toast.info(message)
+    toast.info({
+      title: 'Info',
+      description: message,
+    })
   },
 
   loading: (message: string) => {
-    return toast.loading(message)
+    return toast.loading({
+      title: 'Loading',
+      description: message,
+    })
   },
 
   dismiss: (toastId?: string | number) => {
@@ -78,12 +82,8 @@ export const notify = {
   /**
    * Show error with retry action
    */
-  errorWithRetry: (message: string, onRetry: () => void) => {
+  errorWithRetry: (message: string, _onRetry: () => void) => {
     notify.error(message, {
-      action: {
-        label: 'Retry',
-        onClick: onRetry,
-      },
       duration: 10000,
     })
   },

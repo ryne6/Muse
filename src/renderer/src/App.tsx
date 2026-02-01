@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
-import { ThemeProvider } from '@lobehub/ui'
+import { ThemeProvider, ToastHost } from '@lobehub/ui'
 import { AppLayout } from './components/layout/AppLayout'
-import { Toaster } from 'sonner'
 import { MigrationHandler } from './components/MigrationHandler'
 import { useConversationStore } from './stores/conversationStore'
 import { dbClient } from './services/dbClient'
@@ -35,7 +34,7 @@ function App() {
     <ThemeProvider appearance={themeMode}>
       <MigrationHandler />
       <AppLayout />
-      <Toaster position="top-right" richColors />
+      <ToastHost position="top-right" />
     </ThemeProvider>
   )
 }

@@ -109,7 +109,6 @@ describe('FileSystemService', () => {
       expect(result[0]).toEqual({ file: '/base/a.ts', line: 1, content: 'const a = 1' })
     })
   })
-
   describe('editFile', () => {
     it('should replace the first occurrence by default', async () => {
       vi.mocked(fs.stat).mockResolvedValue({ size: 100 } as any)

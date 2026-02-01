@@ -1,6 +1,6 @@
 {
   "name": "muse",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "description": "AI-powered desktop coding assistant",
   "main": "./out/main/index.js",
   "author": "Muse Team",

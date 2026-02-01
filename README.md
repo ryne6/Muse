@@ -71,6 +71,14 @@ npm run package:win     # Windows
 npm run package:linux   # Linux
 ```
 
+### macOS Installation Note
+
+If you see "Muse is damaged and can't be opened", run:
+
+```bash
+sudo xattr -rd com.apple.quarantine /Applications/Muse.app
+```
+
 ---
 
 ## Tech Stack

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { ThemeProvider, ToastHost } from '@lobehub/ui'
 import { AppLayout } from './components/layout/AppLayout'
 import { MigrationHandler } from './components/MigrationHandler'
+import { UpdateNotification } from './components/UpdateNotification'
 import { useConversationStore } from './stores/conversationStore'
 import { dbClient } from './services/dbClient'
 
@@ -35,6 +36,7 @@ function App() {
       <MigrationHandler />
       <AppLayout />
       <ToastHost position="top-right" />
+      <UpdateNotification />
     </ThemeProvider>
   )
 }

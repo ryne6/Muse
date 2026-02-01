@@ -58,6 +58,16 @@ const api: IpcApi = {
     getContent: (path: string) => ipcRenderer.invoke('db:skills:getContent', { path }),
     getCount: (path: string) => ipcRenderer.invoke('db:skills:getCount', { path }),
   },
+  updater: {
+    check: () => ipcRenderer.invoke('updater:check'),
+    download: () => ipcRenderer.invoke('updater:download'),
+    install: () => ipcRenderer.invoke('updater:install'),
+    onStatus: (callback: (status: any) => void) => {
+      const handler = (_: any, status: any) => callback(status)
+      ipcRenderer.on('updater:status', handler)
+      return () => ipcRenderer.removeListener('updater:status', handler)
+    },
+  },
 }
 
 contextBridge.exposeInMainWorld('api', api)

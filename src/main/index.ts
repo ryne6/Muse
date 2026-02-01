@@ -3,6 +3,7 @@ import { join } from 'path'
 import { startApiServer } from './apiServer'
 import { startIpcBridge, fsService } from './ipcBridge'
 import { initDatabase, closeDatabase } from './db'
+import { initUpdater } from './updater'
 import {
   ConversationService,
   MessageService,
@@ -16,7 +17,7 @@ import { MCPService } from './db/services/mcpService'
 import { SkillsService } from './db/services/skillsService'
 import { DataMigration } from './db/migration'
 
-function createWindow() {
+function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
     width: 1440,
     height: 900,
@@ -45,6 +46,8 @@ function createWindow() {
   if (!app.isPackaged) {
     mainWindow.webContents.openDevTools()
   }
+
+  return mainWindow
 }
 
 app.whenReady().then(() => {
@@ -64,7 +67,12 @@ app.whenReady().then(() => {
   startApiServer(2323)
   startIpcBridge(3001)
 
-  createWindow()
+  const mainWindow = createWindow()
+
+  // Initialize auto-updater (only in production)
+  if (app.isPackaged) {
+    initUpdater(mainWindow)
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {

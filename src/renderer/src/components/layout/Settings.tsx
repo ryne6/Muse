@@ -7,7 +7,7 @@ import { ProviderConfigDialog } from '../settings/ProviderConfigDialog'
 import { MCPSettings } from '../settings/MCPSettings'
 import { SkillsSettings } from '../settings/SkillsSettings'
 import { dbClient } from '@/services/dbClient'
-import { applyUIFont, getSystemFonts } from '@/services/fontService'
+import { applyUIFont } from '@/services/fontService'
 
 interface Provider {
   id: string
@@ -25,22 +25,8 @@ export function Settings() {
   const [activeTab, setActiveTab] = useState<Tab>('providers')
   const [configProvider, setConfigProvider] = useState<Provider | null>(null)
   const [showConfigDialog, setShowConfigDialog] = useState(false)
-  const [fonts, setFonts] = useState<string[]>([])
-  const [uiFont, setUiFont] = useState('')
-  const [theme, setTheme] = useState<'light' | 'dark' | 'auto'>('auto')
 
-  useEffect(() => {
-    let mounted = true
-    getSystemFonts().then((fontList) => {
-      if (mounted) {
-        setFonts(fontList)
-      }
-    })
-    return () => {
-      mounted = false
-    }
-  }, [])
-
+  // Load and apply saved UI font on mount
   useEffect(() => {
     let mounted = true
     const loadFont = async () => {
@@ -48,7 +34,6 @@ export function Settings() {
         const value = await dbClient.settings.get('uiFont')
         if (!mounted) return
         if (typeof value === 'string' && value) {
-          setUiFont(value)
           applyUIFont(value)
         }
       } catch {
@@ -60,46 +45,6 @@ export function Settings() {
       mounted = false
     }
   }, [])
-
-  useEffect(() => {
-    let mounted = true
-    const loadTheme = async () => {
-      try {
-        const value = await dbClient.settings.get('theme')
-        if (!mounted) return
-        if (value && ['light', 'dark', 'auto'].includes(value as string)) {
-          setTheme(value as 'light' | 'dark' | 'auto')
-        }
-      } catch {
-        // Ignore in environments without IPC (tests)
-      }
-    }
-    loadTheme()
-    return () => {
-      mounted = false
-    }
-  }, [])
-
-  const handleFontChange = async (value: string) => {
-    setUiFont(value)
-    applyUIFont(value)
-    try {
-      await dbClient.settings.set('uiFont', value)
-    } catch {
-      // Ignore in environments without IPC (tests)
-    }
-  }
-
-  const handleThemeChange = async (value: 'light' | 'dark' | 'auto') => {
-    setTheme(value)
-    try {
-      await dbClient.settings.set('theme', value)
-      // Dispatch custom event to notify App.tsx
-      window.dispatchEvent(new CustomEvent('theme-changed', { detail: value }))
-    } catch {
-      // Ignore in environments without IPC (tests)
-    }
-  }
 
   const handleConfigureProvider = (provider: Provider) => {
     setConfigProvider(provider)
@@ -199,50 +144,9 @@ export function Settings() {
               {activeTab === 'general' && (
                 <div>
                   <h2 className="text-2xl font-semibold mb-4">General Settings</h2>
-                  <div className="space-y-2 max-w-md">
-                    <label htmlFor="ui-font" className="text-sm font-medium">
-                      UI Font
-                    </label>
-                    <input
-                      id="ui-font"
-                      list="system-fonts"
-                      value={uiFont}
-                      onChange={(e) => handleFontChange(e.target.value)}
-                      placeholder="System UI"
-                      className="w-full px-3 py-2 rounded-md border border-[hsl(var(--border))] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[hsl(var(--border))]"
-                    />
-                    <datalist id="system-fonts">
-                      {fonts.map((font) => (
-                        <option key={font} value={font} />
-                      ))}
-                    </datalist>
-                    <p className="text-xs text-[hsl(var(--text-muted))]">
-                      Select any installed system font or type a custom name.
-                    </p>
-                  </div>
-
-                  {/* Theme Setting */}
-                  <div className="space-y-2 max-w-md mt-6">
-                    <label className="text-sm font-medium">Theme</label>
-                    <div className="flex gap-2">
-                      {(['light', 'dark', 'auto'] as const).map((option) => (
-                        <button
-                          key={option}
-                          onClick={() => handleThemeChange(option)}
-                          className={`px-4 py-2 rounded-md border text-sm capitalize transition-colors ${
-                            theme === option
-                              ? 'bg-primary text-primary-foreground border-primary'
-                              : 'border-[hsl(var(--border))] hover:bg-accent'
-                          }`}
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
-                    <p className="text-xs text-[hsl(var(--text-muted))]">
-                      Choose light, dark, or auto (follows system preference).
-                    </p>
-                  </div>
+                  <p className="text-[hsl(var(--text-muted))]">
+                    More settings coming soon.
+                  </p>
                 </div>
               )}
             </div>

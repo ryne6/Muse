@@ -52,9 +52,12 @@ export function MessageList() {
     )
   }
 
-  // Check if we should show loading indicator
+  // Check if we should show loading indicators
   const lastMessage = currentMessages[currentMessages.length - 1]
-  const showLoading = isLoading && lastMessage?.role === 'assistant' && !lastMessage?.content
+  // 准备响应中：isLoading 且最后消息是空的 assistant
+  const showPreparing = isLoading && lastMessage?.role === 'assistant' && !lastMessage?.content
+  // 正在生成中：isLoading 且最后消息是有内容的 assistant
+  const showGenerating = isLoading && lastMessage?.role === 'assistant' && !!lastMessage?.content
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -62,10 +65,16 @@ export function MessageList() {
         {currentMessages.map((message) => (
           <MessageItem key={message.id} message={message} />
         ))}
-        {showLoading && (
+        {showPreparing && (
           <div className="flex items-center gap-2 animate-breathing ml-11">
             <span className="w-2 h-2 rounded-full bg-gray-400" />
             <span className="text-sm text-muted-foreground">准备响应中 ...</span>
+          </div>
+        )}
+        {showGenerating && (
+          <div className="flex items-center gap-2 animate-breathing ml-11">
+            <span className="w-2 h-2 rounded-full bg-blue-400" />
+            <span className="text-sm text-muted-foreground">正在生成 ...</span>
           </div>
         )}
         <div ref={messagesEndRef} />

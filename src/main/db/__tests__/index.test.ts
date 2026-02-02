@@ -1,13 +1,14 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // Use vi.hoisted to define mocks before hoisting
-const { mockPragma, MockDatabase } = vi.hoisted(() => {
-  const mockPragma = vi.fn()
+const { mockPragma, mockExec, MockDatabase } = vi.hoisted(() => {
+  const mockPragma = vi.fn().mockReturnValue([])  // Return empty array for schema migrations
+  const mockExec = vi.fn()
   // Create a proper constructor function
   function MockDatabase() {
-    return { pragma: mockPragma }
+    return { pragma: mockPragma, exec: mockExec }
   }
-  return { mockPragma, MockDatabase }
+  return { mockPragma, mockExec, MockDatabase }
 })
 
 // Mock electron

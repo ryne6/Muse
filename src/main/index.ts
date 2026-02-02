@@ -1,4 +1,4 @@
-import { app, BrowserWindow, dialog, ipcMain } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'path'
 import { startApiServer, getApiPort } from './apiServer'
 import { startIpcBridge, fsService } from './ipcBridge'
@@ -46,6 +46,12 @@ function createWindow(): BrowserWindow {
   if (!app.isPackaged) {
     mainWindow.webContents.openDevTools()
   }
+
+  // Open external links in system default browser
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    shell.openExternal(url)
+    return { action: 'deny' }
+  })
 
   return mainWindow
 }

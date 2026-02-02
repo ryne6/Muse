@@ -2,8 +2,19 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { OpenAIProvider } from '../openai'
 import type { AIConfig } from '../../../../../shared/types/ai'
 
-// Note: Testing only the public interface without mocking the SDK constructor
-// Full integration tests would be done in e2e tests
+// Mock tool executor
+vi.mock('../../tools/executor', () => ({
+  ToolExecutor: vi.fn().mockImplementation(() => ({
+    execute: vi.fn().mockResolvedValue('Tool result')
+  }))
+}))
+
+// Mock getAllTools
+vi.mock('../../tools/definitions', () => ({
+  getAllTools: vi.fn().mockReturnValue([
+    { name: 'test_tool', description: 'Test', input_schema: {} }
+  ])
+}))
 
 describe('OpenAIProvider', () => {
   let provider: OpenAIProvider
@@ -153,6 +164,12 @@ describe('OpenAIProvider', () => {
     it('should detect non-vision models as not vision capable', () => {
       expect(provider.isVisionModel('gpt-3.5-turbo')).toBe(false)
       expect(provider.isVisionModel('gpt-4')).toBe(false)
+    })
+  })
+
+  describe('thinking support', () => {
+    it('should have supportsThinking true', () => {
+      expect(provider.supportsThinking).toBe(true)
     })
   })
 })

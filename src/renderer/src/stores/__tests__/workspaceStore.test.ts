@@ -26,4 +26,46 @@ describe('workspaceStore', () => {
     await store.selectWorkspace()
     expect(useWorkspaceStore.getState().workspacePath).toBe('/test/workspace')
   })
+
+  it('should load workspace path', async () => {
+    await useWorkspaceStore.getState().loadWorkspace()
+    expect(useWorkspaceStore.getState().workspacePath).toBe('/test/workspace')
+  })
+
+  it('should clear workspace path', async () => {
+    useWorkspaceStore.setState({ workspacePath: '/some/path' })
+    await useWorkspaceStore.getState().clearWorkspace()
+    expect(useWorkspaceStore.getState().workspacePath).toBeNull()
+    expect(mockWindowApi.workspace.set).toHaveBeenCalledWith('')
+  })
+
+  it('should set isSelecting during selectWorkspace', async () => {
+    let selectingDuringCall = false
+    mockWindowApi.workspace.select.mockImplementation(async () => {
+      selectingDuringCall = useWorkspaceStore.getState().isSelecting
+      return { path: '/test' }
+    })
+
+    await useWorkspaceStore.getState().selectWorkspace()
+    expect(selectingDuringCall).toBe(true)
+    expect(useWorkspaceStore.getState().isSelecting).toBe(false)
+  })
+
+  describe('when window.api is not available', () => {
+    beforeEach(() => {
+      global.window.api = undefined as any
+    })
+
+    it('should not throw on loadWorkspace', async () => {
+      await expect(useWorkspaceStore.getState().loadWorkspace()).resolves.not.toThrow()
+    })
+
+    it('should not throw on selectWorkspace', async () => {
+      await expect(useWorkspaceStore.getState().selectWorkspace()).resolves.not.toThrow()
+    })
+
+    it('should not throw on clearWorkspace', async () => {
+      await expect(useWorkspaceStore.getState().clearWorkspace()).resolves.not.toThrow()
+    })
+  })
 })

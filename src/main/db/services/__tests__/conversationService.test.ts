@@ -201,6 +201,40 @@ describe('ConversationService', () => {
     })
   })
 
+  describe('updateSystemPrompt 测试', () => {
+    it('should set system prompt for conversation', async () => {
+      const created = await ConversationService.create({ title: 'Test' })
+      await ConversationService.updateSystemPrompt(created.id, 'You are a helpful assistant.')
+
+      const updated = await ConversationService.getById(created.id)
+      expect(updated!.systemPrompt).toBe('You are a helpful assistant.')
+    })
+
+    it('should clear system prompt when set to null', async () => {
+      const created = await ConversationService.create({ title: 'Test' })
+      await ConversationService.updateSystemPrompt(created.id, 'Initial prompt')
+
+      // Verify it was set
+      let updated = await ConversationService.getById(created.id)
+      expect(updated!.systemPrompt).toBe('Initial prompt')
+
+      // Clear it
+      await ConversationService.updateSystemPrompt(created.id, null)
+
+      updated = await ConversationService.getById(created.id)
+      expect(updated!.systemPrompt).toBeNull()
+    })
+
+    it('should update existing system prompt', async () => {
+      const created = await ConversationService.create({ title: 'Test' })
+      await ConversationService.updateSystemPrompt(created.id, 'First prompt')
+      await ConversationService.updateSystemPrompt(created.id, 'Second prompt')
+
+      const updated = await ConversationService.getById(created.id)
+      expect(updated!.systemPrompt).toBe('Second prompt')
+    })
+  })
+
   describe('边界情况测试', () => {
     it('should return null when getting non-existent conversation', async () => {
       const retrieved = await ConversationService.getById('non-existent-id')

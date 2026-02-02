@@ -80,6 +80,24 @@ export function createTestDatabase() {
       value TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS mcp_servers (
+      id TEXT PRIMARY KEY NOT NULL,
+      name TEXT NOT NULL UNIQUE,
+      command TEXT NOT NULL,
+      args TEXT,
+      env TEXT,
+      enabled INTEGER DEFAULT 1 NOT NULL,
+      created_at INTEGER DEFAULT (unixepoch()) NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS prompt_presets (
+      id TEXT PRIMARY KEY NOT NULL,
+      name TEXT NOT NULL,
+      content TEXT NOT NULL,
+      created_at INTEGER DEFAULT (unixepoch()) NOT NULL,
+      updated_at INTEGER DEFAULT (unixepoch()) NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS attachments (
       id TEXT PRIMARY KEY,
       message_id TEXT NOT NULL,
@@ -213,5 +231,7 @@ export function clearDatabase(sqlite: Database.Database) {
     DELETE FROM models;
     DELETE FROM providers;
     DELETE FROM settings;
+    DELETE FROM mcp_servers;
+    DELETE FROM prompt_presets;
   `)
 }

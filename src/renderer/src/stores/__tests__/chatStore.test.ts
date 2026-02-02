@@ -468,5 +468,322 @@ describe('ChatStore', () => {
         expect.objectContaining({ allowOnceTools: ['Bash'] })
       )
     })
+
+    it('should set error when no provider selected', async () => {
+      mockGetCurrentProvider.mockReturnValue(null)
+      mockGetCurrentModel.mockReturnValue(mockModel)
+
+      await useChatStore.getState().approveToolCall('conv-1', 'Bash', false)
+
+      expect(useChatStore.getState().error).toBe('No provider or model selected')
+      expect(mockSendMessageStream).not.toHaveBeenCalled()
+    })
+
+    it('should set error when no model selected', async () => {
+      mockGetCurrentProvider.mockReturnValue(mockProvider)
+      mockGetCurrentModel.mockReturnValue(null)
+
+      await useChatStore.getState().approveToolCall('conv-1', 'Bash', false)
+
+      expect(useChatStore.getState().error).toBe('No provider or model selected')
+      expect(mockSendMessageStream).not.toHaveBeenCalled()
+    })
+
+    it('should set error when provider has no API key', async () => {
+      const providerWithoutKey = { ...mockProvider, apiKey: '' }
+      mockGetCurrentProvider.mockReturnValue(providerWithoutKey)
+      mockGetCurrentModel.mockReturnValue(mockModel)
+
+      await useChatStore.getState().approveToolCall('conv-1', 'Bash', false)
+
+      expect(useChatStore.getState().error).toBe('Provider API key missing')
+      expect(mockSendMessageStream).not.toHaveBeenCalled()
+    })
+
+    it('should call setToolAllowAll when allowAll is true', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+      mockGetCurrentProvider.mockReturnValue(mockProvider)
+      mockGetCurrentModel.mockReturnValue(mockModel)
+      mockSendMessageStream.mockResolvedValue(undefined)
+
+      await useChatStore.getState().approveToolCall('conv-1', 'Bash', true)
+
+      expect(mockSetToolAllowAll).toHaveBeenCalledWith('/test/workspace', true)
+    })
+  })
+
+  describe('abortMessage', () => {
+    it('should abort when controller exists', () => {
+      const mockAbort = vi.fn()
+      const mockController = { abort: mockAbort } as unknown as AbortController
+      useChatStore.setState({ isLoading: true, abortController: mockController })
+
+      useChatStore.getState().abortMessage()
+
+      expect(mockAbort).toHaveBeenCalled()
+      expect(useChatStore.getState().isLoading).toBe(false)
+      expect(useChatStore.getState().abortController).toBeNull()
+    })
+
+    it('should do nothing when no controller exists', () => {
+      useChatStore.setState({ isLoading: true, abortController: null })
+
+      useChatStore.getState().abortMessage()
+
+      // isLoading should remain true since no abort happened
+      expect(useChatStore.getState().isLoading).toBe(true)
+    })
+  })
+
+  describe('clearError', () => {
+    it('should clear all error state', () => {
+      useChatStore.setState({
+        error: 'Some error',
+        lastError: { code: 'TEST', message: 'Test error', retryable: true },
+        retryable: true
+      })
+
+      useChatStore.getState().clearError()
+
+      expect(useChatStore.getState().error).toBeNull()
+      expect(useChatStore.getState().lastError).toBeNull()
+      expect(useChatStore.getState().retryable).toBe(false)
+    })
+  })
+
+  describe('abort error handling', () => {
+    const mockConfig = { apiKey: 'test-key', model: 'gpt-4' }
+
+    it('should ignore AbortError and not set error state', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+
+      const abortError = new Error('Aborted')
+      abortError.name = 'AbortError'
+      mockSendMessageStream.mockRejectedValue(abortError)
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello',
+        'openai',
+        mockConfig
+      )
+
+      expect(useChatStore.getState().error).toBeNull()
+    })
+  })
+
+  describe('non-APIClientError handling', () => {
+    const mockConfig = { apiKey: 'test-key', model: 'gpt-4' }
+
+    it('should handle regular Error and set lastError to null', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+
+      mockSendMessageStream.mockRejectedValue(new Error('Some error'))
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello',
+        'openai',
+        mockConfig
+      )
+
+      // Error message may be transformed by getErrorMessage()
+      expect(useChatStore.getState().error).toBeTruthy()
+      expect(useChatStore.getState().lastError).toBeNull()
+    })
+  })
+
+  describe('streaming callback', () => {
+    const mockConfig = { apiKey: 'test-key', model: 'gpt-4' }
+
+    it('should update message content via streaming callback', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+
+      // Capture the callback function
+      let streamCallback: ((chunk: any) => void) | null = null
+      mockSendMessageStream.mockImplementation(
+        async (_provider, _messages, _config, callback) => {
+          streamCallback = callback
+          // Simulate streaming
+          callback({ content: 'Hello ' })
+          callback({ content: 'world!' })
+        }
+      )
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello',
+        'openai',
+        mockConfig
+      )
+
+      expect(streamCallback).not.toBeNull()
+      expect(mockUpdateConversation).toHaveBeenCalled()
+    })
+
+    it('should handle thinking content in streaming', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+
+      mockSendMessageStream.mockImplementation(
+        async (_provider, _messages, _config, callback) => {
+          callback({ thinking: 'Let me think...' })
+        }
+      )
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello',
+        'openai',
+        mockConfig
+      )
+
+      expect(mockUpdateConversation).toHaveBeenCalled()
+    })
+
+    it('should handle tool call in streaming', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+
+      mockSendMessageStream.mockImplementation(
+        async (_provider, _messages, _config, callback) => {
+          callback({
+            toolCall: {
+              id: 'tc-1',
+              name: 'read_file',
+              input: { path: '/test.txt' }
+            }
+          })
+        }
+      )
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello',
+        'openai',
+        mockConfig
+      )
+
+      expect(mockUpdateConversation).toHaveBeenCalled()
+    })
+
+    it('should handle tool result in streaming', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+
+      mockSendMessageStream.mockImplementation(
+        async (_provider, _messages, _config, callback) => {
+          callback({
+            toolResult: {
+              toolCallId: 'tc-1',
+              content: 'File content here'
+            }
+          })
+        }
+      )
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello',
+        'openai',
+        mockConfig
+      )
+
+      expect(mockUpdateConversation).toHaveBeenCalled()
+    })
+  })
+
+  describe('conversation title update', () => {
+    const mockConfig = { apiKey: 'test-key', model: 'gpt-4' }
+
+    it('should update title on first user message', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello world' }]
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+      mockSendMessageStream.mockResolvedValue(undefined)
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Hello world',
+        'openai',
+        mockConfig
+      )
+
+      expect(mockRenameConversation).toHaveBeenCalledWith(
+        'conv-1',
+        'Hello world'
+      )
+    })
+
+    it('should truncate long title with ellipsis', async () => {
+      const longMessage = 'A'.repeat(60)
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: longMessage }]
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+      mockSendMessageStream.mockResolvedValue(undefined)
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        longMessage,
+        'openai',
+        mockConfig
+      )
+
+      expect(mockRenameConversation).toHaveBeenCalledWith(
+        'conv-1',
+        'A'.repeat(50) + '...'
+      )
+    })
+
+    it('should not update title if not first user message', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [
+          { id: '1', role: 'user', content: 'First' },
+          { id: '2', role: 'assistant', content: 'Response' },
+          { id: '3', role: 'user', content: 'Second' }
+        ]
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+      mockSendMessageStream.mockResolvedValue(undefined)
+
+      await useChatStore.getState().sendMessage(
+        'conv-1',
+        'Third message',
+        'openai',
+        mockConfig
+      )
+
+      expect(mockRenameConversation).not.toHaveBeenCalled()
+    })
   })
 })

@@ -267,4 +267,32 @@ describe('SettingsStore', () => {
       expect(useSettingsStore.getState().lastUpdated).toBeGreaterThan(prev)
     })
   })
+
+  describe('globalSystemPrompt', () => {
+    it('should have empty string as initial value', () => {
+      useSettingsStore.setState({ globalSystemPrompt: '' })
+      const state = useSettingsStore.getState()
+      expect(state.globalSystemPrompt).toBe('')
+    })
+
+    it('should set global system prompt', () => {
+      useSettingsStore.getState().setGlobalSystemPrompt('You are a helpful assistant.')
+
+      expect(useSettingsStore.getState().globalSystemPrompt).toBe('You are a helpful assistant.')
+    })
+
+    it('should update existing global system prompt', () => {
+      useSettingsStore.getState().setGlobalSystemPrompt('First prompt')
+      useSettingsStore.getState().setGlobalSystemPrompt('Second prompt')
+
+      expect(useSettingsStore.getState().globalSystemPrompt).toBe('Second prompt')
+    })
+
+    it('should clear global system prompt when set to empty string', () => {
+      useSettingsStore.getState().setGlobalSystemPrompt('Some prompt')
+      useSettingsStore.getState().setGlobalSystemPrompt('')
+
+      expect(useSettingsStore.getState().globalSystemPrompt).toBe('')
+    })
+  })
 })

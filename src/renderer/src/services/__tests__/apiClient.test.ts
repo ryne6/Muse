@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { APIClient, apiClient } from '../apiClient'
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
+import { APIClient, apiClient, APIClientError, initApiClient, getApiBaseUrl } from '../apiClient'
+import { ErrorCode } from '@shared/types/error'
 
 describe('APIClient', () => {
   let client: APIClient
@@ -177,6 +178,203 @@ describe('APIClient', () => {
   describe('exported instance', () => {
     it('should export apiClient instance', () => {
       expect(apiClient).toBeInstanceOf(APIClient)
+    })
+  })
+
+  describe('APIClientError', () => {
+    it('should create error with message only', () => {
+      const error = new APIClientError('Test error')
+      expect(error.message).toBe('Test error')
+      expect(error.name).toBe('APIClientError')
+      expect(error.apiError).toBeUndefined()
+      expect(error.status).toBeUndefined()
+    })
+
+    it('should create error with apiError and status', () => {
+      const apiError = {
+        code: ErrorCode.RATE_LIMITED,
+        message: 'Rate limited',
+        retryable: true,
+        retryAfter: 30
+      }
+      const error = new APIClientError('Rate limited', apiError, 429)
+
+      expect(error.message).toBe('Rate limited')
+      expect(error.apiError).toEqual(apiError)
+      expect(error.status).toBe(429)
+    })
+
+    it('should return retryable from apiError', () => {
+      const apiError = { code: ErrorCode.RATE_LIMITED, message: 'Rate limited', retryable: true }
+      const error = new APIClientError('Error', apiError)
+      expect(error.retryable).toBe(true)
+    })
+
+    it('should return false for retryable when no apiError', () => {
+      const error = new APIClientError('Error')
+      expect(error.retryable).toBe(false)
+    })
+
+    it('should return retryAfter from apiError', () => {
+      const apiError = { code: ErrorCode.RATE_LIMITED, message: 'Rate limited', retryable: true, retryAfter: 60 }
+      const error = new APIClientError('Error', apiError)
+      expect(error.retryAfter).toBe(60)
+    })
+
+    it('should return undefined for retryAfter when not set', () => {
+      const error = new APIClientError('Error')
+      expect(error.retryAfter).toBeUndefined()
+    })
+
+    it('should return code from apiError', () => {
+      const apiError = { code: ErrorCode.UNAUTHORIZED, message: 'Unauthorized', retryable: false }
+      const error = new APIClientError('Error', apiError)
+      expect(error.code).toBe(ErrorCode.UNAUTHORIZED)
+    })
+
+    it('should return undefined for code when no apiError', () => {
+      const error = new APIClientError('Error')
+      expect(error.code).toBeUndefined()
+    })
+  })
+
+  describe('initApiClient', () => {
+    it('should initialize with port from window.api', async () => {
+      global.window = {
+        api: {
+          api: {
+            getPort: vi.fn().mockResolvedValue(3000)
+          }
+        }
+      } as any
+
+      await initApiClient()
+
+      expect(getApiBaseUrl()).toBe('http://localhost:3000/api')
+    })
+
+    it('should handle missing port gracefully', async () => {
+      global.window = {
+        api: {
+          api: {
+            getPort: vi.fn().mockResolvedValue(null)
+          }
+        }
+      } as any
+
+      await initApiClient()
+      // Should not throw
+    })
+
+    it('should handle error when getting port', async () => {
+      global.window = {
+        api: {
+          api: {
+            getPort: vi.fn().mockRejectedValue(new Error('Failed'))
+          }
+        }
+      } as any
+
+      // Should not throw
+      await expect(initApiClient()).resolves.not.toThrow()
+    })
+  })
+
+  describe('getApiBaseUrl', () => {
+    it('should return current API base URL', () => {
+      const url = getApiBaseUrl()
+      expect(url).toContain('http://localhost:')
+      expect(url).toContain('/api')
+    })
+  })
+
+  describe('sendMessageStream', () => {
+    it('should stream chunks to callback', async () => {
+      const chunks: any[] = []
+      const mockReader = {
+        read: vi.fn()
+          .mockResolvedValueOnce({
+            done: false,
+            value: new TextEncoder().encode('{"content":"Hello"}\n')
+          })
+          .mockResolvedValueOnce({ done: true, value: undefined }),
+        releaseLock: vi.fn()
+      }
+
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: true,
+        body: { getReader: () => mockReader }
+      } as any)
+
+      await client.sendMessageStream(
+        'openai',
+        [{ role: 'user', content: 'Hi' }],
+        { apiKey: 'key', model: 'gpt-4' },
+        (chunk) => chunks.push(chunk)
+      )
+
+      expect(chunks).toHaveLength(1)
+      expect(chunks[0]).toEqual({ content: 'Hello' })
+      expect(mockReader.releaseLock).toHaveBeenCalled()
+    })
+
+    it('should throw error when response is not ok', async () => {
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: false,
+        status: 500,
+        json: () => Promise.resolve({ error: 'Server error' })
+      } as any)
+
+      await expect(
+        client.sendMessageStream(
+          'openai',
+          [],
+          { apiKey: 'key', model: 'gpt-4' },
+          () => {}
+        )
+      ).rejects.toThrow()
+    })
+
+    it('should throw error when no reader available', async () => {
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: true,
+        body: null
+      } as any)
+
+      await expect(
+        client.sendMessageStream(
+          'openai',
+          [],
+          { apiKey: 'key', model: 'gpt-4' },
+          () => {}
+        )
+      ).rejects.toThrow('Failed to get response reader')
+    })
+
+    it('should handle error in stream', async () => {
+      const mockReader = {
+        read: vi.fn()
+          .mockResolvedValueOnce({
+            done: false,
+            value: new TextEncoder().encode('{"error":"Stream error"}\n')
+          })
+          .mockResolvedValueOnce({ done: true, value: undefined }),
+        releaseLock: vi.fn()
+      }
+
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: true,
+        body: { getReader: () => mockReader }
+      } as any)
+
+      await expect(
+        client.sendMessageStream(
+          'openai',
+          [],
+          { apiKey: 'key', model: 'gpt-4' },
+          () => {}
+        )
+      ).rejects.toThrow('Stream error')
     })
   })
 })

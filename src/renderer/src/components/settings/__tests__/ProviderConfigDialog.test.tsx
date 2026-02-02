@@ -28,6 +28,7 @@ describe('ProviderConfigDialog', () => {
 
     expect(screen.getByLabelText(/Name/i)).toBeInTheDocument()
     expect(screen.getByLabelText(/API Format/i)).toBeInTheDocument()
-    expect(screen.getByLabelText(/Enabled/i)).toBeInTheDocument()
+    // LobeUI Checkbox uses children as label text, not htmlFor
+    expect(screen.getByText(/Enabled/i)).toBeInTheDocument()
   })
 })

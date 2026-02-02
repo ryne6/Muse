@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Checkbox } from 'antd'
-import { Modal } from '@lobehub/ui'
+import { Checkbox, Modal, Select } from '@lobehub/ui'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { dbClient } from '@/services/dbClient'
 import { notify } from '@/utils/notify'
 import { useSettingsStore } from '@/stores/settingsStore'
@@ -101,13 +101,12 @@ export function ProviderConfigDialog({
             <label className="text-sm font-medium mb-2 block" htmlFor="provider-name">
               Name <span className="text-destructive">*</span>
             </label>
-            <input
+            <Input
               id="provider-name"
               type="text"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="my-provider"
-              className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-ring text-sm"
               required
             />
           </div>
@@ -117,13 +116,13 @@ export function ProviderConfigDialog({
               API Key <span className="text-destructive">*</span>
             </label>
             <div className="relative">
-              <input
+              <Input
                 id="provider-api-key"
                 type={showApiKey ? 'text' : 'password'}
                 value={formData.apiKey}
                 onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
                 placeholder="sk-..."
-                className="w-full px-3 py-2 pr-20 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm"
+                className="pr-20 font-mono"
                 required
               />
               <button
@@ -143,13 +142,13 @@ export function ProviderConfigDialog({
             <label className="text-sm font-medium mb-2 block" htmlFor="provider-base-url">
               Base URL
             </label>
-            <input
+            <Input
               id="provider-base-url"
               type="text"
               value={formData.baseURL}
               onChange={(e) => setFormData({ ...formData, baseURL: e.target.value })}
               placeholder="https://api.example.com/v1"
-              className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm"
+              className="font-mono"
             />
             <p className="text-xs text-muted-foreground mt-1">
               Optional: Custom API endpoint
@@ -160,23 +159,23 @@ export function ProviderConfigDialog({
             <label className="text-sm font-medium mb-2 block" htmlFor="provider-api-format">
               API Format
             </label>
-            <select
+            <Select
               id="provider-api-format"
               value={formData.apiFormat}
-              onChange={(e) => setFormData({ ...formData, apiFormat: e.target.value })}
-              className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-ring text-sm"
-            >
-              <option value="chat-completions">Chat Completions (/chat/completions)</option>
-              <option value="responses">Responses (/responses)</option>
-              <option value="anthropic-messages">Anthropic Messages (/v1/messages)</option>
-            </select>
+              onChange={(value) => setFormData({ ...formData, apiFormat: value })}
+              style={{ width: '100%' }}
+              options={[
+                { value: 'chat-completions', label: 'Chat Completions (/chat/completions)' },
+                { value: 'responses', label: 'Responses (/responses)' },
+                { value: 'anthropic-messages', label: 'Anthropic Messages (/v1/messages)' },
+              ]}
+            />
           </div>
 
           <div className="flex items-center gap-2">
             <Checkbox
-              id="provider-enabled"
               checked={formData.enabled}
-              onChange={(e) => setFormData({ ...formData, enabled: e.target.checked })}
+              onChange={(checked) => setFormData({ ...formData, enabled: checked })}
             >
               Enabled
             </Checkbox>

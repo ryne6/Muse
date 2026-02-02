@@ -101,6 +101,32 @@ function runSchemaMigrations(sqlite: Database.Database) {
       sqlite.exec('ALTER TABLE conversations ADD COLUMN workspace TEXT')
       console.log('✅ Added workspace column')
     }
+
+    // Add system_prompt column to conversations table if not exists
+    const hasSystemPrompt = convColumns.some((col) => col.name === 'system_prompt')
+
+    if (!hasSystemPrompt) {
+      console.log('📦 Adding system_prompt column to conversations table...')
+      sqlite.exec('ALTER TABLE conversations ADD COLUMN system_prompt TEXT')
+      console.log('✅ Added system_prompt column')
+    }
+
+    // Create prompt_presets table if not exists
+    const hasPromptPresets = tables.some((t) => t.name === 'prompt_presets')
+
+    if (!hasPromptPresets) {
+      console.log('📦 Creating prompt_presets table...')
+      sqlite.exec(`
+        CREATE TABLE prompt_presets (
+          id TEXT PRIMARY KEY NOT NULL,
+          name TEXT NOT NULL,
+          content TEXT NOT NULL,
+          created_at INTEGER DEFAULT (unixepoch()) NOT NULL,
+          updated_at INTEGER DEFAULT (unixepoch()) NOT NULL
+        )
+      `)
+      console.log('✅ Created prompt_presets table')
+    }
   } catch (error) {
     console.error('❌ Schema migration failed:', error)
   }

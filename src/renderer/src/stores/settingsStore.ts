@@ -15,6 +15,7 @@ interface SettingsStore {
   lastUpdated: number
   toolPermissionsByWorkspace: Record<string, { allowAll: boolean }>
   selectedSkill: string | null  // null = Auto mode
+  globalSystemPrompt: string
 
   // Cached data
   providers: Provider[]
@@ -28,6 +29,7 @@ interface SettingsStore {
   setThinkingEnabled: (enabled: boolean) => void
   setToolAllowAll: (workspacePath: string, allowAll: boolean) => void
   setSelectedSkill: (skillPath: string | null) => void
+  setGlobalSystemPrompt: (prompt: string) => void
   clearError: () => void
   triggerRefresh: () => void
 
@@ -74,6 +76,7 @@ export const useSettingsStore = create<SettingsStore>()(
       lastUpdated: Date.now(),
       toolPermissionsByWorkspace: {},
       selectedSkill: null,
+      globalSystemPrompt: '',
 
       // Cached data
       providers: [],
@@ -171,6 +174,9 @@ export const useSettingsStore = create<SettingsStore>()(
       setSelectedSkill: (skillPath: string | null) => {
         set({ selectedSkill: skillPath })
       },
+      setGlobalSystemPrompt: (prompt: string) => {
+        set({ globalSystemPrompt: prompt })
+      },
       triggerRefresh: () => {
         set({ lastUpdated: Date.now() })
       },
@@ -225,6 +231,7 @@ export const useSettingsStore = create<SettingsStore>()(
         thinkingEnabled: state.thinkingEnabled,
         toolPermissionsByWorkspace: state.toolPermissionsByWorkspace,
         selectedSkill: state.selectedSkill,
+        globalSystemPrompt: state.globalSystemPrompt,
       }),
       migrate: (persistedState) => {
         const state =
@@ -238,6 +245,7 @@ export const useSettingsStore = create<SettingsStore>()(
           thinkingEnabled: state?.thinkingEnabled ?? false,
           toolPermissionsByWorkspace: state?.toolPermissionsByWorkspace ?? {},
           selectedSkill: state?.selectedSkill ?? null,
+          globalSystemPrompt: state?.globalSystemPrompt ?? '',
         }
       }
     }

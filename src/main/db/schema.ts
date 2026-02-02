@@ -14,6 +14,7 @@ export const conversations = sqliteTable('conversations', {
   provider: text('provider'),
   model: text('model'),
   workspace: text('workspace'),
+  systemPrompt: text('system_prompt'),
 })
 
 // 2. Messages table
@@ -152,3 +153,19 @@ export const skillsDirectories = sqliteTable('skills_directories', {
 
 export type SkillsDirectory = typeof skillsDirectories.$inferSelect
 export type NewSkillsDirectory = typeof skillsDirectories.$inferInsert
+
+// 11. Prompt Presets table
+export const promptPresets = sqliteTable('prompt_presets', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  content: text('content').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+})
+
+export type PromptPreset = typeof promptPresets.$inferSelect
+export type NewPromptPreset = typeof promptPresets.$inferInsert

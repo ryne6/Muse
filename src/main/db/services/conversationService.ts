@@ -95,4 +95,14 @@ export class ConversationService {
       .where(eq(conversations.id, id))
     return this.getById(id)
   }
+
+  // Update system prompt
+  static async updateSystemPrompt(id: string, systemPrompt: string | null) {
+    const db = getDatabase()
+    await db
+      .update(conversations)
+      .set({ systemPrompt, updatedAt: new Date() })
+      .where(eq(conversations.id, id))
+    return this.getById(id)
+  }
 }

@@ -224,9 +224,23 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 ${skillsSection}
 Current workspace: ${workspacePath || 'Not set'}`
 
+    // Get custom system prompts (append mode - don't override built-in)
+    const globalSystemPrompt = useSettingsStore.getState().globalSystemPrompt || ''
+    const conversationSystemPrompt = conversation.systemPrompt || ''
+
+    // Merge custom prompts
+    const customPrompts = [globalSystemPrompt, conversationSystemPrompt]
+      .filter(Boolean)
+      .join('\n\n')
+
+    // Final system prompt = built-in + custom
+    const finalSystemPrompt = customPrompts
+      ? `${systemPrompt}\n\n## Custom Instructions\n\n${customPrompts}`
+      : systemPrompt
+
     // Combine system prompt with history messages
     const aiMessages: AIMessage[] = [
-      { role: 'system', content: systemPrompt },
+      { role: 'system', content: finalSystemPrompt },
       ...historyMessages,
     ]
 

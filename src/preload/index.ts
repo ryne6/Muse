@@ -61,6 +61,13 @@ const api: IpcApi = {
     getContent: (path: string) => ipcRenderer.invoke('db:skills:getContent', { path }),
     getCount: (path: string) => ipcRenderer.invoke('db:skills:getCount', { path }),
   },
+  promptPresets: {
+    getAll: () => ipcRenderer.invoke('db:promptPresets:getAll'),
+    getById: (id: string) => ipcRenderer.invoke('db:promptPresets:getById', { id }),
+    create: (data: { name: string; content: string }) => ipcRenderer.invoke('db:promptPresets:create', data),
+    update: (id: string, data: { name?: string; content?: string }) => ipcRenderer.invoke('db:promptPresets:update', { id, data }),
+    delete: (id: string) => ipcRenderer.invoke('db:promptPresets:delete', { id }),
+  },
   updater: {
     check: () => ipcRenderer.invoke('updater:check'),
     download: () => ipcRenderer.invoke('updater:download'),

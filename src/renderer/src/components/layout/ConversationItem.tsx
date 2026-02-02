@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { Star, MoreVertical, Trash2, Edit2 } from 'lucide-react'
+import { Star, MoreVertical, Trash2, Edit2, Settings } from 'lucide-react'
 import { Dropdown } from '@lobehub/ui'
 import type { Conversation } from '@shared/types/conversation'
 import { useConversationStore } from '@/stores/conversationStore'
+import { ConversationSettingsDialog } from './ConversationSettingsDialog'
 
 interface ConversationItemProps {
   conversation: Conversation
@@ -13,6 +14,7 @@ export function ConversationItem({ conversation }: ConversationItemProps) {
     useConversationStore()
   const [isEditing, setIsEditing] = useState(false)
   const [editTitle, setEditTitle] = useState(conversation.title)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   const isActive = currentConversationId === conversation.id
 
@@ -30,6 +32,11 @@ export function ConversationItem({ conversation }: ConversationItemProps) {
   const handleRename = (e: React.MouseEvent) => {
     e.stopPropagation()
     setIsEditing(true)
+  }
+
+  const handleSettings = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsSettingsOpen(true)
   }
 
   const handleSaveRename = () => {
@@ -92,6 +99,12 @@ export function ConversationItem({ conversation }: ConversationItemProps) {
         menu={{
           items: [
             {
+              key: 'settings',
+              label: 'Settings',
+              icon: <Settings className="w-3 h-3" />,
+              onClick: handleSettings,
+            },
+            {
               key: 'rename',
               label: 'Rename',
               icon: <Edit2 className="w-3 h-3" />,
@@ -115,6 +128,12 @@ export function ConversationItem({ conversation }: ConversationItemProps) {
           <MoreVertical className="w-3 h-3" />
         </button>
       </Dropdown>
+
+      <ConversationSettingsDialog
+        conversation={conversation}
+        open={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </div>
   )
 }

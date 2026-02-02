@@ -6,6 +6,7 @@ import { ProviderList } from '../settings/ProviderList'
 import { ProviderConfigDialog } from '../settings/ProviderConfigDialog'
 import { MCPSettings } from '../settings/MCPSettings'
 import { SkillsSettings } from '../settings/SkillsSettings'
+import { PromptsSettings } from '../settings/PromptsSettings'
 import { dbClient } from '@/services/dbClient'
 import { applyUIFont } from '@/services/fontService'
 
@@ -18,7 +19,7 @@ interface Provider {
   enabled: boolean
 }
 
-type Tab = 'providers' | 'mcp' | 'skills' | 'general'
+type Tab = 'providers' | 'mcp' | 'skills' | 'prompts' | 'general'
 
 export function Settings() {
   const [isOpen, setIsOpen] = useState(false)
@@ -117,6 +118,18 @@ export function Settings() {
               </button>
 
               <button
+                onClick={() => setActiveTab('prompts')}
+                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                  activeTab === 'prompts'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'hover:bg-accent hover:text-accent-foreground'
+                }`}
+              >
+                <div className="font-medium">Prompts</div>
+                <div className="text-xs opacity-70">System prompt presets</div>
+              </button>
+
+              <button
                 onClick={() => setActiveTab('general')}
                 className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
                   activeTab === 'general' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-accent-foreground'
@@ -139,6 +152,10 @@ export function Settings() {
 
               {activeTab === 'skills' && (
                 <SkillsSettings />
+              )}
+
+              {activeTab === 'prompts' && (
+                <PromptsSettings />
               )}
 
               {activeTab === 'general' && (

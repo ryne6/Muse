@@ -29,6 +29,15 @@ export interface Skill {
   directory: string
 }
 
+// Prompt Preset types
+export interface PromptPreset {
+  id: string
+  name: string
+  content: string
+  createdAt: Date
+  updatedAt: Date
+}
+
 export interface FileInfo {
   name: string
   path: string
@@ -120,6 +129,13 @@ export interface IpcApi {
     getAll: () => Promise<Skill[]>
     getContent: (path: string) => Promise<string>
     getCount: (path: string) => Promise<number>
+  }
+  promptPresets: {
+    getAll: () => Promise<PromptPreset[]>
+    getById: (id: string) => Promise<PromptPreset | null>
+    create: (data: { name: string; content: string }) => Promise<PromptPreset>
+    update: (id: string, data: { name?: string; content?: string }) => Promise<PromptPreset | null>
+    delete: (id: string) => Promise<{ success: boolean }>
   }
 }
 

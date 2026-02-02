@@ -33,6 +33,7 @@ export interface Conversation {
   model?: string
   contextFiles?: string[]
   workspace?: string | null
+  systemPrompt?: string | null
 }
 
 export interface ConversationGroup {

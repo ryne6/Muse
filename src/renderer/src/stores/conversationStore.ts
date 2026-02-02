@@ -24,6 +24,7 @@ interface ConversationStore {
   getConversationsByDate: () => Record<string, Conversation[]>
   clearCurrentConversation: () => void
   setWorkspace: (id: string, workspace: string | null) => Promise<void>
+  updateConversationSystemPrompt: (id: string, systemPrompt: string | null) => Promise<void>
   getEffectiveWorkspace: () => string | null
 }
 
@@ -47,6 +48,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         createdAt: new Date(conv.createdAt).getTime(),
         updatedAt: new Date(conv.updatedAt).getTime(),
         workspace: conv.workspace || null,
+        systemPrompt: conv.systemPrompt || null,
         messages: [],
       }))
 
@@ -221,6 +223,15 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
     set((state) => ({
       conversations: state.conversations.map((c) =>
         c.id === id ? { ...c, workspace } : c
+      ),
+    }))
+  },
+
+  updateConversationSystemPrompt: async (id: string, systemPrompt: string | null) => {
+    await window.api.ipc.invoke('db:conversations:updateSystemPrompt', { id, systemPrompt })
+    set((state) => ({
+      conversations: state.conversations.map((c) =>
+        c.id === id ? { ...c, systemPrompt } : c
       ),
     }))
   },

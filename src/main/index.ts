@@ -12,6 +12,7 @@ import {
   SettingsService,
   AttachmentService,
   SearchService,
+  PromptPresetService,
 } from './db/services'
 import { MCPService } from './db/services/mcpService'
 import { SkillsService } from './db/services/skillsService'
@@ -184,6 +185,10 @@ function registerIpcHandlers() {
 
   ipcMain.handle('db:conversations:updateWorkspace', async (_, { id, workspace }) => {
     return await ConversationService.updateWorkspace(id, workspace)
+  })
+
+  ipcMain.handle('db:conversations:updateSystemPrompt', async (_, { id, systemPrompt }) => {
+    return await ConversationService.updateSystemPrompt(id, systemPrompt)
   })
 
   ipcMain.handle('db:conversations:delete', async (_, { id }) => {
@@ -466,6 +471,28 @@ function registerIpcHandlers() {
 
   ipcMain.handle('db:skills:getCount', async (_, { path }) => {
     return SkillsService.getSkillCount(path)
+  })
+
+  // Database - Prompt Presets
+  ipcMain.handle('db:promptPresets:getAll', async () => {
+    return await PromptPresetService.getAll()
+  })
+
+  ipcMain.handle('db:promptPresets:getById', async (_, { id }) => {
+    return await PromptPresetService.getById(id)
+  })
+
+  ipcMain.handle('db:promptPresets:create', async (_, data) => {
+    return await PromptPresetService.create(data)
+  })
+
+  ipcMain.handle('db:promptPresets:update', async (_, { id, data }) => {
+    return await PromptPresetService.update(id, data)
+  })
+
+  ipcMain.handle('db:promptPresets:delete', async (_, { id }) => {
+    await PromptPresetService.delete(id)
+    return { success: true }
   })
 }
 

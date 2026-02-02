@@ -1,6 +1,6 @@
 import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 import { join } from 'path'
-import { startApiServer } from './apiServer'
+import { startApiServer, getApiPort } from './apiServer'
 import { startIpcBridge, fsService } from './ipcBridge'
 import { initDatabase, closeDatabase } from './db'
 import { initUpdater } from './updater'
@@ -50,7 +50,7 @@ function createWindow(): BrowserWindow {
   return mainWindow
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   // Set dock icon in development
   if (process.platform === 'darwin' && !app.isPackaged) {
     app.dock.setIcon(join(__dirname, '../../build/icon.png'))
@@ -64,7 +64,8 @@ app.whenReady().then(() => {
   registerIpcHandlers()
 
   // Start servers
-  startApiServer(2323)
+  const apiPort = await startApiServer(2323)
+  console.log(`📡 API server started on port ${apiPort}`)
   startIpcBridge(3001)
 
   const mainWindow = createWindow()
@@ -83,6 +84,11 @@ app.whenReady().then(() => {
 
 // IPC Handlers
 function registerIpcHandlers() {
+  // API port
+  ipcMain.handle('api:get-port', () => {
+    return getApiPort()
+  })
+
   // File operations
   ipcMain.handle('fs:readFile', async (_, { path }) => {
     const content = await fsService.readFile(path)

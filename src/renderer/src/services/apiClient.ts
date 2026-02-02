@@ -2,7 +2,27 @@ import type { AIMessage, AIConfig, AIStreamChunk, AIRequestOptions } from '@shar
 import type { APIError } from '@shared/types/error'
 import { ErrorCode } from '@shared/types/error'
 
-const API_BASE_URL = 'http://localhost:2323/api'
+// Dynamic API base URL - will be set on initialization
+let API_BASE_URL = 'http://localhost:2323/api'
+let apiPort: number | null = null
+
+// Initialize API client with dynamic port
+export async function initApiClient(): Promise<void> {
+  try {
+    const port = await window.api.api.getPort()
+    if (port) {
+      apiPort = port
+      API_BASE_URL = `http://localhost:${port}/api`
+      console.log(`📡 API client initialized with port ${port}`)
+    }
+  } catch (error) {
+    console.error('Failed to get API port, using default:', error)
+  }
+}
+
+export function getApiBaseUrl(): string {
+  return API_BASE_URL
+}
 
 // Retry configuration
 const DEFAULT_MAX_RETRIES = 3
@@ -297,7 +317,8 @@ export class APIClient {
    */
   async healthCheck(): Promise<boolean> {
     try {
-      const response = await fetch('http://localhost:2323/health')
+      const port = apiPort || 2323
+      const response = await fetch(`http://localhost:${port}/health`)
       return response.ok
     } catch {
       return false

@@ -43,6 +43,9 @@ export interface CommandResult {
 }
 
 export interface IpcApi {
+  api: {
+    getPort: () => Promise<number | null>
+  }
   fs: {
     readFile: (path: string) => Promise<{ content: string }>
     writeFile: (path: string, content: string) => Promise<{ success: boolean }>

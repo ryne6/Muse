@@ -9,6 +9,9 @@ contextBridge.exposeInMainWorld('electron', {
 
 // Expose file system and workspace APIs
 const api: IpcApi = {
+  api: {
+    getPort: () => ipcRenderer.invoke('api:get-port'),
+  },
   fs: {
     readFile: (path: string) => ipcRenderer.invoke('fs:readFile', { path }),
     writeFile: (path: string, content: string) =>

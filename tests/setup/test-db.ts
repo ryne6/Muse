@@ -44,7 +44,9 @@ export function createTestDatabase() {
       created_at INTEGER NOT NULL DEFAULT (unixepoch()),
       updated_at INTEGER NOT NULL DEFAULT (unixepoch()),
       provider TEXT,
-      model TEXT
+      model TEXT,
+      workspace TEXT,
+      system_prompt TEXT
     );
 
     CREATE TABLE IF NOT EXISTS messages (

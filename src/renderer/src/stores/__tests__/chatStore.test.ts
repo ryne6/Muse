@@ -54,7 +54,8 @@ vi.mock('../conversationStore', () => ({
       getCurrentConversation: mockGetCurrentConversation,
       addMessage: mockAddMessage,
       updateConversation: mockUpdateConversation,
-      renameConversation: mockRenameConversation
+      renameConversation: mockRenameConversation,
+      getEffectiveWorkspace: () => '/test/workspace'
     })
   }
 }))
@@ -260,7 +261,8 @@ describe('ChatStore', () => {
       )
 
       const aiMessages = mockSendMessageStream.mock.calls[0][1]
-      const historyMessage = aiMessages[0]
+      // aiMessages[0] is system message, aiMessages[1] is first history message
+      const historyMessage = aiMessages[1]
       expect(Array.isArray(historyMessage.content)).toBe(true)
       expect(historyMessage.content).toEqual(
         expect.arrayContaining([

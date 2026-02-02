@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { useConversationStore } from '@/stores/conversationStore'
 import { useChatStore } from '@/stores/chatStore'
 import { MessageItem } from './MessageItem'
@@ -8,15 +8,32 @@ export function MessageList() {
   const loadingConversationId = useConversationStore((s) => s.loadingConversationId)
   const currentConversationId = useConversationStore((s) => s.currentConversationId)
   const isLoading = useChatStore((state) => state.isLoading)
+  const containerRef = useRef<HTMLDivElement>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [isUserScrolledUp, setIsUserScrolledUp] = useState(false)
 
   const conversation = getCurrentConversation()
   const currentMessages = conversation?.messages || []
 
-  // Auto scroll to bottom when new messages arrive
+  // Check if user is at bottom (with 50px threshold)
+  const isAtBottom = useCallback(() => {
+    const container = containerRef.current
+    if (!container) return true
+    const threshold = 50
+    return container.scrollHeight - container.scrollTop - container.clientHeight < threshold
+  }, [])
+
+  // Handle scroll events to detect user scrolling up
+  const handleScroll = useCallback(() => {
+    setIsUserScrolledUp(!isAtBottom())
+  }, [isAtBottom])
+
+  // Auto scroll to bottom only when user is at bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [currentMessages])
+    if (!isUserScrolledUp) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [currentMessages, isUserScrolledUp])
 
   // Show loading state when messages are being fetched
   if (loadingConversationId === currentConversationId && currentConversationId) {
@@ -60,7 +77,7 @@ export function MessageList() {
   const showGenerating = isLoading && lastMessage?.role === 'assistant' && !!lastMessage?.content
 
   return (
-    <div className="flex-1 overflow-y-auto overflow-x-hidden">
+    <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto overflow-x-hidden">
       <div className="px-6 py-6 space-y-6">
         {currentMessages.map((message) => (
           <MessageItem key={message.id} message={message} />

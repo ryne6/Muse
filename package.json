@@ -1,6 +1,6 @@
 {
   "name": "muse",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "AI-powered desktop coding assistant with multi-provider support",
   "main": "./out/main/index.js",
   "author": "ryne6",

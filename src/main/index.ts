@@ -497,8 +497,12 @@ function registerIpcHandlers() {
 }
 
 app.on('window-all-closed', () => {
-  closeDatabase()
   if (process.platform !== 'darwin') {
+    closeDatabase()
     app.quit()
   }
+})
+
+app.on('before-quit', () => {
+  closeDatabase()
 })

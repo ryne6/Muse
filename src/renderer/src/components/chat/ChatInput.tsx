@@ -1,5 +1,5 @@
 import { useState, KeyboardEvent, useEffect, useCallback } from 'react'
-import { Send, Square, Maximize2, Brain, ChevronDown, Wrench } from 'lucide-react'
+import { Send, Square, Maximize2, Brain } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { Button } from '../ui/button'
 import { useChatStore } from '@/stores/chatStore'
@@ -13,6 +13,7 @@ import { FullscreenEditor } from './FullscreenEditor'
 import { ToolsDropdown } from './ToolsDropdown'
 import { SkillsDropdown } from './SkillsDropdown'
 import { WorkspaceDropdown } from './WorkspaceDropdown'
+import { ModelSelector } from './ModelSelector'
 import type { AIConfig } from '@shared/types/ai'
 import type { PendingAttachment } from '@shared/types/attachment'
 
@@ -136,9 +137,6 @@ export function ChatInput() {
     }
   }
 
-  const model = getCurrentModel()
-  const modelLabel = model?.displayName || model?.name || model?.modelId || '选择模型'
-
   return (
     <>
       <div className="border-t border-[hsl(var(--border))]">
@@ -191,10 +189,7 @@ export function ChatInput() {
                   />
 
                   {/* Model Selector */}
-                  <button className="flex items-center gap-1.5 px-2 py-1 rounded hover:bg-[hsl(var(--surface-2))] text-sm text-[hsl(var(--text-muted))] transition-colors">
-                    <span>{modelLabel}</span>
-                    <ChevronDown className="w-3 h-3" />
-                  </button>
+                  <ModelSelector />
 
                   {/* Workspace Dropdown */}
                   <WorkspaceDropdown />

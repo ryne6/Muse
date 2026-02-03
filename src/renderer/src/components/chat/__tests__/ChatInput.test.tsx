@@ -35,6 +35,7 @@ const { mockChatStore, mockConversationStore, mockSettingsStore, mockNotify } = 
     currentModelId: 'model-1',
     temperature: 1,
     thinkingEnabled: false,
+    lastUpdated: Date.now(),
     providers: [
       {
         id: 'provider-1',
@@ -91,6 +92,14 @@ const { mockChatStore, mockConversationStore, mockSettingsStore, mockNotify } = 
       loadData: vi.fn(async () => {}),
       getCurrentProvider: vi.fn(() => settingsStoreState.providers[0]),
       getCurrentModel: vi.fn(() => settingsStoreState.models[0]),
+      getEnabledModels: vi.fn(() => {
+        const enabledProviderIds = settingsStoreState.providers
+          .filter((provider) => provider.enabled)
+          .map((provider) => provider.id)
+        return settingsStoreState.models.filter(
+          (model) => model.enabled && enabledProviderIds.includes(model.providerId)
+        )
+      }),
       setThinkingEnabled: vi.fn((value: boolean) => {
         settingsStoreState.thinkingEnabled = value
       }),
@@ -177,11 +186,11 @@ describe('ChatInput', () => {
       expect(sendButton).toBeInTheDocument()
     })
 
-    it('should not render model or temperature controls', () => {
+    it('should render model selector with provider name', () => {
       render(<ChatInput />)
 
-      expect(screen.queryByText('Temperature')).not.toBeInTheDocument()
-      expect(screen.queryByText('Model Selector')).not.toBeInTheDocument()
+      expect(screen.getByText('GPT-4')).toBeInTheDocument()
+      expect(screen.getByText('(Test Provider)')).toBeInTheDocument()
     })
   })
 

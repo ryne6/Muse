@@ -10,6 +10,7 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
   variant?: ShadcnVariant
   size?: ShadcnSize
   asChild?: boolean
+  htmlType?: 'button' | 'submit' | 'reset'
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(

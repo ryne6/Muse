@@ -59,7 +59,8 @@ vi.mock('electron', () => ({
 
 // Mock child_process
 vi.mock('child_process', () => ({
-  exec: mockExec
+  exec: mockExec,
+  default: { exec: mockExec }
 }))
 
 import { MCPClient } from '../client'

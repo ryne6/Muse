@@ -70,7 +70,8 @@ export const mockWindowApi = {
     select: vi.fn(async () => ({
       path: '/test/selected/workspace',
       canceled: false
-    }))
+    })),
+    set: vi.fn(async () => ({ success: true }))
   },
   fs: {
     listFiles: vi.fn(async (path: string) => ({
@@ -80,6 +81,18 @@ export const mockWindowApi = {
         { name: 'file2.js', type: 'file', path: `${path}/file2.js` }
       ]
     }))
+  },
+  mcp: {
+    getServerStates: vi.fn(async () => [])
+  },
+  skills: {
+    getDirectories: vi.fn(async () => []),
+    addDirectory: vi.fn(async () => ({ success: true })),
+    removeDirectory: vi.fn(async () => ({ success: true })),
+    toggleDirectory: vi.fn(async () => ({ success: true })),
+    getAll: vi.fn(async () => []),
+    getContent: vi.fn(async () => ''),
+    getCount: vi.fn(async () => 0),
   },
   ipc: {
     invoke: vi.fn(async (channel: string, ...args: any[]) => {

@@ -308,10 +308,10 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
               </div>
 
               <div className="flex justify-end gap-2 pt-4">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                <Button htmlType="button" variant="outline" onClick={() => setOpen(false)}>
                   Cancel
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button htmlType="submit" disabled={isSubmitting}>
                   {isSubmitting ? 'Adding...' : 'Add Provider'}
                 </Button>
               </div>

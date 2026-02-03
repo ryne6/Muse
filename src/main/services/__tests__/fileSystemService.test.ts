@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { FileSystemService } from '../fileSystemService'
 
 // Mock fs module
-vi.mock('fs', () => ({
-  promises: {
+vi.mock('fs', () => {
+  const promises = {
     stat: vi.fn(),
     readFile: vi.fn(),
     writeFile: vi.fn(),
@@ -11,12 +11,21 @@ vi.mock('fs', () => ({
     access: vi.fn(),
     mkdir: vi.fn()
   }
-}))
+
+  return {
+    promises,
+    default: { promises }
+  }
+})
 
 // Mock child_process
-vi.mock('child_process', () => ({
-  exec: vi.fn()
-}))
+vi.mock('child_process', () => {
+  const exec = vi.fn()
+  return {
+    exec,
+    default: { exec }
+  }
+})
 
 vi.mock('fast-glob', () => ({
   default: vi.fn()

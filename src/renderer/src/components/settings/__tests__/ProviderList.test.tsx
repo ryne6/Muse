@@ -153,12 +153,24 @@ describe('ProviderList', () => {
   })
 
   describe('加载状态测试', () => {
-    it('should show loading spinner initially', () => {
+    it('should show loading spinner initially', async () => {
+      let resolveProviders: (providers: any[]) => void
+      const pendingProviders = new Promise<any[]>((resolve) => {
+        resolveProviders = resolve
+      })
+      mockDbClient.providers.getAll.mockReturnValueOnce(pendingProviders)
+
       render(<ProviderList />)
 
       // Should show loading spinner (Loader2 renders as SVG with animate-spin class)
       const spinner = document.querySelector('.animate-spin')
       expect(spinner).toBeInTheDocument()
+
+      resolveProviders([])
+
+      await waitFor(() => {
+        expect(screen.getByText('No providers configured')).toBeInTheDocument()
+      })
     })
 
     it('should hide loading spinner after data loads', async () => {

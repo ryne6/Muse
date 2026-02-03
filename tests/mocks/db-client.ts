@@ -129,6 +129,25 @@ export function createMockDbClient(options?: {
         timestamp: new Date()
       })),
       delete: vi.fn(async (id: string) => undefined)
+    },
+    mcp: {
+      getAll: vi.fn(async () => []),
+      getEnabled: vi.fn(async () => []),
+      getById: vi.fn(async () => null),
+      create: vi.fn(async (data: any) => ({ ...data, id: 'new-mcp-id' })),
+      update: vi.fn(async (id: string, data: any) => ({ id, ...data })),
+      delete: vi.fn(async () => undefined),
+      toggleEnabled: vi.fn(async () => undefined),
+      getServerStates: vi.fn(async () => []),
+    },
+    skills: {
+      getDirectories: vi.fn(async () => []),
+      addDirectory: vi.fn(async () => ({ success: true })),
+      removeDirectory: vi.fn(async () => ({ success: true })),
+      toggleDirectory: vi.fn(async () => ({ success: true })),
+      getAll: vi.fn(async () => []),
+      getContent: vi.fn(async () => ''),
+      getCount: vi.fn(async () => 0),
     }
   }
 }

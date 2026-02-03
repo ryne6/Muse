@@ -1,9 +1,38 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
 import { ProviderConfigDialog } from '../ProviderConfigDialog'
+
+const mockDbClient = vi.hoisted(() => ({
+  providers: {
+    update: vi.fn(async () => ({})),
+  },
+}))
+
+const mockNotify = vi.hoisted(() => ({
+  success: vi.fn(),
+  error: vi.fn(),
+  warning: vi.fn(),
+  errorWithRetry: vi.fn(),
+}))
+
+const mockSettingsStore = vi.hoisted(() => ({
+  triggerRefresh: vi.fn(),
+}))
+
+vi.mock('@/services/dbClient', () => ({
+  dbClient: mockDbClient,
+}))
+
+vi.mock('@/utils/notify', () => ({
+  notify: mockNotify,
+}))
+
+vi.mock('@/stores/settingsStore', () => ({
+  useSettingsStore: () => mockSettingsStore,
+}))
 
 const mockProvider = {
   id: 'p1',
@@ -16,6 +45,10 @@ const mockProvider = {
 }
 
 describe('ProviderConfigDialog', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
   it('should allow editing name, apiFormat, enabled', () => {
     render(
       <ProviderConfigDialog
@@ -30,5 +63,36 @@ describe('ProviderConfigDialog', () => {
     expect(screen.getByLabelText(/API Format/i)).toBeInTheDocument()
     // LobeUI Checkbox uses children as label text, not htmlFor
     expect(screen.getByText(/Enabled/i)).toBeInTheDocument()
+  })
+
+  it('should submit via form when clicking Save Changes', async () => {
+    const user = (await import('@testing-library/user-event')).default.setup()
+    const onClose = vi.fn()
+    const onUpdated = vi.fn()
+
+    render(
+      <ProviderConfigDialog
+        provider={mockProvider}
+        open
+        onClose={onClose}
+        onUpdated={onUpdated}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('OpenAI')).toBeInTheDocument()
+    })
+
+    const saveButton = screen.getByRole('button', { name: /Save Changes/i })
+    expect(saveButton).toHaveAttribute('type', 'submit')
+
+    await user.click(saveButton)
+
+    await waitFor(() => {
+      expect(mockDbClient.providers.update).toHaveBeenCalled()
+    })
+
+    expect(onClose).toHaveBeenCalled()
+    expect(onUpdated).toHaveBeenCalled()
   })
 })

@@ -130,6 +130,14 @@ vi.mock('@/stores/settingsStore', () => ({
   useSettingsStore: () => mockSettingsStore
 }))
 
+vi.mock('../ToolsDropdown', () => ({
+  ToolsDropdown: () => null
+}))
+
+vi.mock('../SkillsDropdown', () => ({
+  SkillsDropdown: () => null
+}))
+
 // Mock notify utility
 vi.mock('@/utils/notify', () => ({
   notify: mockNotify

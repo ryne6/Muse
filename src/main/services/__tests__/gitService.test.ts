@@ -2,9 +2,13 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { GitService } from '../gitService'
 import { exec } from 'child_process'
 
-vi.mock('child_process', () => ({
-  exec: vi.fn(),
-}))
+vi.mock('child_process', () => {
+  const exec = vi.fn()
+  return {
+    exec,
+    default: { exec }
+  }
+})
 
 const mockExec = vi.mocked(exec)
 

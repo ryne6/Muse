@@ -69,4 +69,7 @@ if (hasDom) {
   vi.mock('@renderer/services/dbClient', () => ({
     dbClient: mockDbClient
   }))
+  vi.mock('@/services/dbClient', () => ({
+    dbClient: mockDbClient
+  }))
 }

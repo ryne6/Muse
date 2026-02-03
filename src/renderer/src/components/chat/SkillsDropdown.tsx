@@ -78,7 +78,7 @@ export function SkillsDropdown() {
     <Dropdown
       menu={{ items: menuItems }}
       placement="top"
-      overlayStyle={{ width: 240, overflow: 'hidden' }}
+      styles={{ root: { width: 240, overflow: 'hidden' } }}
     >
       <button className="flex items-center gap-1.5 px-2 py-1 rounded text-sm hover:bg-[hsl(var(--surface-2))] text-[hsl(var(--text-muted))] transition-colors">
         <Sparkles className="w-4 h-4" />

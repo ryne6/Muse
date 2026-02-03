@@ -31,7 +31,12 @@ export function initDatabase() {
 
   // Run migrations
   try {
-    migrate(db, { migrationsFolder: './drizzle' })
+    const migrationsFolder = app.isPackaged
+      ? path.join(process.resourcesPath, 'drizzle')
+      : './drizzle'
+
+    console.log('📦 Running migrations from:', migrationsFolder)
+    migrate(db, { migrationsFolder })
     console.log('✅ Database migrations completed')
   } catch (error) {
     console.error('❌ Database migration failed:', error)

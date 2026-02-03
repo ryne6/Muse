@@ -92,7 +92,20 @@
       "icon": "build/icon.png",
       "target": "AppImage",
       "category": "Development"
-    }
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "drizzle",
+        "to": "drizzle"
+      }
+    ],
+    "asarUnpack": [
+      "**/node_modules/better-sqlite3/**/*"
+    ]
   },
   "devDependencies": {
     "@electron/rebuild": "^3.6.0",

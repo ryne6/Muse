@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import { cn } from '../../utils/cn'
+import { ScrollArea } from '@lobehub/ui'
 
 interface ThinkingBlockProps {
   thinking: string
@@ -22,14 +22,17 @@ export function ThinkingBlock({ thinking, isComplete = false }: ThinkingBlockPro
       </div>
 
       {/* 内容区域 */}
-      <div
-        className={cn(
-          'text-sm text-muted-foreground whitespace-pre-wrap',
-          !isFullExpanded && 'max-h-[4.5rem] overflow-hidden group-hover:overflow-auto'
-        )}
-      >
-        {thinking}
-      </div>
+      {isFullExpanded ? (
+        <ScrollArea scrollFade style={{ maxHeight: 300 }}>
+          <div className="text-sm text-muted-foreground whitespace-pre-wrap">
+            {thinking}
+          </div>
+        </ScrollArea>
+      ) : (
+        <div className="text-sm text-muted-foreground whitespace-pre-wrap max-h-[4.5rem] overflow-hidden group-hover:overflow-auto">
+          {thinking}
+        </div>
+      )}
 
       {/* 悬浮时显示展开按钮（仅当内容超长时） */}
       {!isFullExpanded && thinking.length > 200 && (

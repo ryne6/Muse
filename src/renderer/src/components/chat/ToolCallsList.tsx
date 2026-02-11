@@ -7,9 +7,12 @@ interface ToolCallsListProps {
 }
 
 export function ToolCallsList({ toolCalls, toolResults = [] }: ToolCallsListProps) {
+  const visibleCalls = toolCalls.filter((tc) => tc.name !== 'TodoWrite')
+  if (visibleCalls.length === 0) return null
+
   return (
     <div className="space-y-2 mb-3">
-      {toolCalls.map((toolCall) => {
+      {visibleCalls.map((toolCall) => {
         const toolResult = toolResults.find((r) => r.toolCallId === toolCall.id)
         return <ToolCallCard key={toolCall.id} toolCall={toolCall} toolResult={toolResult} />
       })}

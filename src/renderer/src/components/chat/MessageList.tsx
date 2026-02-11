@@ -19,7 +19,7 @@ export function MessageList() {
   const isAtBottom = useCallback(() => {
     const container = containerRef.current
     if (!container) return true
-    const threshold = 50
+    const threshold = 20
     return container.scrollHeight - container.scrollTop - container.clientHeight < threshold
   }, [])
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Modal } from '@lobehub/ui'
 import { Button } from '../ui/button'
 import { Settings as SettingsIcon } from 'lucide-react'
+import { cn } from '@/utils/cn'
 import { ProviderList } from '../settings/ProviderList'
 import { ProviderConfigDialog } from '../settings/ProviderConfigDialog'
 import { MCPSettings } from '../settings/MCPSettings'
@@ -21,7 +22,12 @@ interface Provider {
 
 type Tab = 'providers' | 'mcp' | 'skills' | 'prompts' | 'general'
 
-export function Settings() {
+interface SettingsComponentProps {
+  showText?: boolean
+}
+
+export function Settings({ showText = true }: SettingsComponentProps) {
+  const isCollapsed = !showText
   const [isOpen, setIsOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<Tab>('providers')
   const [configProvider, setConfigProvider] = useState<Provider | null>(null)
@@ -59,10 +65,16 @@ export function Settings() {
 
   return (
     <>
-      <div className="p-4 border-t">
-        <Button variant="ghost" className="w-full justify-start" onClick={() => setIsOpen(true)}>
-          <SettingsIcon className="w-4 h-4 mr-2" />
-          Settings
+      <div className={cn('border-t', isCollapsed ? 'p-2 flex justify-center' : 'p-4')}>
+        <Button
+          variant="ghost"
+          className={cn(
+            isCollapsed ? 'w-9 h-9 p-0 justify-center' : 'w-full justify-start'
+          )}
+          onClick={() => setIsOpen(true)}
+        >
+          <SettingsIcon className="w-4 h-4 flex-shrink-0" />
+          {!isCollapsed && <span className="ml-2">Settings</span>}
         </Button>
       </div>
 

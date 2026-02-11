@@ -56,6 +56,8 @@ export class GenericProvider extends BaseAIProvider {
     const strategy = getStrategy(config.apiFormat)
     const conversationMessages = [...messages]
     let fullContent = ''
+    let totalInputTokens = 0
+    let totalOutputTokens = 0
 
     while (true) {
       const requestBody = strategy.buildBody(conversationMessages, config, { stream: true })
@@ -125,6 +127,10 @@ export class GenericProvider extends BaseAIProvider {
                     }
                   }
                 }
+                if (parsed.usage) {
+                  totalInputTokens += parsed.usage.prompt_tokens || 0
+                  totalOutputTokens += parsed.usage.completion_tokens || 0
+                }
               } catch (e) {
                 console.error('Failed to parse chunk:', e)
               }
@@ -172,7 +178,7 @@ export class GenericProvider extends BaseAIProvider {
       }
     }
 
-    onChunk({ content: '', done: true })
+    onChunk({ content: '', done: true, usage: { inputTokens: totalInputTokens, outputTokens: totalOutputTokens } })
     return fullContent
   }
 

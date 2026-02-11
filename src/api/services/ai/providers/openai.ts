@@ -97,6 +97,8 @@ export class OpenAIProvider extends BaseAIProvider {
   ): Promise<string> {
     let fullContent = ''
     const toolExecutor = new ToolExecutor()
+    let totalInputTokens = 0
+    let totalOutputTokens = 0
     const conversationMessages: OpenAI.ChatCompletionMessageParam[] = messages.map((m) => ({
       role: m.role === 'system' ? 'system' : m.role,
       content: this.convertContent(m.content),
@@ -110,6 +112,7 @@ export class OpenAIProvider extends BaseAIProvider {
         model: config.model,
         messages: conversationMessages,
         stream: true,
+        stream_options: { include_usage: true },
       }
 
       if (isReasoning && config.thinkingEnabled) {
@@ -160,6 +163,11 @@ export class OpenAIProvider extends BaseAIProvider {
             }
           }
         }
+
+        if ((chunk as any).usage) {
+          totalInputTokens += (chunk as any).usage.prompt_tokens || 0
+          totalOutputTokens += (chunk as any).usage.completion_tokens || 0
+        }
       }
 
       // If no tools were called, we're done
@@ -204,7 +212,7 @@ export class OpenAIProvider extends BaseAIProvider {
       }
     }
 
-    onChunk({ content: '', done: true })
+    onChunk({ content: '', done: true, usage: { inputTokens: totalInputTokens, outputTokens: totalOutputTokens } })
     return fullContent
   }
 

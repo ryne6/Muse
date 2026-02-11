@@ -86,6 +86,8 @@ export class ClaudeProvider extends BaseAIProvider {
   ): Promise<string> {
     let fullContent = ''
     const toolExecutor = new ToolExecutor()
+    let totalInputTokens = 0
+    let totalOutputTokens = 0
 
     // Extract system message and conversation messages
     const systemMessage = messages.find((m) => m.role === 'system')
@@ -156,6 +158,14 @@ export class ClaudeProvider extends BaseAIProvider {
             if (lastTool) {
               lastTool.inputJson = (lastTool.inputJson || '') + chunk.delta.partial_json
             }
+          }
+        } else if (chunk.type === 'message_start') {
+          if ((chunk as any).message?.usage) {
+            totalInputTokens += (chunk as any).message.usage.input_tokens || 0
+          }
+        } else if (chunk.type === 'message_delta') {
+          if ((chunk as any).usage) {
+            totalOutputTokens += (chunk as any).usage.output_tokens || 0
           }
         } else if (chunk.type === 'message_stop') {
           // Parse tool inputs
@@ -230,7 +240,7 @@ export class ClaudeProvider extends BaseAIProvider {
       })
     }
 
-    onChunk({ content: '', done: true })
+    onChunk({ content: '', done: true, usage: { inputTokens: totalInputTokens, outputTokens: totalOutputTokens } })
     return fullContent
   }
 

@@ -29,6 +29,14 @@ const api: IpcApi = {
     get: () => ipcRenderer.invoke('workspace:get'),
     set: (path: string) => ipcRenderer.invoke('workspace:set', { path }),
     select: () => ipcRenderer.invoke('workspace:select'),
+    createDefault: (conversationId: string) =>
+      ipcRenderer.invoke('workspace:createDefault', { conversationId }),
+    cleanup: (workspacePath: string) =>
+      ipcRenderer.invoke('workspace:cleanup', { workspacePath }),
+    cleanupOrphans: () =>
+      ipcRenderer.invoke('workspace:cleanupOrphans'),
+    forceDelete: (path: string) =>
+      ipcRenderer.invoke('workspace:forceDelete', { path }),
   },
   ipc: {
     invoke: (channel: string, ...args: any[]) => ipcRenderer.invoke(channel, ...args),

@@ -98,6 +98,13 @@ export interface IpcApi {
     get: () => Promise<{ path: string | null }>
     set: (path: string) => Promise<{ success: boolean }>
     select: () => Promise<{ path: string | null }>
+    createDefault: (conversationId: string) => Promise<{ path: string }>
+    cleanup: (workspacePath: string) => Promise<{ deleted: boolean; reason: string }>
+    cleanupOrphans: () => Promise<{
+      deletedCount: number
+      nonEmpty: Array<{ path: string; id: string; isEmpty: boolean }>
+    }>
+    forceDelete: (path: string) => Promise<{ deleted: boolean }>
   }
   ipc: {
     invoke: (channel: string, ...args: any[]) => Promise<any>

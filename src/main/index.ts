@@ -17,6 +17,7 @@ import {
 import { MCPService } from './db/services/mcpService'
 import { SkillsService } from './db/services/skillsService'
 import { DataMigration } from './db/migration'
+import { WorkspaceService } from './services/workspaceService'
 
 function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
@@ -151,6 +152,39 @@ function registerIpcHandlers() {
     }
 
     return { path: null }
+  })
+
+  // Workspace management
+  ipcMain.handle('workspace:createDefault', async (_, { conversationId }) => {
+    const path = WorkspaceService.createDefaultWorkspace(conversationId)
+    return { path }
+  })
+
+  ipcMain.handle('workspace:cleanup', async (_, { workspacePath }) => {
+    return WorkspaceService.cleanupWorkspace(workspacePath)
+  })
+
+  ipcMain.handle('workspace:cleanupOrphans', async () => {
+    const conversations = await ConversationService.getAll()
+    const activeIds = conversations.map((c) => c.id)
+    const orphans = WorkspaceService.getOrphanedWorkspaces(activeIds)
+
+    // 自动删除空目录
+    let deletedCount = 0
+    const nonEmpty: typeof orphans = []
+    for (const orphan of orphans) {
+      if (orphan.isEmpty) {
+        WorkspaceService.forceDeleteWorkspace(orphan.path)
+        deletedCount++
+      } else {
+        nonEmpty.push(orphan)
+      }
+    }
+    return { deletedCount, nonEmpty }
+  })
+
+  ipcMain.handle('workspace:forceDelete', async (_, { path }) => {
+    return { deleted: WorkspaceService.forceDeleteWorkspace(path) }
   })
 
   // Dialog - Select directory (with hidden files support)

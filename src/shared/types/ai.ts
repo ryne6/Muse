@@ -63,12 +63,19 @@ export interface ToolResultData {
   isError?: boolean
 }
 
+export interface TokenUsage {
+  inputTokens: number
+  outputTokens: number
+}
+
 export interface AIStreamChunk {
   content: string
   done: boolean
   toolCall?: ToolCallData
   toolResult?: ToolResultData
   thinking?: string
+  usage?: TokenUsage
+  durationMs?: number
 }
 
 export interface AIConfig {

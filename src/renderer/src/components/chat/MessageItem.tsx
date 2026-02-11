@@ -4,6 +4,7 @@ import { MarkdownRenderer } from './MarkdownRenderer'
 import { ToolCallsList } from './ToolCallsList'
 import { MessageImage } from './MessageImage'
 import { ThinkingBlock } from './ThinkingBlock'
+import { MessageStats } from './MessageStats'
 
 function formatTime(timestamp?: number): string {
   if (!timestamp) return ''
@@ -18,7 +19,6 @@ export function MessageItem({ message }: MessageItemProps) {
   const isUser = message.role === 'user'
   const hasAttachments = message.attachments && message.attachments.length > 0
   const timestamp = formatTime(message.timestamp)
-
   const contentBody = (
     <>
       {/* Thinking Process (只在 AI 消息中显示) */}
@@ -50,12 +50,21 @@ export function MessageItem({ message }: MessageItemProps) {
           )}
         </>
       )}
+
+      {/* Token Stats + Duration (assistant only) */}
+      {!isUser && (
+        <MessageStats
+          inputTokens={message.inputTokens}
+          outputTokens={message.outputTokens}
+          durationMs={message.durationMs}
+        />
+      )}
     </>
   )
 
   if (isUser) {
     return (
-      <div className="flex justify-end">
+      <div className="flex justify-end animate-fade-in-up">
         <div
           data-user-bubble
           className="max-w-[80%] rounded-xl px-4 py-2.5 bg-[hsl(var(--surface-2))] text-foreground"

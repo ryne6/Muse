@@ -54,6 +54,9 @@ export class MessageService {
       content: data.content,
       thinking: data.thinking,
       timestamp: data.timestamp,
+      inputTokens: data.inputTokens,
+      outputTokens: data.outputTokens,
+      durationMs: data.durationMs,
     }
 
     await db.insert(messages).values(newMessage)

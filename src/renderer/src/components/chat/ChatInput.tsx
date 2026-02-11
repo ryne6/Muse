@@ -14,6 +14,7 @@ import { ToolsDropdown } from './ToolsDropdown'
 import { SkillsDropdown } from './SkillsDropdown'
 import { WorkspaceDropdown } from './WorkspaceDropdown'
 import { ModelSelector } from './ModelSelector'
+import { ContextIndicator } from './ContextIndicator'
 import type { AIConfig } from '@shared/types/ai'
 import type { PendingAttachment } from '@shared/types/attachment'
 
@@ -33,6 +34,13 @@ export function ChatInput() {
   } = useSettingsStore()
 
   const conversation = getCurrentConversation()
+  const currentModel = getCurrentModel()
+
+  // Derive last inputTokens from most recent assistant message
+  const lastAssistantMsg = conversation?.messages
+    ?.filter((m) => m.role === 'assistant' && m.inputTokens)
+    .at(-1)
+  const lastInputTokens = lastAssistantMsg?.inputTokens ?? null
 
   // Load provider and model data on mount
   useEffect(() => {
@@ -212,6 +220,12 @@ export function ChatInput() {
                     <Brain className="w-4 h-4" />
                     <span>Thinking</span>
                   </button>
+
+                  {/* Context Usage Indicator */}
+                  <ContextIndicator
+                    usedTokens={lastInputTokens}
+                    contextLength={currentModel?.contextLength ?? null}
+                  />
                 </div>
 
                 {/* Send / Stop Button */}

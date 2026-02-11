@@ -9,6 +9,9 @@ export interface Message {
   toolResults?: ToolResult[]
   attachments?: AttachmentPreview[]
   thinking?: string
+  inputTokens?: number
+  outputTokens?: number
+  durationMs?: number
 }
 
 export interface ToolCall {

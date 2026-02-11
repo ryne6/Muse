@@ -27,6 +27,9 @@ export const messages = sqliteTable('messages', {
   content: text('content').notNull(),
   thinking: text('thinking'),
   timestamp: integer('timestamp', { mode: 'timestamp' }).notNull(),
+  inputTokens: integer('input_tokens'),
+  outputTokens: integer('output_tokens'),
+  durationMs: integer('duration_ms'),
 })
 
 // 3. Tool calls table

@@ -72,12 +72,23 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
       messages: [],
     }
 
-    // Save to database
+    // 创建默认工作区目录
+    try {
+      const { path: workspacePath } = await window.api.workspace.createDefault(
+        newConversation.id
+      )
+      newConversation.workspace = workspacePath
+    } catch (error) {
+      console.error('Failed to create default workspace, continuing without it:', error)
+    }
+
+    // Save to database (含 workspace)
     await dbClient.conversations.create({
       id: newConversation.id,
       title: newConversation.title,
       createdAt: new Date(newConversation.createdAt),
       updatedAt: new Date(newConversation.updatedAt),
+      workspace: newConversation.workspace,
     })
 
     set((state) => ({
@@ -89,8 +100,24 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
   },
 
   deleteConversation: async (id: string) => {
+    // 获取对话信息（用于清理工作区）
+    const conv = get().conversations.find((c) => c.id === id)
+    const workspacePath = conv?.workspace
+
     // Delete from database
     await dbClient.conversations.delete(id)
+
+    // 清理 Muse 管理的工作区目录
+    if (workspacePath) {
+      try {
+        const result = await window.api.workspace.cleanup(workspacePath)
+        if (!result.deleted && result.reason === 'not_empty') {
+          console.log(`Workspace ${workspacePath} not empty, skipping cleanup`)
+        }
+      } catch (error) {
+        console.error('Failed to cleanup workspace:', error)
+      }
+    }
 
     set((state) => {
       const newConversations = state.conversations.filter((c) => c.id !== id)
@@ -98,11 +125,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         state.currentConversationId === id
           ? newConversations[0]?.id || null
           : state.currentConversationId
-
-      return {
-        conversations: newConversations,
-        currentConversationId: newCurrentId,
-      }
+      return { conversations: newConversations, currentConversationId: newCurrentId }
     })
   },
 
@@ -148,6 +171,9 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         toolCalls: msg.toolCalls || [],
         toolResults: msg.toolResults || [],
         attachments: msg.attachments || [],
+        inputTokens: msg.inputTokens || msg.input_tokens,
+        outputTokens: msg.outputTokens || msg.output_tokens,
+        durationMs: msg.durationMs || msg.duration_ms,
       }))
 
       set((state) => ({

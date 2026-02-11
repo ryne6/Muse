@@ -116,6 +116,18 @@ function runSchemaMigrations(sqlite: Database.Database) {
       console.log('✅ Added system_prompt column')
     }
 
+    // Add token stats columns to messages table if not exists
+    const msgColumns = sqlite.pragma('table_info(messages)') as { name: string }[]
+    const hasInputTokens = msgColumns.some((col) => col.name === 'input_tokens')
+
+    if (!hasInputTokens) {
+      console.log('📦 Adding token stats columns to messages table...')
+      sqlite.exec('ALTER TABLE messages ADD COLUMN input_tokens INTEGER')
+      sqlite.exec('ALTER TABLE messages ADD COLUMN output_tokens INTEGER')
+      sqlite.exec('ALTER TABLE messages ADD COLUMN duration_ms INTEGER')
+      console.log('✅ Added token stats columns')
+    }
+
     // Create prompt_presets table if not exists
     const hasPromptPresets = tables.some((t) => t.name === 'prompt_presets')
 

@@ -274,6 +274,7 @@ Current workspace: ${workspacePath || 'Not set'}`
 
     // Create placeholder for assistant message
     const assistantMessageId = uuidv4()
+    const startTime = Date.now()
     const assistantMessage: Message = {
       id: assistantMessageId,
       role: 'assistant',
@@ -285,11 +286,71 @@ Current workspace: ${workspacePath || 'Not set'}`
 
     useConversationStore.getState().addMessage(assistantMessage)
 
+    // RAF-throttled streaming: buffer chunks and flush once per frame
+    let pendingChunks: any[] = []
+    let rafId: number | null = null
+    let flushChunks: () => void = () => {}
+
     try {
       const settingsState = useSettingsStore.getState()
       const workspacePath = useConversationStore.getState().getEffectiveWorkspace()
       const toolPermissions = options?.toolPermissions
         ?? settingsState.getToolPermissions(workspacePath)
+
+      flushChunks = () => {
+        rafId = null
+        const chunks = pendingChunks
+        pendingChunks = []
+        if (chunks.length === 0) return
+
+        const conversationStore = useConversationStore.getState()
+        const conv = conversationStore.conversations.find((c) => c.id === conversationId)
+        if (!conv) return
+
+        const updatedMessages = conv.messages.map((m) => {
+          if (m.id !== assistantMessageId) return m
+
+          const updated: Message = { ...m }
+
+          for (const chunk of chunks) {
+            if (chunk.content) {
+              updated.content = (updated.content || '') + chunk.content
+            }
+            if (chunk.thinking) {
+              updated.thinking = (updated.thinking || '') + chunk.thinking
+            }
+            if (chunk.toolCall) {
+              const toolCalls = updated.toolCalls || []
+              const existingCall = toolCalls.find((tc: ToolCall) => tc.id === chunk.toolCall!.id)
+              if (!existingCall) {
+                toolCalls.push(chunk.toolCall as ToolCall)
+                updated.toolCalls = toolCalls
+              }
+            }
+            if (chunk.toolResult) {
+              const toolResults = updated.toolResults || []
+              const existingResult = toolResults.find(
+                (tr: ToolResult) => tr.toolCallId === chunk.toolResult!.toolCallId
+              )
+              if (!existingResult) {
+                toolResults.push(chunk.toolResult as ToolResult)
+                updated.toolResults = toolResults
+              }
+            }
+            if (chunk.done && chunk.usage) {
+              updated.inputTokens = chunk.usage.inputTokens
+              updated.outputTokens = chunk.usage.outputTokens
+              updated.durationMs = Date.now() - startTime
+            }
+          }
+
+          return updated
+        })
+
+        conversationStore.updateConversation(conversationId, {
+          messages: updatedMessages,
+        })
+      }
 
       // Send message with streaming
       await apiClient.sendMessageStream(
@@ -297,55 +358,10 @@ Current workspace: ${workspacePath || 'Not set'}`
         aiMessages,
         config,
         (chunk) => {
-          const conversationStore = useConversationStore.getState()
-          // Use original conversationId to find the conversation, not getCurrentConversation()
-          // This ensures streaming updates go to the correct conversation even if user switches away
-          const conv = conversationStore.conversations.find((c) => c.id === conversationId)
-          if (!conv) return
-
-          const updatedMessages = conv.messages.map((m) => {
-            if (m.id !== assistantMessageId) return m
-
-            const updated: Message = { ...m }
-
-            // Update content
-            if (chunk.content) {
-              updated.content = m.content + chunk.content
-            }
-
-            // Update thinking content
-            if (chunk.thinking) {
-              updated.thinking = (m.thinking || '') + chunk.thinking
-            }
-
-            // Add tool call
-            if (chunk.toolCall) {
-              const toolCalls = updated.toolCalls || []
-              const existingCall = toolCalls.find((tc) => tc.id === chunk.toolCall!.id)
-              if (!existingCall) {
-                toolCalls.push(chunk.toolCall as ToolCall)
-                updated.toolCalls = toolCalls
-              }
-            }
-
-            // Add tool result
-            if (chunk.toolResult) {
-              const toolResults = updated.toolResults || []
-              const existingResult = toolResults.find(
-                (tr) => tr.toolCallId === chunk.toolResult!.toolCallId
-              )
-              if (!existingResult) {
-                toolResults.push(chunk.toolResult as ToolResult)
-                updated.toolResults = toolResults
-              }
-            }
-
-            return updated
-          })
-
-          conversationStore.updateConversation(conversationId, {
-            messages: updatedMessages,
-          })
+          pendingChunks.push(chunk)
+          if (rafId === null) {
+            rafId = requestAnimationFrame(flushChunks)
+          }
         },
         controller.signal,
         {
@@ -353,6 +369,13 @@ Current workspace: ${workspacePath || 'Not set'}`
           allowOnceTools: options?.allowOnceTools,
         }
       )
+
+      // Flush any remaining buffered chunks after stream ends
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId)
+        rafId = null
+      }
+      flushChunks()
 
       // Persist assistant message to database after streaming completes
       const finalConv = useConversationStore.getState().getCurrentConversation()
@@ -365,6 +388,9 @@ Current workspace: ${workspacePath || 'Not set'}`
           content: finalAssistantMessage.content,
           thinking: finalAssistantMessage.thinking,
           timestamp: new Date(finalAssistantMessage.timestamp),
+          inputTokens: finalAssistantMessage.inputTokens,
+          outputTokens: finalAssistantMessage.outputTokens,
+          durationMs: finalAssistantMessage.durationMs,
         })
       }
 
@@ -377,6 +403,12 @@ Current workspace: ${workspacePath || 'Not set'}`
     } catch (error) {
       // Ignore abort errors (user cancelled)
       if (error instanceof Error && error.name === 'AbortError') {
+        // Flush any buffered chunks so already-received content is not lost
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId)
+          rafId = null
+        }
+        flushChunks()
         return
       }
 

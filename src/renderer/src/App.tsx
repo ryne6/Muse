@@ -12,7 +12,20 @@ function App() {
 
   useEffect(() => {
     // Load conversations from database on app start
-    loadConversations()
+    loadConversations().then(async () => {
+      // 启动时清理孤立工作区
+      try {
+        const result = await window.api.workspace.cleanupOrphans()
+        if (result.deletedCount > 0) {
+          console.log(`Cleaned up ${result.deletedCount} orphaned workspace(s)`)
+        }
+        if (result.nonEmpty.length > 0) {
+          console.warn('Non-empty orphaned workspaces:', result.nonEmpty)
+        }
+      } catch (error) {
+        console.error('Failed to cleanup orphaned workspaces:', error)
+      }
+    })
 
     // Load theme preference
     dbClient.settings.get('theme').then((theme) => {

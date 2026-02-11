@@ -2,6 +2,7 @@ import { eq, and } from 'drizzle-orm'
 import { getDatabase, schema } from '../index'
 import type { NewModel } from '../schema'
 import { generateId } from '../utils/idGenerator'
+import { getDefaultContextLength } from '../../../shared/constants/modelDefaults'
 
 const { models } = schema
 
@@ -55,7 +56,7 @@ export class ModelService {
       providerId: data.providerId,
       modelId: data.modelId,
       name: data.name,
-      contextLength: data.contextLength || null,
+      contextLength: data.contextLength ?? getDefaultContextLength(data.modelId),
       isCustom: data.isCustom || false,
       enabled: data.enabled ?? true,
     }
@@ -73,7 +74,7 @@ export class ModelService {
       providerId: data.providerId,
       modelId: data.modelId,
       name: data.name,
-      contextLength: data.contextLength || null,
+      contextLength: data.contextLength ?? getDefaultContextLength(data.modelId),
       isCustom: data.isCustom || false,
       enabled: data.enabled ?? true,
     }))

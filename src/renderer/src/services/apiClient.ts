@@ -194,6 +194,8 @@ export class APIClient {
         config,
         toolPermissions: options?.toolPermissions,
         allowOnceTools: options?.allowOnceTools,
+        permissionRules: options?.permissionRules,
+        sessionApprovedTools: options?.sessionApprovedTools,
       }),
       signal,
     })
@@ -271,6 +273,8 @@ export class APIClient {
           config,
           toolPermissions: options?.toolPermissions,
           allowOnceTools: options?.allowOnceTools,
+          permissionRules: options?.permissionRules,
+          sessionApprovedTools: options?.sessionApprovedTools,
         }),
       }
     )

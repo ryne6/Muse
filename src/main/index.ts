@@ -18,6 +18,9 @@ import { MCPService } from './db/services/mcpService'
 import { SkillsService } from './db/services/skillsService'
 import { DataMigration } from './db/migration'
 import { WorkspaceService } from './services/workspaceService'
+import { PermissionFileService } from './services/permissionFileService'
+
+const permissionFileService = new PermissionFileService()
 
 function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
@@ -526,6 +529,21 @@ function registerIpcHandlers() {
 
   ipcMain.handle('db:promptPresets:delete', async (_, { id }) => {
     await PromptPresetService.delete(id)
+    return { success: true }
+  })
+
+  // Permissions
+  ipcMain.handle('permissions:load', async (_event, { workspacePath }) => {
+    return permissionFileService.loadRules(workspacePath)
+  })
+
+  ipcMain.handle('permissions:addRule', async (_event, { rule, source, workspacePath }) => {
+    permissionFileService.addRule(rule, source, workspacePath)
+    return { success: true }
+  })
+
+  ipcMain.handle('permissions:removeRule', async (_event, { ruleId, source, workspacePath }) => {
+    permissionFileService.removeRule(ruleId, source, workspacePath)
     return { success: true }
   })
 }

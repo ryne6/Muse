@@ -1,4 +1,4 @@
-import type { ToolPermissionState } from './toolPermissions'
+import type { ToolPermissionState, PermissionRule } from './toolPermissions'
 
 /**
  * Text content block
@@ -92,6 +92,9 @@ export interface AIConfig {
 export interface AIRequestOptions {
   toolPermissions?: ToolPermissionState
   allowOnceTools?: string[]
+  // P1 新增
+  permissionRules?: PermissionRule[]
+  sessionApprovedTools?: string[] // 序列化为数组传输
 }
 
 export interface AIProvider {

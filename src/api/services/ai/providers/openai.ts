@@ -197,6 +197,10 @@ export class OpenAIProvider extends BaseAIProvider {
           toolCallId: toolCall.id,
           toolPermissions: options?.toolPermissions,
           allowOnceTools: options?.allowOnceTools,
+          sessionApprovedTools: options?.sessionApprovedTools
+            ? new Set(options.sessionApprovedTools)
+            : undefined,
+          permissionRules: options?.permissionRules,
         })
 
         conversationMessages.push({
@@ -272,6 +276,10 @@ export class OpenAIProvider extends BaseAIProvider {
           toolCallId: toolCall.id,
           toolPermissions: options?.toolPermissions,
           allowOnceTools: options?.allowOnceTools,
+          sessionApprovedTools: options?.sessionApprovedTools
+            ? new Set(options.sessionApprovedTools)
+            : undefined,
+          permissionRules: options?.permissionRules,
         })
 
         conversationMessages.push({

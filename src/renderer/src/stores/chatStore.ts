@@ -7,6 +7,7 @@ import type { APIError } from '@shared/types/error'
 import { getErrorMessage } from '@shared/types/error'
 import type { Message, ToolCall, ToolResult } from '@shared/types/conversation'
 import type { PendingAttachment } from '@shared/types/attachment'
+import type { ApprovalScope } from '@shared/types/toolPermissions'
 import { useConversationStore } from './conversationStore'
 import { useSettingsStore } from './settingsStore'
 import { useWorkspaceStore } from './workspaceStore'
@@ -18,6 +19,9 @@ interface ChatStore {
   error: string | null
   lastError: APIError | null
   retryable: boolean
+  // P0 新增：session 级已授权工具
+  // key = conversationId, value = 已授权的工具名集合
+  sessionApprovals: Record<string, string[]>
 
   // Actions
   sendMessage: (
@@ -31,8 +35,15 @@ interface ChatStore {
   approveToolCall: (
     conversationId: string,
     toolName: string,
-    allowAll?: boolean
+    scope: ApprovalScope
   ) => Promise<void>
+  denyToolCall: (
+    conversationId: string,
+    toolName: string,
+    toolCallId: string,
+    reason?: string
+  ) => Promise<void>
+  getSessionApprovedTools: (conversationId: string) => string[]
   abortMessage: () => void
   clearError: () => void
 }
@@ -44,6 +55,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   error: null,
   lastError: null,
   retryable: false,
+  sessionApprovals: {},
 
   // Actions
   clearError: () => set({ error: null, lastError: null, retryable: false }),
@@ -221,6 +233,13 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   2. Ask the user for clarification
   3. Inform the user that the operation failed and explain why
 - Never loop on the same failing tool call
+
+## Tool Permission Handling
+- When a tool call is denied, you will receive a [Tool Denied] message
+- Read the denial reason carefully and adjust your strategy
+- Suggest alternative approaches to the user
+- Do NOT retry the same tool call that was denied
+- If you need the denied operation, explain why and ask the user to reconsider
 ${skillsSection}
 Current workspace: ${workspacePath || 'Not set'}`
 
@@ -353,6 +372,12 @@ Current workspace: ${workspacePath || 'Not set'}`
       }
 
       // Send message with streaming
+      const sessionTools = get().getSessionApprovedTools(conversationId)
+      const mergedAllowOnce = [
+        ...(options?.allowOnceTools || []),
+        ...sessionTools,
+      ]
+
       await apiClient.sendMessageStream(
         providerType,
         aiMessages,
@@ -366,7 +391,7 @@ Current workspace: ${workspacePath || 'Not set'}`
         controller.signal,
         {
           toolPermissions,
-          allowOnceTools: options?.allowOnceTools,
+          allowOnceTools: mergedAllowOnce.length > 0 ? mergedAllowOnce : undefined,
         }
       )
 
@@ -450,7 +475,7 @@ Current workspace: ${workspacePath || 'Not set'}`
     }
   },
 
-  approveToolCall: async (conversationId, toolName, allowAll = false) => {
+  approveToolCall: async (conversationId, toolName, scope) => {
     const settingsState = useSettingsStore.getState()
     const workspacePath = useConversationStore.getState().getEffectiveWorkspace()
     const provider = settingsState.getCurrentProvider()
@@ -466,8 +491,50 @@ Current workspace: ${workspacePath || 'Not set'}`
       return
     }
 
-    if (allowAll) {
-      settingsState.setToolAllowAll(workspacePath ?? '', true)
+    // 根据 scope 处理授权
+    switch (scope) {
+      case 'once':
+        // 不做额外存储，仅通过 allowOnceTools 传递
+        break
+
+      case 'session':
+        // 存储到 sessionApprovals
+        set((state) => {
+          const current = state.sessionApprovals[conversationId] || []
+          if (!current.includes(toolName)) {
+            return {
+              sessionApprovals: {
+                ...state.sessionApprovals,
+                [conversationId]: [...current, toolName],
+              },
+            }
+          }
+          return state
+        })
+        break
+
+      case 'project':
+        // P1 实现：写入 .muse/permissions.json
+        // P0 阶段 fallback 到 session
+        set((state) => {
+          const current = state.sessionApprovals[conversationId] || []
+          if (!current.includes(toolName)) {
+            return {
+              sessionApprovals: {
+                ...state.sessionApprovals,
+                [conversationId]: [...current, toolName],
+              },
+            }
+          }
+          return state
+        })
+        break
+
+      case 'global':
+        // P1 实现：写入 ~/.muse/permissions.json
+        // P0 阶段 fallback 到 allowAll
+        settingsState.setToolAllowAll(workspacePath ?? '', true)
+        break
     }
 
     const aiConfig: AIConfig = {
@@ -480,7 +547,7 @@ Current workspace: ${workspacePath || 'Not set'}`
       thinkingEnabled: settingsState.thinkingEnabled,
     }
 
-    const message = `已允许工具: ${toolName}`
+    const message = `[Tool Approved] The user approved the "${toolName}" tool. Please proceed with the operation.`
 
     await get().sendMessage(
       conversationId,
@@ -490,5 +557,46 @@ Current workspace: ${workspacePath || 'Not set'}`
       [],
       { allowOnceTools: [toolName] }
     )
+  },
+
+  denyToolCall: async (conversationId, toolName, toolCallId, reason?) => {
+    const settingsState = useSettingsStore.getState()
+    const provider = settingsState.getCurrentProvider()
+    const model = settingsState.getCurrentModel()
+
+    if (!provider || !model) {
+      set({ error: 'No provider or model selected' })
+      return
+    }
+    if (!provider.apiKey) {
+      set({ error: 'Provider API key missing' })
+      return
+    }
+
+    const denyMessage = reason
+      ? `[Tool Denied] The user denied the "${toolName}" tool call (ID: ${toolCallId}). Reason: ${reason}. Please adjust your approach.`
+      : `[Tool Denied] The user denied the "${toolName}" tool call (ID: ${toolCallId}). Please try a different approach or ask the user for guidance.`
+
+    const aiConfig: AIConfig = {
+      apiKey: provider.apiKey,
+      model: model.modelId,
+      baseURL: provider.baseURL || undefined,
+      apiFormat: provider.apiFormat || 'chat-completions',
+      temperature: settingsState.temperature,
+      maxTokens: 4096,
+      thinkingEnabled: settingsState.thinkingEnabled,
+    }
+
+    // 发送 deny 消息作为用户消息，触发 AI 继续对话
+    await get().sendMessage(
+      conversationId,
+      denyMessage,
+      provider.type,
+      aiConfig
+    )
+  },
+
+  getSessionApprovedTools: (conversationId: string) => {
+    return get().sessionApprovals[conversationId] || []
   },
 }))

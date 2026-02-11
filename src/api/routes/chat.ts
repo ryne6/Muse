@@ -10,6 +10,7 @@ import type {
   AIStreamChunk,
   AIRequestOptions,
 } from '../../shared/types/ai'
+import type { PermissionRule } from '../../shared/types/toolPermissions'
 
 const app = new Hono()
 const aiManager = new AIManager()
@@ -28,6 +29,9 @@ interface ChatRequest {
   config: AIConfig
   toolPermissions?: AIRequestOptions['toolPermissions']
   allowOnceTools?: AIRequestOptions['allowOnceTools']
+  // P1 新增
+  permissionRules?: PermissionRule[]
+  sessionApprovedTools?: string[]
 }
 
 interface ValidateRequest {
@@ -39,7 +43,8 @@ interface ValidateRequest {
 app.post('/chat/stream', async (c) => {
   try {
     const body = await c.req.json<ChatRequest>()
-    const { provider, messages, config, toolPermissions, allowOnceTools } = body
+    const { provider, messages, config, toolPermissions, allowOnceTools,
+            permissionRules, sessionApprovedTools } = body
 
     // Validate required fields
     if (!provider || !messages || !config) {
@@ -56,7 +61,7 @@ app.post('/chat/stream', async (c) => {
           async (chunk: AIStreamChunk) => {
             await stream.write(JSON.stringify(chunk) + '\n')
           },
-          { toolPermissions, allowOnceTools }
+          { toolPermissions, allowOnceTools, permissionRules, sessionApprovedTools }
         )
       } catch (error) {
         const aiError = AIError.fromUnknown(error)
@@ -73,7 +78,8 @@ app.post('/chat/stream', async (c) => {
 app.post('/chat', async (c) => {
   try {
     const body = await c.req.json<ChatRequest>()
-    const { provider, messages, config, toolPermissions, allowOnceTools } = body
+    const { provider, messages, config, toolPermissions, allowOnceTools,
+            permissionRules, sessionApprovedTools } = body
 
     // Validate required fields
     if (!provider || !messages || !config) {
@@ -84,6 +90,8 @@ app.post('/chat', async (c) => {
     const response = await aiManager.sendMessage(provider, messages, config, undefined, {
       toolPermissions,
       allowOnceTools,
+      permissionRules,
+      sessionApprovedTools,
     })
 
     return c.json({

@@ -457,7 +457,7 @@ describe('ChatStore', () => {
       mockGetCurrentModel.mockReturnValue(mockModel)
       mockSendMessageStream.mockResolvedValue(undefined)
 
-      await useChatStore.getState().approveToolCall('conv-1', 'Bash', false)
+      await useChatStore.getState().approveToolCall('conv-1', 'Bash', 'once')
 
       expect(mockSendMessageStream).toHaveBeenCalledWith(
         'openai',
@@ -473,7 +473,7 @@ describe('ChatStore', () => {
       mockGetCurrentProvider.mockReturnValue(null)
       mockGetCurrentModel.mockReturnValue(mockModel)
 
-      await useChatStore.getState().approveToolCall('conv-1', 'Bash', false)
+      await useChatStore.getState().approveToolCall('conv-1', 'Bash', 'once')
 
       expect(useChatStore.getState().error).toBe('No provider or model selected')
       expect(mockSendMessageStream).not.toHaveBeenCalled()
@@ -483,7 +483,7 @@ describe('ChatStore', () => {
       mockGetCurrentProvider.mockReturnValue(mockProvider)
       mockGetCurrentModel.mockReturnValue(null)
 
-      await useChatStore.getState().approveToolCall('conv-1', 'Bash', false)
+      await useChatStore.getState().approveToolCall('conv-1', 'Bash', 'once')
 
       expect(useChatStore.getState().error).toBe('No provider or model selected')
       expect(mockSendMessageStream).not.toHaveBeenCalled()
@@ -494,7 +494,7 @@ describe('ChatStore', () => {
       mockGetCurrentProvider.mockReturnValue(providerWithoutKey)
       mockGetCurrentModel.mockReturnValue(mockModel)
 
-      await useChatStore.getState().approveToolCall('conv-1', 'Bash', false)
+      await useChatStore.getState().approveToolCall('conv-1', 'Bash', 'once')
 
       expect(useChatStore.getState().error).toBe('Provider API key missing')
       expect(mockSendMessageStream).not.toHaveBeenCalled()
@@ -510,7 +510,7 @@ describe('ChatStore', () => {
       mockGetCurrentModel.mockReturnValue(mockModel)
       mockSendMessageStream.mockResolvedValue(undefined)
 
-      await useChatStore.getState().approveToolCall('conv-1', 'Bash', true)
+      await useChatStore.getState().approveToolCall('conv-1', 'Bash', 'global')
 
       expect(mockSetToolAllowAll).toHaveBeenCalledWith('/test/workspace', true)
     })

@@ -42,7 +42,7 @@ describe('MCP Tool Execution Integration', () => {
     it('should route MCP tools to mcpManager', async () => {
       mockCallTool.mockResolvedValue('MCP result')
 
-      const result = await executor.execute('mcp__server__tool', { arg: 'value' })
+      const result = await executor.execute('mcp__server__tool', { arg: 'value' }, { toolPermissions: { allowAll: true } })
 
       expect(mockIsMCPTool).toHaveBeenCalledWith('mcp__server__tool')
       expect(mockCallTool).toHaveBeenCalledWith('mcp__server__tool', { arg: 'value' })
@@ -59,10 +59,19 @@ describe('MCP Tool Execution Integration', () => {
       expect(mockCallTool).not.toHaveBeenCalled()
     })
 
-    it('should handle unknown tools with error', async () => {
+    it('should handle unknown tools with permission request', async () => {
       mockIsMCPTool.mockReturnValue(false)
 
       const result = await executor.execute('UnknownTool', {})
+
+      // Unknown tools are classified as 'moderate' and require permission
+      expect(result).toContain('__tool_permission__')
+    })
+
+    it('should handle unknown tools with error when allowAll', async () => {
+      mockIsMCPTool.mockReturnValue(false)
+
+      const result = await executor.execute('UnknownTool', {}, { toolPermissions: { allowAll: true } })
 
       expect(result).toContain('Error')
       expect(result).toContain('Unknown tool')
@@ -73,7 +82,7 @@ describe('MCP Tool Execution Integration', () => {
     it('should return successful MCP tool result', async () => {
       mockCallTool.mockResolvedValue('Tool executed successfully')
 
-      const result = await executor.execute('mcp__fs__read', { path: '/test' })
+      const result = await executor.execute('mcp__fs__read', { path: '/test' }, { toolPermissions: { allowAll: true } })
 
       expect(result).toBe('Tool executed successfully')
     })
@@ -81,7 +90,7 @@ describe('MCP Tool Execution Integration', () => {
     it('should handle MCP tool errors gracefully', async () => {
       mockCallTool.mockRejectedValue(new Error('MCP connection failed'))
 
-      const result = await executor.execute('mcp__fs__read', { path: '/test' })
+      const result = await executor.execute('mcp__fs__read', { path: '/test' }, { toolPermissions: { allowAll: true } })
 
       expect(result).toBe('Error: MCP connection failed')
     })
@@ -89,7 +98,7 @@ describe('MCP Tool Execution Integration', () => {
     it('should handle MCP tool errors without message', async () => {
       mockCallTool.mockRejectedValue({})
 
-      const result = await executor.execute('mcp__fs__read', { path: '/test' })
+      const result = await executor.execute('mcp__fs__read', { path: '/test' }, { toolPermissions: { allowAll: true } })
 
       expect(result).toBe('Error: MCP tool execution failed')
     })

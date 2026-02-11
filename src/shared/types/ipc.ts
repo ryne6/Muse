@@ -1,5 +1,6 @@
 import type { SearchQuery, SearchResponse } from './search'
 import type { AttachmentPreview, NewAttachmentData } from './attachment'
+import type { PermissionRule } from './toolPermissions'
 
 // MCP Server State for IPC
 export interface MCPServerState {
@@ -143,6 +144,11 @@ export interface IpcApi {
     create: (data: { name: string; content: string }) => Promise<PromptPreset>
     update: (id: string, data: { name?: string; content?: string }) => Promise<PromptPreset | null>
     delete: (id: string) => Promise<{ success: boolean }>
+  }
+  permissions: {
+    load: (workspacePath?: string) => Promise<PermissionRule[]>
+    addRule: (rule: any, source: string, workspacePath?: string) => Promise<{ success: boolean }>
+    removeRule: (ruleId: string, source: string, workspacePath?: string) => Promise<{ success: boolean }>
   }
 }
 

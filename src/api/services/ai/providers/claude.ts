@@ -204,6 +204,10 @@ export class ClaudeProvider extends BaseAIProvider {
           toolCallId: toolUse.id,
           toolPermissions: options?.toolPermissions,
           allowOnceTools: options?.allowOnceTools,
+          sessionApprovedTools: options?.sessionApprovedTools
+            ? new Set(options.sessionApprovedTools)
+            : undefined,
+          permissionRules: options?.permissionRules,
         })
         toolResults.push({
           type: 'tool_result',
@@ -315,6 +319,10 @@ export class ClaudeProvider extends BaseAIProvider {
             toolCallId: toolUse.id,
             toolPermissions: options?.toolPermissions,
             allowOnceTools: options?.allowOnceTools,
+            sessionApprovedTools: options?.sessionApprovedTools
+              ? new Set(options.sessionApprovedTools)
+              : undefined,
+            permissionRules: options?.permissionRules,
           })
           toolResults.push({
             type: 'tool_result',

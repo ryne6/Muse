@@ -15,7 +15,7 @@ import {
   ListTodo,
 } from 'lucide-react'
 import type { ToolCall, ToolResult } from '@shared/types/conversation'
-import type { PermissionRequestPayload } from '@shared/types/toolPermissions'
+import type { PermissionRequestPayload, ApprovalScope } from '@shared/types/toolPermissions'
 import { TOOL_PERMISSION_PREFIX } from '@shared/types/toolPermissions'
 import { cn } from '@/utils/cn'
 import { ScrollArea } from '@lobehub/ui'
@@ -55,6 +55,7 @@ type ApprovalStatus = 'idle' | 'loading' | 'approved' | 'approvedAll' | 'denied'
 export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const approveToolCall = useChatStore((state) => state.approveToolCall)
+  const denyToolCall = useChatStore((state) => state.denyToolCall)
   const currentConversationId = useConversationStore((state) => state.currentConversationId)
 
   const rawPermissionRequest = toolResult?.output?.startsWith(TOOL_PERMISSION_PREFIX) ?? false
@@ -67,6 +68,10 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
   const [isCollapsed, setIsCollapsed] = useState(!isPermissionRequest || isTodoWrite)
   // Task 6: Approval button status
   const [approvalStatus, setApprovalStatus] = useState<ApprovalStatus>('idle')
+  // P0: Dropdown and deny input state
+  const [showApproveMenu, setShowApproveMenu] = useState(false)
+  const [showDenyInput, setShowDenyInput] = useState(false)
+  const [denyReason, setDenyReason] = useState('')
 
   // Fix: re-expand when permission request arrives after mount
   useEffect(() => {
@@ -74,6 +79,14 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
       setIsCollapsed(false)
     }
   }, [isPermissionRequest])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!showApproveMenu) return
+    const handleClickOutside = () => setShowApproveMenu(false)
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [showApproveMenu])
 
   const status: 'pending' | 'success' | 'error' = !toolResult
     ? 'pending'
@@ -127,20 +140,33 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
       const isLoading = approvalStatus === 'loading'
       const isActioned = approvalStatus === 'approved' || approvalStatus === 'approvedAll' || approvalStatus === 'denied'
 
-      const handleApprove = async (approveAll: boolean) => {
+      const handleApprove = async (scope: ApprovalScope) => {
         if (!currentConversationId || isLoading || isActioned) return
         setApprovalStatus('loading')
+        setShowApproveMenu(false)
         try {
-          await approveToolCall(currentConversationId, toolCall.name, approveAll)
-          setApprovalStatus(approveAll ? 'approvedAll' : 'approved')
+          await approveToolCall(currentConversationId, toolCall.name, scope)
+          setApprovalStatus(scope === 'once' ? 'approved' : 'approvedAll')
         } catch {
           setApprovalStatus('idle')
         }
       }
 
-      const handleDeny = () => {
+      const handleDeny = async () => {
         if (!currentConversationId || isLoading || isActioned) return
-        setApprovalStatus('denied')
+        setApprovalStatus('loading')
+        setShowDenyInput(false)
+        try {
+          await denyToolCall(
+            currentConversationId,
+            toolCall.name,
+            toolCall.id,
+            denyReason || undefined
+          )
+          setApprovalStatus('denied')
+        } catch {
+          setApprovalStatus('idle')
+        }
       }
 
       return (
@@ -151,35 +177,51 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
               : '需要权限，但请求无效。'}
           </div>
           {showButtons && !isActioned && (
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => handleApprove(false)}
-                disabled={isLoading}
-                className={cn(
-                  'text-xs px-2 py-1 rounded flex items-center gap-1 transition-colors',
-                  isLoading
-                    ? 'bg-[hsl(var(--surface-2))] opacity-60 cursor-not-allowed'
-                    : 'bg-[hsl(var(--surface-2))] hover:bg-[hsl(var(--surface-3))]'
+            <div className="flex flex-wrap gap-2 relative">
+              {/* 允许下拉菜单 */}
+              <div className="relative">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowApproveMenu(!showApproveMenu)
+                  }}
+                  disabled={isLoading}
+                  className={cn(
+                    'text-xs px-2 py-1 rounded flex items-center gap-1 transition-colors',
+                    isLoading
+                      ? 'bg-[hsl(var(--surface-2))] opacity-60 cursor-not-allowed'
+                      : 'bg-[hsl(var(--surface-2))] hover:bg-[hsl(var(--surface-3))]'
+                  )}
+                >
+                  {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
+                  允许
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+
+                {showApproveMenu && (
+                  <div className="absolute top-full left-0 mt-1 bg-popover border border-border rounded-md shadow-md z-10 min-w-[160px]">
+                    <button
+                      onClick={() => handleApprove('once')}
+                      className="w-full text-left text-xs px-3 py-1.5 hover:bg-accent"
+                    >
+                      允许本次
+                    </button>
+                    <button
+                      onClick={() => handleApprove('session')}
+                      className="w-full text-left text-xs px-3 py-1.5 hover:bg-accent"
+                    >
+                      允许本次对话
+                    </button>
+                    {/* P1 阶段启用以下选项 */}
+                    {/* <button onClick={() => handleApprove('project')} ...>允许此项目</button> */}
+                    {/* <button onClick={() => handleApprove('global')} ...>允许全局</button> */}
+                  </div>
                 )}
-              >
-                {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
-                允许
-              </button>
+              </div>
+
+              {/* 拒绝按钮 */}
               <button
-                onClick={() => handleApprove(true)}
-                disabled={isLoading}
-                className={cn(
-                  'text-xs px-2 py-1 rounded flex items-center gap-1 transition-colors',
-                  isLoading
-                    ? 'bg-[hsl(var(--surface-2))] opacity-60 cursor-not-allowed'
-                    : 'bg-[hsl(var(--surface-2))] hover:bg-[hsl(var(--surface-3))]'
-                )}
-              >
-                {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
-                允许所有
-              </button>
-              <button
-                onClick={handleDeny}
+                onClick={() => setShowDenyInput(!showDenyInput)}
                 disabled={isLoading}
                 className={cn(
                   'text-xs px-2 py-1 rounded flex items-center gap-1 transition-colors',
@@ -190,6 +232,26 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
               >
                 拒绝
               </button>
+
+              {/* 拒绝原因输入框 */}
+              {showDenyInput && (
+                <div className="w-full mt-1 flex gap-1">
+                  <input
+                    type="text"
+                    value={denyReason}
+                    onChange={(e) => setDenyReason(e.target.value)}
+                    placeholder="拒绝原因（可选）"
+                    className="flex-1 text-xs px-2 py-1 rounded border border-border bg-background"
+                    onKeyDown={(e) => e.key === 'Enter' && handleDeny()}
+                  />
+                  <button
+                    onClick={handleDeny}
+                    className="text-xs px-2 py-1 rounded bg-destructive/10 text-destructive hover:bg-destructive/20"
+                  >
+                    确认拒绝
+                  </button>
+                </div>
+              )}
             </div>
           )}
           {isActioned && (

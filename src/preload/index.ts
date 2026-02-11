@@ -76,6 +76,14 @@ const api: IpcApi = {
     update: (id: string, data: { name?: string; content?: string }) => ipcRenderer.invoke('db:promptPresets:update', { id, data }),
     delete: (id: string) => ipcRenderer.invoke('db:promptPresets:delete', { id }),
   },
+  permissions: {
+    load: (workspacePath?: string) =>
+      ipcRenderer.invoke('permissions:load', { workspacePath }),
+    addRule: (rule: any, source: string, workspacePath?: string) =>
+      ipcRenderer.invoke('permissions:addRule', { rule, source, workspacePath }),
+    removeRule: (ruleId: string, source: string, workspacePath?: string) =>
+      ipcRenderer.invoke('permissions:removeRule', { ruleId, source, workspacePath }),
+  },
   updater: {
     check: () => ipcRenderer.invoke('updater:check'),
     download: () => ipcRenderer.invoke('updater:download'),

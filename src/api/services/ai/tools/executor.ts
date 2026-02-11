@@ -1,5 +1,7 @@
 import axios from 'axios'
-import { DANGEROUS_TOOLS, TOOL_PERMISSION_PREFIX } from '@shared/types/toolPermissions'
+import { TOOL_PERMISSION_PREFIX } from '@shared/types/toolPermissions'
+import type { PermissionRule, HooksConfig } from '@shared/types/toolPermissions'
+import { PermissionEngine } from '@shared/permissions/engine'
 
 // Lazy-loaded MCP manager to avoid SDK side effects at import time
 let mcpManagerInstance: typeof import('../../mcp/manager').mcpManager | null = null
@@ -12,10 +14,20 @@ async function getMcpManager() {
   return mcpManagerInstance
 }
 
+// 模块级单例
+const permissionEngine = new PermissionEngine()
+
 export interface ToolExecutionOptions {
   toolCallId?: string
   toolPermissions?: { allowAll: boolean }
   allowOnceTools?: string[]
+  // P0 新增
+  sessionApprovedTools?: Set<string>
+  // P1 新增
+  permissionRules?: PermissionRule[]
+  // P2 预留
+  hooks?: HooksConfig
+  sandboxMode?: 'read-only' | 'workspace-write' | 'full-access'
 }
 
 const IPC_BRIDGE_BASE = 'http://localhost:3001'
@@ -28,11 +40,18 @@ const TODO_STATUS_MARKERS: Record<string, string> = {
 
 export class ToolExecutor {
   async execute(toolName: string, input: any, options: ToolExecutionOptions = {}): Promise<string> {
-    const allowAll = options.toolPermissions?.allowAll ?? false
-    const allowOnce = options.allowOnceTools?.includes(toolName) ?? false
-    const isDangerous = DANGEROUS_TOOLS.includes(toolName as any)
+    const decision = permissionEngine.evaluate(toolName, input, {
+      allowAll: options.toolPermissions?.allowAll ?? false,
+      allowOnceTools: options.allowOnceTools,
+      sessionApprovedTools: options.sessionApprovedTools,
+      permissionRules: options.permissionRules,
+    })
 
-    if (isDangerous && !allowAll && !allowOnce) {
+    if (decision.action === 'deny') {
+      return `Error: Tool "${toolName}" was denied. ${decision.reason || ''}`
+    }
+
+    if (decision.action === 'ask') {
       const payload = {
         kind: 'permission_request',
         toolName,
@@ -40,6 +59,8 @@ export class ToolExecutor {
       }
       return `${TOOL_PERMISSION_PREFIX}${JSON.stringify(payload)}`
     }
+
+    // decision.action === 'allow' → 继续执行
 
     // Initialize MCP manager and check for MCP tools
     const mcpManager = await getMcpManager()

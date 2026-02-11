@@ -22,7 +22,7 @@ describe('ToolExecutor', () => {
 
       const result = await executor.execute(
         'Bash',
-        { command: 'ls' },
+        { command: 'rm -rf /tmp/test' },
         { toolCallId: 'tc-1', toolPermissions: { allowAll: false } }
       )
 
@@ -230,8 +230,14 @@ describe('ToolExecutor', () => {
       expect(result).toContain('Snippet')
     })
 
-    it('should return error message for unknown tool', async () => {
+    it('should return permission request for unknown tool (classified as moderate)', async () => {
       const result = await executor.execute('unknown_tool', {})
+      // Unknown tools are classified as 'moderate' by the permission engine
+      expect(result.startsWith(TOOL_PERMISSION_PREFIX)).toBe(true)
+    })
+
+    it('should return error for unknown tool when allowAll is true', async () => {
+      const result = await executor.execute('unknown_tool', {}, { toolPermissions: { allowAll: true } })
       expect(result).toContain('Error: Unknown tool: unknown_tool')
     })
 

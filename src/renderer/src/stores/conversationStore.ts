@@ -5,6 +5,12 @@ import { dbClient } from '@/services/dbClient'
 import { useWorkspaceStore } from './workspaceStore'
 import { useSettingsStore } from './settingsStore'
 
+// 消息 ID 列表 selector，配合 shallow 比较避免内容更新触发重渲染
+export const selectCurrentMessageIds = (s: ConversationStore): string[] => {
+  const conv = s.conversations.find(c => c.id === s.currentConversationId)
+  return conv?.messages.map(m => m.id) ?? []
+}
+
 interface ConversationStore {
   // State
   conversations: Conversation[]
@@ -20,12 +26,20 @@ interface ConversationStore {
   renameConversation: (id: string, title: string) => Promise<void>
   loadConversation: (id: string) => Promise<void>
   updateConversation: (id: string, updates: Partial<Conversation>) => void
+  updateMessage: (
+    convId: string,
+    msgId: string,
+    updater: (msg: Message) => Message
+  ) => void
   addMessage: (message: Message) => void
   getCurrentConversation: () => Conversation | null
   getConversationsByDate: () => Record<string, Conversation[]>
   clearCurrentConversation: () => void
   setWorkspace: (id: string, workspace: string | null) => Promise<void>
-  updateConversationSystemPrompt: (id: string, systemPrompt: string | null) => Promise<void>
+  updateConversationSystemPrompt: (
+    id: string,
+    systemPrompt: string | null
+  ) => Promise<void>
   getEffectiveWorkspace: () => string | null
 }
 
@@ -80,7 +94,10 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
       )
       newConversation.workspace = workspacePath
     } catch (error) {
-      console.error('Failed to create default workspace, continuing without it:', error)
+      console.error(
+        'Failed to create default workspace, continuing without it:',
+        error
+      )
     }
 
     // Save to database (含 workspace)
@@ -92,7 +109,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
       workspace: newConversation.workspace,
     })
 
-    set((state) => ({
+    set(state => ({
       conversations: [newConversation, ...state.conversations],
       currentConversationId: newConversation.id,
     }))
@@ -102,7 +119,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
 
   deleteConversation: async (id: string) => {
     // 获取对话信息（用于清理工作区）
-    const conv = get().conversations.find((c) => c.id === id)
+    const conv = get().conversations.find(c => c.id === id)
     const workspacePath = conv?.workspace
 
     // Delete from database
@@ -120,13 +137,16 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
       }
     }
 
-    set((state) => {
-      const newConversations = state.conversations.filter((c) => c.id !== id)
+    set(state => {
+      const newConversations = state.conversations.filter(c => c.id !== id)
       const newCurrentId =
         state.currentConversationId === id
           ? newConversations[0]?.id || null
           : state.currentConversationId
-      return { conversations: newConversations, currentConversationId: newCurrentId }
+      return {
+        conversations: newConversations,
+        currentConversationId: newCurrentId,
+      }
     })
   },
 
@@ -134,8 +154,8 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
     // Update in database
     await dbClient.conversations.update(id, { title })
 
-    set((state) => ({
-      conversations: state.conversations.map((c) =>
+    set(state => ({
+      conversations: state.conversations.map(c =>
         c.id === id ? { ...c, title, updatedAt: Date.now() } : c
       ),
     }))
@@ -145,10 +165,12 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
     // P1: Trigger memory extraction on the previous conversation before switching
     const previousId = get().currentConversationId
     if (previousId && previousId !== id) {
-      const prevConv = get().conversations.find((c) => c.id === previousId)
+      const prevConv = get().conversations.find(c => c.id === previousId)
       const memoryEnabled = useSettingsStore.getState().memoryEnabled
       if (memoryEnabled && prevConv) {
-        const userMsgCount = prevConv.messages.filter((m) => m.role === 'user').length
+        const userMsgCount = prevConv.messages.filter(
+          m => m.role === 'user'
+        ).length
         if (userMsgCount >= 5) {
           // Fire-and-forget: dynamic import to avoid circular dependency
           import('./chatStore').then(({ triggerMemoryExtraction }) => {
@@ -156,7 +178,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
             const pid = settings.currentProviderId
             const mid = settings.currentModelId
             if (pid && mid) {
-              triggerMemoryExtraction(previousId, pid, mid).catch((err) =>
+              triggerMemoryExtraction(previousId, pid, mid).catch(err =>
                 console.error('Memory extraction on switch failed:', err)
               )
             }
@@ -200,8 +222,8 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         durationMs: msg.durationMs || msg.duration_ms,
       }))
 
-      set((state) => ({
-        conversations: state.conversations.map((c) =>
+      set(state => ({
+        conversations: state.conversations.map(c =>
           c.id === id ? { ...c, messages: mappedMessages } : c
         ),
         loadedConversationIds: new Set([...state.loadedConversationIds, id]),
@@ -214,19 +236,32 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
   },
 
   updateConversation: (id: string, updates: Partial<Conversation>) =>
-    set((state) => ({
-      conversations: state.conversations.map((c) =>
+    set(state => ({
+      conversations: state.conversations.map(c =>
         c.id === id ? { ...c, ...updates, updatedAt: Date.now() } : c
       ),
     })),
 
+  // 只更新目标消息，保持其他消息引用不变（配合 memo 避免重渲染）
+  updateMessage: (convId, msgId, updater) =>
+    set(state => ({
+      conversations: state.conversations.map(c =>
+        c.id === convId
+          ? {
+              ...c,
+              messages: c.messages.map(m => (m.id === msgId ? updater(m) : m)),
+            }
+          : c
+      ),
+    })),
+
   addMessage: (message: Message) =>
-    set((state) => {
+    set(state => {
       const currentId = state.currentConversationId
       if (!currentId) return state
 
       return {
-        conversations: state.conversations.map((c) =>
+        conversations: state.conversations.map(c =>
           c.id === currentId
             ? {
                 ...c,
@@ -240,7 +275,10 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
 
   getCurrentConversation: () => {
     const state = get()
-    return state.conversations.find((c) => c.id === state.currentConversationId) || null
+    return (
+      state.conversations.find(c => c.id === state.currentConversationId) ||
+      null
+    )
   },
 
   getConversationsByDate: () => {
@@ -252,35 +290,44 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
     const lastMonth = today - 30 * 86400000
 
     return {
-      today: state.conversations.filter((c) => c.updatedAt >= today),
+      today: state.conversations.filter(c => c.updatedAt >= today),
       yesterday: state.conversations.filter(
-        (c) => c.updatedAt >= yesterday && c.updatedAt < today
+        c => c.updatedAt >= yesterday && c.updatedAt < today
       ),
       lastWeek: state.conversations.filter(
-        (c) => c.updatedAt >= lastWeek && c.updatedAt < yesterday
+        c => c.updatedAt >= lastWeek && c.updatedAt < yesterday
       ),
       lastMonth: state.conversations.filter(
-        (c) => c.updatedAt >= lastMonth && c.updatedAt < lastWeek
+        c => c.updatedAt >= lastMonth && c.updatedAt < lastWeek
       ),
-      older: state.conversations.filter((c) => c.updatedAt < lastMonth),
+      older: state.conversations.filter(c => c.updatedAt < lastMonth),
     }
   },
 
   clearCurrentConversation: () => set({ currentConversationId: null }),
 
   setWorkspace: async (id: string, workspace: string | null) => {
-    await window.api.ipc.invoke('db:conversations:updateWorkspace', { id, workspace })
-    set((state) => ({
-      conversations: state.conversations.map((c) =>
+    await window.api.ipc.invoke('db:conversations:updateWorkspace', {
+      id,
+      workspace,
+    })
+    set(state => ({
+      conversations: state.conversations.map(c =>
         c.id === id ? { ...c, workspace } : c
       ),
     }))
   },
 
-  updateConversationSystemPrompt: async (id: string, systemPrompt: string | null) => {
-    await window.api.ipc.invoke('db:conversations:updateSystemPrompt', { id, systemPrompt })
-    set((state) => ({
-      conversations: state.conversations.map((c) =>
+  updateConversationSystemPrompt: async (
+    id: string,
+    systemPrompt: string | null
+  ) => {
+    await window.api.ipc.invoke('db:conversations:updateSystemPrompt', {
+      id,
+      systemPrompt,
+    })
+    set(state => ({
+      conversations: state.conversations.map(c =>
         c.id === id ? { ...c, systemPrompt } : c
       ),
     }))
@@ -288,7 +335,9 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
 
   getEffectiveWorkspace: () => {
     const state = get()
-    const current = state.conversations.find((c) => c.id === state.currentConversationId)
+    const current = state.conversations.find(
+      c => c.id === state.currentConversationId
+    )
     if (current?.workspace) return current.workspace
     return useWorkspaceStore.getState().workspacePath
   },

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { ScrollArea } from '@lobehub/ui'
 
@@ -7,7 +7,10 @@ interface ThinkingBlockProps {
   isComplete?: boolean
 }
 
-export function ThinkingBlock({ thinking, isComplete = false }: ThinkingBlockProps) {
+export const ThinkingBlock = memo<ThinkingBlockProps>(function ThinkingBlock({
+  thinking,
+  isComplete = false,
+}) {
   const [isFullExpanded, setIsFullExpanded] = useState(false)
 
   if (!thinking) return null
@@ -61,4 +64,4 @@ export function ThinkingBlock({ thinking, isComplete = false }: ThinkingBlockPro
       )}
     </div>
   )
-}
+})

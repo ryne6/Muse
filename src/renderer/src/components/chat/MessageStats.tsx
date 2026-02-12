@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 interface MessageStatsProps {
   inputTokens?: number
   outputTokens?: number
@@ -19,16 +21,24 @@ function formatDuration(ms: number): string {
   return `${minutes}m ${seconds}s`
 }
 
-export function MessageStats({ inputTokens, outputTokens, durationMs }: MessageStatsProps) {
+export const MessageStats = memo<MessageStatsProps>(function MessageStats({
+  inputTokens,
+  outputTokens,
+  durationMs,
+}) {
   if (!inputTokens && !outputTokens && !durationMs) return null
 
   return (
     <div className="flex items-center gap-2 mt-2 text-xs text-[hsl(var(--text-muted))]">
       {inputTokens != null && (
-        <span>{'\u2191'} {formatTokenCount(inputTokens)}</span>
+        <span>
+          {'\u2191'} {formatTokenCount(inputTokens)}
+        </span>
       )}
       {outputTokens != null && (
-        <span>{'\u2193'} {formatTokenCount(outputTokens)} tokens</span>
+        <span>
+          {'\u2193'} {formatTokenCount(outputTokens)} tokens
+        </span>
       )}
       {durationMs != null && (
         <>
@@ -38,4 +48,4 @@ export function MessageStats({ inputTokens, outputTokens, durationMs }: MessageS
       )}
     </div>
   )
-}
+})

@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Modal } from '@lobehub/ui'
-import { X } from 'lucide-react'
+
 import { cn } from '@/utils/cn'
 
 // Context to share state between Dialog components
@@ -15,7 +15,11 @@ interface DialogProps {
   onOpenChange?: (open: boolean) => void
 }
 
-const Dialog = ({ children, open: controlledOpen, onOpenChange }: DialogProps) => {
+const Dialog = ({
+  children,
+  open: controlledOpen,
+  onOpenChange,
+}: DialogProps) => {
   const [internalOpen, setInternalOpen] = React.useState(false)
   const isControlled = controlledOpen !== undefined
   const open = isControlled ? controlledOpen : internalOpen
@@ -49,7 +53,7 @@ const DialogTrigger = React.forwardRef<
   }
 
   if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement<any>, {
+    return React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
       onClick: handleClick,
     })
   }
@@ -79,7 +83,7 @@ const DialogContent = ({ children, className }: DialogContentProps) => {
       closable
       styles={{
         header: { paddingBottom: 0, marginBottom: 0 },
-        body: { paddingTop: 0 }
+        body: { paddingTop: 0 },
       }}
     >
       {children}
@@ -88,33 +92,65 @@ const DialogContent = ({ children, className }: DialogContentProps) => {
 }
 DialogContent.displayName = 'DialogContent'
 
-const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn('flex flex-col space-y-1.5 text-center sm:text-left mb-4', className)} {...props} />
+const DialogHeader = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
+  <div
+    className={cn(
+      'flex flex-col space-y-1.5 text-center sm:text-left mb-4',
+      className
+    )}
+    {...props}
+  />
 )
 DialogHeader.displayName = 'DialogHeader'
 
-const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+const DialogFooter = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn('flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-4', className)}
+    className={cn(
+      'flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 mt-4',
+      className
+    )}
     {...props}
   />
 )
 DialogFooter.displayName = 'DialogFooter'
 
-const DialogTitle = ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-  <h2 className={cn('text-lg font-semibold leading-none tracking-tight', className)} {...props} />
+const DialogTitle = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLHeadingElement>) => (
+  <h2
+    className={cn(
+      'text-lg font-semibold leading-none tracking-tight',
+      className
+    )}
+    {...props}
+  />
 )
 DialogTitle.displayName = 'DialogTitle'
 
-const DialogDescription = ({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
+const DialogDescription = ({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLParagraphElement>) => (
   <p className={cn('text-sm text-muted-foreground', className)} {...props} />
 )
 DialogDescription.displayName = 'DialogDescription'
 
 // Compatibility exports (not used with Lobe UI Modal but kept for API compatibility)
-const DialogPortal = ({ children }: { children: React.ReactNode }) => <>{children}</>
+const DialogPortal = ({ children }: { children: React.ReactNode }) => (
+  <>{children}</>
+)
 const DialogOverlay = () => null
-const DialogClose = ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => {
+const DialogClose = ({
+  children,
+  ...props
+}: React.ButtonHTMLAttributes<HTMLButtonElement>) => {
   const { setOpen } = React.useContext(DialogContext)
   return (
     <button onClick={() => setOpen(false)} {...props}>

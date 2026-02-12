@@ -2,7 +2,12 @@ import { create } from 'zustand'
 import { v4 as uuidv4 } from 'uuid'
 import { apiClient, APIClientError } from '../services/apiClient'
 import { dbClient } from '../services/dbClient'
-import type { AIMessage, AIConfig, MessageContent, AIRequestOptions } from '@shared/types/ai'
+import type {
+  AIMessage,
+  AIConfig,
+  MessageContent,
+  AIRequestOptions,
+} from '@shared/types/ai'
 import type { APIError } from '@shared/types/error'
 import { getErrorMessage } from '@shared/types/error'
 import type { Message, ToolCall, ToolResult } from '@shared/types/conversation'
@@ -10,7 +15,7 @@ import type { PendingAttachment } from '@shared/types/attachment'
 import type { ApprovalScope } from '@shared/types/toolPermissions'
 import { useConversationStore } from './conversationStore'
 import { useSettingsStore } from './settingsStore'
-import { useWorkspaceStore } from './workspaceStore'
+
 import { getTextContent } from '@shared/types/ai'
 
 // TODO: Consider extracting memory-related logic into a dedicated memoryStore.ts
@@ -27,18 +32,21 @@ async function triggerMemoryExtraction(
 ): Promise<void> {
   const conv = useConversationStore
     .getState()
-    .conversations.find((c) => c.id === conversationId)
+    .conversations.find(c => c.id === conversationId)
   if (!conv || conv.messages.length === 0) return
 
   const workspacePath = useConversationStore.getState().getEffectiveWorkspace()
 
   // Build lightweight message array for extraction (last 10, text only)
   const recentMessages = conv.messages
-    .filter((m) => m.role === 'user' || m.role === 'assistant')
+    .filter(m => m.role === 'user' || m.role === 'assistant')
     .slice(-10)
-    .map((m) => ({
+    .map(m => ({
       role: m.role,
-      content: typeof m.content === 'string' ? m.content : getTextContent(m.content as any),
+      content:
+        typeof m.content === 'string'
+          ? m.content
+          : getTextContent(m.content as any),
     }))
 
   const result = await window.api.memory.extract({
@@ -50,12 +58,22 @@ async function triggerMemoryExtraction(
   })
 
   if (result.saved > 0) {
-    console.log(`🧠 Auto-extracted ${result.extracted} memories, ${result.saved} new saved`)
+    console.log(
+      `🧠 Auto-extracted ${result.extracted} memories, ${result.saved} new saved`
+    )
   }
 }
 
 /** Export for use by conversationStore on conversation switch */
 export { triggerMemoryExtraction }
+
+// VList 滚动方法接口
+interface ScrollMethods {
+  scrollToIndex: (
+    index: number,
+    options?: { align?: string; smooth?: boolean }
+  ) => void
+}
 
 interface ChatStore {
   // State
@@ -67,6 +85,9 @@ interface ChatStore {
   // P0 新增：session 级已授权工具
   // key = conversationId, value = 已授权的工具名集合
   sessionApprovals: Record<string, string[]>
+  // 滚动状态
+  atBottom: boolean
+  isScrolling: boolean
 
   // Actions
   sendMessage: (
@@ -91,7 +112,15 @@ interface ChatStore {
   getSessionApprovedTools: (conversationId: string) => string[]
   abortMessage: () => void
   clearError: () => void
+  setScrollState: (
+    state: Partial<{ atBottom: boolean; isScrolling: boolean }>
+  ) => void
+  scrollToBottom: (smooth?: boolean) => void
+  registerScrollMethods: (methods: ScrollMethods | null) => void
 }
+
+// 滚动方法引用，由 MessageList 注册
+let _scrollMethods: ScrollMethods | null = null
 
 export const useChatStore = create<ChatStore>((set, get) => ({
   // State
@@ -101,9 +130,28 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   lastError: null,
   retryable: false,
   sessionApprovals: {},
+  atBottom: true,
+  isScrolling: false,
 
   // Actions
   clearError: () => set({ error: null, lastError: null, retryable: false }),
+
+  setScrollState: scrollState => set(scrollState),
+
+  scrollToBottom: (smooth = false) => {
+    if (!_scrollMethods) return
+    // 滚动到最后一项
+    const ids = useConversationStore.getState()
+    const conv = ids.conversations.find(c => c.id === ids.currentConversationId)
+    const len = conv?.messages.length ?? 0
+    if (len > 0) {
+      _scrollMethods.scrollToIndex(len - 1, { align: 'end', smooth })
+    }
+  },
+
+  registerScrollMethods: methods => {
+    _scrollMethods = methods
+  },
 
   abortMessage: () => {
     const { abortController } = get()
@@ -113,7 +161,14 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     }
   },
 
-  sendMessage: async (conversationId, content, providerType, config, attachments = [], options) => {
+  sendMessage: async (
+    conversationId,
+    content,
+    providerType,
+    config,
+    attachments = [],
+    options
+  ) => {
     const controller = new AbortController()
     set({ isLoading: true, error: null, abortController: controller })
 
@@ -125,7 +180,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
       role: 'user',
       content,
       timestamp: messageTimestamp,
-      attachments: attachments.map((a) => ({
+      attachments: attachments.map(a => ({
         id: a.id,
         messageId: messageId,
         filename: a.filename,
@@ -167,13 +222,17 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     useConversationStore.getState().addMessage(userMessage)
 
     // Get conversation for context
-    const conversation = useConversationStore.getState().getCurrentConversation()
+    const conversation = useConversationStore
+      .getState()
+      .getCurrentConversation()
     if (!conversation) {
       set({ isLoading: false, error: 'No conversation found' })
       return
     }
 
-    const buildContentBlocks = async (m: Message): Promise<MessageContent[]> => {
+    const buildContentBlocks = async (
+      m: Message
+    ): Promise<MessageContent[]> => {
       const contentBlocks: MessageContent[] = []
 
       if (m.content) {
@@ -182,7 +241,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
       if (m.attachments?.length && window.api?.attachments?.getBase64) {
         const imageBlocks = await Promise.all(
-          m.attachments.map(async (attachment) => {
+          m.attachments.map(async attachment => {
             const base64 = await window.api.attachments.getBase64(attachment.id)
             return base64
               ? {
@@ -202,7 +261,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
     // Prepare messages for API (include history attachments)
     const historyMessages: AIMessage[] = await Promise.all(
-      conversation.messages.map(async (m) => {
+      conversation.messages.map(async m => {
         if (m.attachments && m.attachments.length > 0) {
           return {
             role: m.role as 'user' | 'assistant',
@@ -218,7 +277,9 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     )
 
     // Build system prompt with tool instructions
-    const workspacePath = useConversationStore.getState().getEffectiveWorkspace()
+    const workspacePath = useConversationStore
+      .getState()
+      .getEffectiveWorkspace()
 
     // Get skills content based on selection mode
     const selectedSkill = useSettingsStore.getState().selectedSkill
@@ -233,7 +294,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         // Auto mode: load all skills for AI to choose
         const skills = await dbClient.skills.getAll()
         if (skills.length > 0) {
-          const skillsList = skills.map((s: any) => `- **${s.name}**: ${s.description || 'No description'}`).join('\n')
+          const skillsList = skills
+            .map(
+              (s: any) =>
+                `- **${s.name}**: ${s.description || 'No description'}`
+            )
+            .join('\n')
           skillsSection = `\n\n## Available Skills\n\nThe following skills are available. Use them when relevant to the user's request:\n\n${skillsList}`
         }
       }
@@ -289,7 +355,8 @@ ${skillsSection}
 Current workspace: ${workspacePath || 'Not set'}`
 
     // Get custom system prompts (append mode - don't override built-in)
-    const globalSystemPrompt = useSettingsStore.getState().globalSystemPrompt || ''
+    const globalSystemPrompt =
+      useSettingsStore.getState().globalSystemPrompt || ''
     const conversationSystemPrompt = conversation.systemPrompt || ''
 
     // Merge custom prompts
@@ -306,7 +373,10 @@ Current workspace: ${workspacePath || 'Not set'}`
     const memoryEnabled = useSettingsStore.getState().memoryEnabled
     if (memoryEnabled) {
       try {
-        const memoryBlock = await window.api.memory.getRelevant(workspacePath, content)
+        const memoryBlock = await window.api.memory.getRelevant(
+          workspacePath,
+          content
+        )
         if (memoryBlock) {
           finalSystemPrompt = `${finalSystemPrompt}\n\n${memoryBlock}`
         }
@@ -370,9 +440,12 @@ Current workspace: ${workspacePath || 'Not set'}`
 
     try {
       const settingsState = useSettingsStore.getState()
-      const workspacePath = useConversationStore.getState().getEffectiveWorkspace()
-      const toolPermissions = options?.toolPermissions
-        ?? settingsState.getToolPermissions(workspacePath)
+      const workspacePath = useConversationStore
+        .getState()
+        .getEffectiveWorkspace()
+      const toolPermissions =
+        options?.toolPermissions ??
+        settingsState.getToolPermissions(workspacePath)
 
       flushChunks = () => {
         rafId = null
@@ -380,53 +453,49 @@ Current workspace: ${workspacePath || 'Not set'}`
         pendingChunks = []
         if (chunks.length === 0) return
 
-        const conversationStore = useConversationStore.getState()
-        const conv = conversationStore.conversations.find((c) => c.id === conversationId)
-        if (!conv) return
+        // 使用 updateMessage 只更新目标消息，保持其他消息引用不变
+        useConversationStore
+          .getState()
+          .updateMessage(conversationId, assistantMessageId, m => {
+            const updated: Message = { ...m }
 
-        const updatedMessages = conv.messages.map((m) => {
-          if (m.id !== assistantMessageId) return m
-
-          const updated: Message = { ...m }
-
-          for (const chunk of chunks) {
-            if (chunk.content) {
-              updated.content = (updated.content || '') + chunk.content
-            }
-            if (chunk.thinking) {
-              updated.thinking = (updated.thinking || '') + chunk.thinking
-            }
-            if (chunk.toolCall) {
-              const toolCalls = updated.toolCalls || []
-              const existingCall = toolCalls.find((tc: ToolCall) => tc.id === chunk.toolCall!.id)
-              if (!existingCall) {
-                toolCalls.push(chunk.toolCall as ToolCall)
-                updated.toolCalls = toolCalls
+            for (const chunk of chunks) {
+              if (chunk.content) {
+                updated.content = (updated.content || '') + chunk.content
+              }
+              if (chunk.thinking) {
+                updated.thinking = (updated.thinking || '') + chunk.thinking
+              }
+              if (chunk.toolCall) {
+                const toolCalls = [...(updated.toolCalls || [])]
+                const existingCall = toolCalls.find(
+                  (tc: ToolCall) => tc.id === chunk.toolCall!.id
+                )
+                if (!existingCall) {
+                  toolCalls.push(chunk.toolCall as ToolCall)
+                  updated.toolCalls = toolCalls
+                }
+              }
+              if (chunk.toolResult) {
+                const toolResults = [...(updated.toolResults || [])]
+                const existingResult = toolResults.find(
+                  (tr: ToolResult) =>
+                    tr.toolCallId === chunk.toolResult!.toolCallId
+                )
+                if (!existingResult) {
+                  toolResults.push(chunk.toolResult as ToolResult)
+                  updated.toolResults = toolResults
+                }
+              }
+              if (chunk.done && chunk.usage) {
+                updated.inputTokens = chunk.usage.inputTokens
+                updated.outputTokens = chunk.usage.outputTokens
+                updated.durationMs = Date.now() - startTime
               }
             }
-            if (chunk.toolResult) {
-              const toolResults = updated.toolResults || []
-              const existingResult = toolResults.find(
-                (tr: ToolResult) => tr.toolCallId === chunk.toolResult!.toolCallId
-              )
-              if (!existingResult) {
-                toolResults.push(chunk.toolResult as ToolResult)
-                updated.toolResults = toolResults
-              }
-            }
-            if (chunk.done && chunk.usage) {
-              updated.inputTokens = chunk.usage.inputTokens
-              updated.outputTokens = chunk.usage.outputTokens
-              updated.durationMs = Date.now() - startTime
-            }
-          }
 
-          return updated
-        })
-
-        conversationStore.updateConversation(conversationId, {
-          messages: updatedMessages,
-        })
+            return updated
+          })
       }
 
       // Send message with streaming
@@ -440,7 +509,7 @@ Current workspace: ${workspacePath || 'Not set'}`
         providerType,
         aiMessages,
         config,
-        (chunk) => {
+        chunk => {
           pendingChunks.push(chunk)
           if (rafId === null) {
             rafId = requestAnimationFrame(flushChunks)
@@ -449,7 +518,8 @@ Current workspace: ${workspacePath || 'Not set'}`
         controller.signal,
         {
           toolPermissions,
-          allowOnceTools: mergedAllowOnce.length > 0 ? mergedAllowOnce : undefined,
+          allowOnceTools:
+            mergedAllowOnce.length > 0 ? mergedAllowOnce : undefined,
         }
       )
 
@@ -462,7 +532,9 @@ Current workspace: ${workspacePath || 'Not set'}`
 
       // Persist assistant message to database after streaming completes
       const finalConv = useConversationStore.getState().getCurrentConversation()
-      const finalAssistantMessage = finalConv?.messages.find((m) => m.id === assistantMessageId)
+      const finalAssistantMessage = finalConv?.messages.find(
+        m => m.id === assistantMessageId
+      )
       if (finalAssistantMessage) {
         await dbClient.messages.create({
           id: finalAssistantMessage.id,
@@ -478,21 +550,30 @@ Current workspace: ${workspacePath || 'Not set'}`
       }
 
       // Update conversation title if it's the first user message
-      const currentConv = useConversationStore.getState().getCurrentConversation()
-      if (currentConv && currentConv.messages.filter((m) => m.role === 'user').length === 1) {
+      const currentConv = useConversationStore
+        .getState()
+        .getCurrentConversation()
+      if (
+        currentConv &&
+        currentConv.messages.filter(m => m.role === 'user').length === 1
+      ) {
         const title = content.slice(0, 50) + (content.length > 50 ? '...' : '')
-        useConversationStore.getState().renameConversation(conversationId, title)
+        useConversationStore
+          .getState()
+          .renameConversation(conversationId, title)
       }
 
       // P1: Auto-extract memories every 5 rounds (fire-and-forget)
       if (memoryEnabled && currentConv) {
-        const userMsgCount = currentConv.messages.filter((m) => m.role === 'user').length
+        const userMsgCount = currentConv.messages.filter(
+          m => m.role === 'user'
+        ).length
         if (userMsgCount >= 5 && userMsgCount % 5 === 0) {
           const settings = useSettingsStore.getState()
           const pid = settings.currentProviderId
           const mid = settings.currentModelId
           if (pid && mid) {
-            triggerMemoryExtraction(conversationId, pid, mid).catch((err) =>
+            triggerMemoryExtraction(conversationId, pid, mid).catch(err =>
               console.error('Background memory extraction failed:', err)
             )
           }
@@ -527,20 +608,13 @@ Current workspace: ${workspacePath || 'Not set'}`
         errorMessage = getErrorMessage(error.message as any) || error.message
       }
 
-      // Update assistant message with error
-      const conversationStore = useConversationStore.getState()
-      const currentConv = conversationStore.getCurrentConversation()
-      if (currentConv) {
-        const updatedMessages = currentConv.messages.map((m) =>
-          m.id === assistantMessageId
-            ? { ...m, content: `Error: ${errorMessage}` }
-            : m
-        )
-
-        conversationStore.updateConversation(conversationId, {
-          messages: updatedMessages,
-        })
-      }
+      // Update assistant message with error (use updateMessage to preserve sibling refs)
+      useConversationStore
+        .getState()
+        .updateMessage(conversationId, assistantMessageId, m => ({
+          ...m,
+          content: `Error: ${errorMessage}`,
+        }))
 
       set({ error: errorMessage, lastError: apiError, retryable: isRetryable })
     } finally {
@@ -550,7 +624,9 @@ Current workspace: ${workspacePath || 'Not set'}`
 
   approveToolCall: async (conversationId, toolName, scope) => {
     const settingsState = useSettingsStore.getState()
-    const workspacePath = useConversationStore.getState().getEffectiveWorkspace()
+    const workspacePath = useConversationStore
+      .getState()
+      .getEffectiveWorkspace()
     const provider = settingsState.getCurrentProvider()
     const model = settingsState.getCurrentModel()
 
@@ -572,7 +648,7 @@ Current workspace: ${workspacePath || 'Not set'}`
 
       case 'session':
         // 存储到 sessionApprovals
-        set((state) => {
+        set(state => {
           const current = state.sessionApprovals[conversationId] || []
           if (!current.includes(toolName)) {
             return {
@@ -589,7 +665,7 @@ Current workspace: ${workspacePath || 'Not set'}`
       case 'project':
         // P1 实现：写入 .muse/permissions.json
         // P0 阶段 fallback 到 session
-        set((state) => {
+        set(state => {
           const current = state.sessionApprovals[conversationId] || []
           if (!current.includes(toolName)) {
             return {

@@ -2,6 +2,12 @@ import { afterEach, vi } from 'vitest'
 import { mockWindowApi } from '../mocks/electron'
 import { mockDbClient } from '../mocks/db-client'
 
+// Mock @lobehub/ui to avoid Node 22 ESM JSON import attribute errors.
+// The real barrel re-exports EmojiPicker which transitively imports
+// @emoji-mart/data (a .json main entry) without the required `type: "json"`
+// attribute. Individual test files can override with their own vi.mock.
+vi.mock('@lobehub/ui', async () => await import('../mocks/lobehub-ui'))
+
 if (typeof globalThis.localStorage === 'undefined') {
   const storage = new Map<string, string>()
   const localStorageMock: Storage = {

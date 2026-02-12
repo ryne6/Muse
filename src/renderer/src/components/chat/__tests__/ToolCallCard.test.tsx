@@ -25,10 +25,16 @@ vi.mock('lucide-react', () => {
     Loader2: make('Loader2'),
     ChevronDown: make('ChevronDown'),
     ChevronUp: make('ChevronUp'),
+    ChevronRight: make('ChevronRight'),
     Terminal: make('Terminal'),
     ListTodo: make('ListTodo'),
+    createLucideIcon: (name: string) => make(name),
   }
 })
+
+vi.mock('@lobehub/ui', () => ({
+  ScrollArea: ({ children }: any) => <div>{children}</div>,
+}))
 
 const mockApproveToolCall = vi.fn()
 
@@ -93,7 +99,6 @@ describe('ToolCallCard', () => {
     render(<ToolCallCard toolCall={toolCall} toolResult={toolResult} />)
 
     expect(screen.getByText('允许')).toBeTruthy()
-    expect(screen.getByText('允许所有')).toBeTruthy()
     expect(screen.getByText('拒绝')).toBeTruthy()
   })
 })

@@ -60,6 +60,16 @@ vi.mock('@/stores/settingsStore', () => ({
   useSettingsStore: () => mockSettingsStore,
 }))
 
+vi.mock('@lobehub/ui', () => ({
+  Modal: ({ open, children, title }: any) =>
+    open ? (
+      <div role="dialog" aria-label={title}>
+        <h2>{title}</h2>
+        {children}
+      </div>
+    ) : null,
+}))
+
 describe('AddProviderDialog', () => {
   beforeEach(() => {
     vi.clearAllMocks()

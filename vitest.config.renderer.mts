@@ -14,7 +14,7 @@ export default mergeConfig(
       setupFiles: ['./tests/setup/vitest.setup.ts', './tests/setup/renderer.setup.ts'],
       server: {
         deps: {
-          inline: ['@emoji-mart/data', '@emoji-mart/react', '@lobehub/ui']
+          inline: ['@emoji-mart/data', '@emoji-mart/react', /^@lobehub\/ui/]
         }
       }
     },

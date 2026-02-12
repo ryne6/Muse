@@ -34,6 +34,45 @@ vi.mock('@/stores/settingsStore', () => ({
   useSettingsStore: () => mockSettingsStore,
 }))
 
+vi.mock('@lobehub/ui', () => {
+  const React = require('react')
+  return {
+    Modal: ({ open, children, title }: any) =>
+      open ? (
+        <div role="dialog" aria-label={title}>
+          <h2>{title}</h2>
+          {children}
+        </div>
+      ) : null,
+    Input: React.forwardRef(({ ...props }: any, ref: any) => (
+      <input ref={ref} {...props} />
+    )),
+    Select: ({ id, value, onChange, options }: any) => (
+      <select
+        id={id}
+        value={value}
+        onChange={(e: any) => onChange(e.target.value)}
+      >
+        {options?.map((opt: any) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
+    ),
+    Checkbox: ({ checked, onChange, children }: any) => (
+      <label>
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e: any) => onChange(e.target.checked)}
+        />
+        {children}
+      </label>
+    ),
+  }
+})
+
 const mockProvider = {
   id: 'p1',
   name: 'OpenAI',

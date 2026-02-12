@@ -56,6 +56,9 @@ export function createTestDatabase() {
       content TEXT NOT NULL,
       thinking TEXT,
       timestamp INTEGER NOT NULL,
+      input_tokens INTEGER,
+      output_tokens INTEGER,
+      duration_ms INTEGER,
       FOREIGN KEY (conversation_id) REFERENCES conversations(id) ON DELETE CASCADE
     );
 

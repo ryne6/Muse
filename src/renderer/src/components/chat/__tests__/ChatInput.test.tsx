@@ -36,6 +36,7 @@ const { mockChatStore, mockConversationStore, mockSettingsStore, mockNotify } =
       currentModelId: 'model-1',
       temperature: 1,
       thinkingEnabled: false,
+      memoryEnabled: false,
       lastUpdated: Date.now(),
       providers: [
         {
@@ -78,6 +79,7 @@ const { mockChatStore, mockConversationStore, mockSettingsStore, mockNotify } =
       mockConversationStore: {
         ...conversationStoreState,
         getCurrentConversation: vi.fn(() => null),
+        getEffectiveWorkspace: vi.fn(() => '/test/workspace'),
         createConversation: vi.fn(async (title?: string) => ({
           id: 'new-conv-id',
           title: title ?? 'New Conversation',
@@ -141,18 +143,30 @@ const { mockChatStore, mockConversationStore, mockSettingsStore, mockNotify } =
     }
   })
 
-// Mock Zustand stores
-vi.mock('@/stores/chatStore', () => ({
-  useChatStore: () => mockChatStore,
-}))
+// Mock Zustand stores — each mock must be both callable (hook) and have .getState()
+vi.mock('@/stores/chatStore', () => {
+  const hook = () => mockChatStore
+  hook.getState = () => mockChatStore
+  hook.setState = mockChatStore.setState
+  hook.subscribe = mockChatStore.subscribe
+  return { useChatStore: hook }
+})
 
-vi.mock('@/stores/conversationStore', () => ({
-  useConversationStore: () => mockConversationStore,
-}))
+vi.mock('@/stores/conversationStore', () => {
+  const hook = () => mockConversationStore
+  hook.getState = () => mockConversationStore
+  hook.setState = mockConversationStore.setState
+  hook.subscribe = mockConversationStore.subscribe
+  return { useConversationStore: hook }
+})
 
-vi.mock('@/stores/settingsStore', () => ({
-  useSettingsStore: () => mockSettingsStore,
-}))
+vi.mock('@/stores/settingsStore', () => {
+  const hook = () => mockSettingsStore
+  hook.getState = () => mockSettingsStore
+  hook.setState = mockSettingsStore.setState
+  hook.subscribe = mockSettingsStore.subscribe
+  return { useSettingsStore: hook }
+})
 
 vi.mock('../ToolsDropdown', () => ({
   ToolsDropdown: () => null,

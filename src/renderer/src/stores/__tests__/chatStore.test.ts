@@ -46,6 +46,17 @@ vi.mock('../../services/apiClient', () => ({
 const mockAddMessage = vi.fn()
 const mockGetCurrentConversation = vi.fn()
 const mockUpdateConversation = vi.fn()
+const mockUpdateMessage = vi.fn(
+  (_convId: string, _msgId: string, updater: (msg: any) => any) => {
+    updater({
+      id: _msgId,
+      role: 'assistant',
+      content: '',
+      toolCalls: [],
+      toolResults: [],
+    })
+  }
+)
 const mockRenameConversation = vi.fn()
 
 vi.mock('../conversationStore', () => ({
@@ -54,6 +65,7 @@ vi.mock('../conversationStore', () => ({
       getCurrentConversation: mockGetCurrentConversation,
       addMessage: mockAddMessage,
       updateConversation: mockUpdateConversation,
+      updateMessage: mockUpdateMessage,
       renameConversation: mockRenameConversation,
       getEffectiveWorkspace: () => '/test/workspace',
     }),
@@ -383,7 +395,7 @@ describe('ChatStore', () => {
         .getState()
         .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
-      expect(mockUpdateConversation).toHaveBeenCalled()
+      expect(mockUpdateMessage).toHaveBeenCalled()
     })
 
     it('should store lastError for APIClientError', async () => {
@@ -611,7 +623,7 @@ describe('ChatStore', () => {
         .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       expect(streamCallback).not.toBeNull()
-      expect(mockUpdateConversation).toHaveBeenCalled()
+      expect(mockUpdateMessage).toHaveBeenCalled()
     })
 
     it('should handle thinking content in streaming', async () => {
@@ -631,7 +643,7 @@ describe('ChatStore', () => {
         .getState()
         .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
-      expect(mockUpdateConversation).toHaveBeenCalled()
+      expect(mockUpdateMessage).toHaveBeenCalled()
     })
 
     it('should handle tool call in streaming', async () => {
@@ -657,7 +669,7 @@ describe('ChatStore', () => {
         .getState()
         .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
-      expect(mockUpdateConversation).toHaveBeenCalled()
+      expect(mockUpdateMessage).toHaveBeenCalled()
     })
 
     it('should handle tool result in streaming', async () => {
@@ -682,7 +694,7 @@ describe('ChatStore', () => {
         .getState()
         .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
-      expect(mockUpdateConversation).toHaveBeenCalled()
+      expect(mockUpdateMessage).toHaveBeenCalled()
     })
   })
 

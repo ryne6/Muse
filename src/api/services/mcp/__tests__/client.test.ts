@@ -335,5 +335,85 @@ describe('MCPClient', () => {
       stderrCallback?.(Buffer.from('Visit https://example.com/oauth.'))
       expect(mockOpenExternal).toHaveBeenCalledWith('https://example.com/oauth')
     })
+
+    it('should open larksuite.com auth URL', async () => {
+      await client.connect()
+
+      stderrCallback?.(
+        Buffer.from('Auth: https://open.larksuite.com/authorize')
+      )
+      expect(mockOpenExternal).toHaveBeenCalledWith(
+        'https://open.larksuite.com/authorize'
+      )
+    })
+
+    it('should open consent URL', async () => {
+      await client.connect()
+
+      stderrCallback?.(
+        Buffer.from('https://provider.example.com/consent?scope=read')
+      )
+      expect(mockOpenExternal).toHaveBeenCalledWith(
+        'https://provider.example.com/consent?scope=read'
+      )
+    })
+
+    it('should handle multiple URLs in single stderr output', async () => {
+      await client.connect()
+
+      stderrCallback?.(
+        Buffer.from(
+          'Visit https://example.com/docs or https://accounts.google.com/oauth'
+        )
+      )
+      // Only the auth URL should be opened
+      expect(mockOpenExternal).toHaveBeenCalledTimes(1)
+      expect(mockOpenExternal).toHaveBeenCalledWith(
+        'https://accounts.google.com/oauth'
+      )
+    })
+
+    it('should open multiple auth URLs from single output', async () => {
+      await client.connect()
+
+      stderrCallback?.(
+        Buffer.from(
+          'https://example.com/login and https://accounts.google.com/oauth'
+        )
+      )
+      expect(mockOpenExternal).toHaveBeenCalledTimes(2)
+    })
+
+    it('should clean trailing semicolons and colons from URLs', async () => {
+      await client.connect()
+
+      stderrCallback?.(Buffer.from('URL: https://example.com/oauth;'))
+      expect(mockOpenExternal).toHaveBeenCalledWith(
+        'https://example.com/oauth'
+      )
+    })
+
+    it('should clean trailing parenthesis from URLs', async () => {
+      await client.connect()
+
+      stderrCallback?.(Buffer.from('(https://example.com/authorize)'))
+      expect(mockOpenExternal).toHaveBeenCalledWith(
+        'https://example.com/authorize'
+      )
+    })
+
+    it('should not open URL without auth patterns', async () => {
+      await client.connect()
+
+      stderrCallback?.(Buffer.from('https://cdn.example.com/assets/image.png'))
+      expect(mockOpenExternal).not.toHaveBeenCalled()
+    })
+
+    it('should handle stderr with no URLs', async () => {
+      await client.connect()
+
+      stderrCallback?.(Buffer.from('Server started on port 3000'))
+      expect(mockOpenExternal).not.toHaveBeenCalled()
+    })
   })
 })

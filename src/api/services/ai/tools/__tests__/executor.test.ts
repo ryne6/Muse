@@ -527,4 +527,351 @@ describe('ToolExecutor', () => {
       expect(result).toContain('Error')
     })
   })
+
+  describe('TodoWrite edge cases', () => {
+    it('should throw on null todos', async () => {
+      const result = await executor.execute('TodoWrite', { todos: null })
+      expect(result).toContain('Error: Todos must be provided as an array')
+    })
+
+    it('should throw on missing todos key', async () => {
+      const result = await executor.execute('TodoWrite', {})
+      expect(result).toContain('Error: Todos must be provided as an array')
+    })
+
+    it('should throw on non-array todos', async () => {
+      const result = await executor.execute('TodoWrite', { todos: 'not-array' })
+      expect(result).toContain('Error: Todos must be provided as an array')
+    })
+
+    it('should handle empty array', async () => {
+      const result = await executor.execute('TodoWrite', { todos: [] })
+      expect(result).toBe('')
+    })
+
+    it('should throw on invalid status', async () => {
+      const result = await executor.execute('TodoWrite', {
+        todos: [{ title: 'Test', status: 'invalid_status' }],
+      })
+      expect(result).toContain('Error: Invalid todo status: invalid_status')
+    })
+
+    it('should handle missing title gracefully', async () => {
+      const result = await executor.execute('TodoWrite', {
+        todos: [{ status: 'todo' }],
+      })
+      expect(result).toBe('- [ ] ')
+    })
+
+    it('should ignore empty string notes', async () => {
+      const result = await executor.execute('TodoWrite', {
+        todos: [{ title: 'Task', status: 'done', notes: '' }],
+      })
+      expect(result).toBe('- [x] Task')
+      expect(result).not.toContain('  - ')
+    })
+
+    it('should ignore whitespace-only notes', async () => {
+      const result = await executor.execute('TodoWrite', {
+        todos: [{ title: 'Task', status: 'todo', notes: '   ' }],
+      })
+      expect(result).toBe('- [ ] Task')
+      expect(result).not.toContain('  - ')
+    })
+
+    it('should trim notes content', async () => {
+      const result = await executor.execute('TodoWrite', {
+        todos: [
+          { title: 'Task', status: 'in_progress', notes: '  padded note  ' },
+        ],
+      })
+      expect(result).toContain('  - padded note')
+      expect(result).not.toContain('  padded note  ')
+    })
+  })
+
+  describe('LS formatSize boundaries', () => {
+    it('should show bytes for exactly 1023', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: {
+          files: [{ name: 'f.txt', isDirectory: false, size: 1023 }],
+        },
+      })
+
+      const result = await executor.execute('LS', { path: '/test' })
+      expect(result).toContain('1023B')
+    })
+
+    it('should show KB for exactly 1024', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: {
+          files: [{ name: 'f.txt', isDirectory: false, size: 1024 }],
+        },
+      })
+
+      const result = await executor.execute('LS', { path: '/test' })
+      expect(result).toContain('1.0KB')
+    })
+
+    it('should show KB for 1024*1024 - 1', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: {
+          files: [
+            { name: 'f.txt', isDirectory: false, size: 1024 * 1024 - 1 },
+          ],
+        },
+      })
+
+      const result = await executor.execute('LS', { path: '/test' })
+      expect(result).toContain('KB')
+      expect(result).not.toContain('MB')
+    })
+
+    it('should show MB for exactly 1MB', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: {
+          files: [
+            { name: 'f.txt', isDirectory: false, size: 1024 * 1024 },
+          ],
+        },
+      })
+
+      const result = await executor.execute('LS', { path: '/test' })
+      expect(result).toContain('1.0MB')
+    })
+
+    it('should show 0B for zero-size file', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: {
+          files: [{ name: 'empty.txt', isDirectory: false, size: 0 }],
+        },
+      })
+
+      const result = await executor.execute('LS', { path: '/test' })
+      expect(result).toContain('0B')
+    })
+  })
+
+  describe('Edit singular/plural', () => {
+    it('should use singular "occurrence" for 1 replacement', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { replaced: 1 },
+      })
+
+      const result = await executor.execute(
+        'Edit',
+        { path: '/f.txt', old_text: 'a', new_text: 'b' },
+        { toolPermissions: { allowAll: true } }
+      )
+
+      expect(result).toBe('Replaced 1 occurrence in /f.txt')
+    })
+
+    it('should use plural "occurrences" for multiple replacements', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { replaced: 3 },
+      })
+
+      const result = await executor.execute(
+        'Edit',
+        { path: '/f.txt', old_text: 'a', new_text: 'b', replace_all: true },
+        { toolPermissions: { allowAll: true } }
+      )
+
+      expect(result).toBe('Replaced 3 occurrences in /f.txt')
+    })
+  })
+
+  describe('Glob/Grep empty results', () => {
+    it('should return no matches for empty glob results', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { files: [] },
+      })
+
+      const result = await executor.execute('Glob', {
+        pattern: '**/*.xyz',
+        path: '/test',
+      })
+      expect(result).toBe('No matches found.')
+    })
+
+    it('should return no matches for empty grep results', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { results: [] },
+      })
+
+      const result = await executor.execute('Grep', {
+        pattern: 'nonexistent',
+        path: '/test',
+      })
+      expect(result).toBe('No matches found.')
+    })
+
+    it('should return no results for empty web search', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { results: [] },
+      })
+
+      const result = await executor.execute('WebSearch', { query: 'nothing' })
+      expect(result).toBe('No results found.')
+    })
+  })
+
+  describe('Git tool routing', () => {
+    it('should route GitDiff with staged flag', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { output: 'diff output' },
+      })
+
+      const result = await executor.execute('GitDiff', {
+        path: '/repo',
+        staged: true,
+        file: 'src/index.ts',
+      })
+
+      expect(axios.post).toHaveBeenCalledWith(
+        'http://localhost:3001/ipc/git:diff',
+        { path: '/repo', staged: true, file: 'src/index.ts' }
+      )
+      expect(result).toBe('diff output')
+    })
+
+    it('should route GitLog with maxCount', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { output: 'commit abc123' },
+      })
+
+      const result = await executor.execute('GitLog', {
+        path: '/repo',
+        maxCount: 5,
+      })
+
+      expect(axios.post).toHaveBeenCalledWith(
+        'http://localhost:3001/ipc/git:log',
+        { path: '/repo', maxCount: 5 }
+      )
+      expect(result).toBe('commit abc123')
+    })
+
+    it('should route GitCommit', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { output: '[main abc123] feat: add feature' },
+      })
+
+      const result = await executor.execute(
+        'GitCommit',
+        {
+          path: '/repo',
+          message: 'feat: add feature',
+          files: ['src/index.ts'],
+        },
+        { toolPermissions: { allowAll: true } }
+      )
+
+      expect(axios.post).toHaveBeenCalledWith(
+        'http://localhost:3001/ipc/git:commit',
+        {
+          path: '/repo',
+          message: 'feat: add feature',
+          files: ['src/index.ts'],
+        }
+      )
+      expect(result).toContain('feat: add feature')
+    })
+
+    it('should route GitPush', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { output: 'pushed to origin/main' },
+      })
+
+      const result = await executor.execute(
+        'GitPush',
+        { path: '/repo', remote: 'origin', branch: 'main' },
+        { toolPermissions: { allowAll: true } }
+      )
+
+      expect(axios.post).toHaveBeenCalledWith(
+        'http://localhost:3001/ipc/git:push',
+        { path: '/repo', remote: 'origin', branch: 'main' }
+      )
+      expect(result).toBe('pushed to origin/main')
+    })
+
+    it('should route GitCheckout with create flag', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { output: "Switched to branch 'feature'" },
+      })
+
+      const result = await executor.execute(
+        'GitCheckout',
+        { path: '/repo', branch: 'feature', create: true },
+        { toolPermissions: { allowAll: true } }
+      )
+
+      expect(axios.post).toHaveBeenCalledWith(
+        'http://localhost:3001/ipc/git:checkout',
+        { path: '/repo', branch: 'feature', create: true }
+      )
+      expect(result).toContain('feature')
+    })
+
+    it('should combine output and error from git command', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { output: 'partial output', error: 'warning message' },
+      })
+
+      const result = await executor.execute('GitStatus', { path: '/repo' })
+      expect(result).toBe('partial output\nwarning message')
+    })
+
+    it('should return only error when output is empty', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { output: '', error: 'fatal: not a git repo' },
+      })
+
+      const result = await executor.execute('GitStatus', { path: '/nope' })
+      expect(result).toBe('fatal: not a git repo')
+    })
+  })
+
+  describe('permission: sessionApprovedTools', () => {
+    it('should allow tool via sessionApprovedTools', async () => {
+      vi.mocked(axios.post).mockResolvedValue({
+        data: { success: true },
+      })
+
+      const result = await executor.execute(
+        'Write',
+        { path: '/f.txt', content: 'hi' },
+        { sessionApprovedTools: new Set(['Write']) }
+      )
+
+      expect(result).toContain('Successfully wrote')
+      expect(axios.post).toHaveBeenCalled()
+    })
+  })
+
+  describe('permission: deny via rules', () => {
+    it('should deny tool when permission rule denies it', async () => {
+      const result = await executor.execute(
+        'Write',
+        { path: '/secret.txt', content: 'x' },
+        {
+          permissionRules: [
+            {
+              id: 'deny-write',
+              action: 'deny',
+              tool: 'Write',
+              source: 'project',
+              description: 'No writes allowed',
+            },
+          ],
+        }
+      )
+
+      expect(result).toContain('Error: Tool "Write" was denied')
+      expect(result).toContain('No writes allowed')
+      expect(axios.post).not.toHaveBeenCalled()
+    })
+  })
 })

@@ -2,9 +2,12 @@ import * as React from 'react'
 import { Input as LobeInput } from '@lobehub/ui'
 import { cn } from '@/utils/cn'
 
-export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {}
+type LobeInputRef = React.ElementRef<typeof LobeInput>
 
-const Input = React.forwardRef<HTMLInputElement, InputProps>(
+export interface InputProps
+  extends React.ComponentPropsWithoutRef<typeof LobeInput> {}
+
+const Input = React.forwardRef<LobeInputRef, InputProps>(
   ({ className, type, ...props }, ref) => {
     return (
       <LobeInput

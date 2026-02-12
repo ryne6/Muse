@@ -42,9 +42,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src/renderer/src'),
       '@main': path.resolve(__dirname, './src/main'),
       '@renderer': path.resolve(__dirname, './src/renderer/src'),
-      '@shared': path.resolve(__dirname, './src/shared'),
-      '@lobehub/ui/es/Button': path.resolve(__dirname, './node_modules/@lobehub/ui/es/Button/index.mjs'),
-      '@lobehub/ui/es/DropdownMenu': path.resolve(__dirname, './node_modules/@lobehub/ui/es/DropdownMenu/index.mjs')
+      '@shared': path.resolve(__dirname, './src/shared')
     }
   }
 })

@@ -58,10 +58,12 @@ const mockUpdateMessage = vi.fn(
   }
 )
 const mockRenameConversation = vi.fn()
+const mockConversations = vi.hoisted(() => ({ value: [] as any[] }))
 
 vi.mock('../conversationStore', () => ({
   useConversationStore: {
     getState: () => ({
+      conversations: mockConversations.value,
       getCurrentConversation: mockGetCurrentConversation,
       addMessage: mockAddMessage,
       updateConversation: mockUpdateConversation,
@@ -695,6 +697,322 @@ describe('ChatStore', () => {
         .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       expect(mockUpdateMessage).toHaveBeenCalled()
+    })
+  })
+
+  describe('denyToolCall', () => {
+    const mockProvider = {
+      id: 'p1',
+      name: 'OpenAI',
+      type: 'openai',
+      apiKey: 'key',
+      baseURL: null,
+      apiFormat: 'chat-completions',
+      enabled: true,
+      createdAt: new Date(),
+    }
+
+    const mockModel = {
+      id: 'm1',
+      providerId: 'p1',
+      modelId: 'gpt-4',
+      name: 'GPT-4',
+      description: null,
+      enabled: true,
+      createdAt: new Date(),
+    }
+
+    it('should set error when no provider selected', async () => {
+      mockGetCurrentProvider.mockReturnValue(null)
+      mockGetCurrentModel.mockReturnValue(mockModel)
+
+      await useChatStore
+        .getState()
+        .denyToolCall('conv-1', 'Bash', 'tc-1')
+
+      expect(useChatStore.getState().error).toBe(
+        'No provider or model selected'
+      )
+      expect(mockSendMessageStream).not.toHaveBeenCalled()
+    })
+
+    it('should set error when no model selected', async () => {
+      mockGetCurrentProvider.mockReturnValue(mockProvider)
+      mockGetCurrentModel.mockReturnValue(null)
+
+      await useChatStore
+        .getState()
+        .denyToolCall('conv-1', 'Bash', 'tc-1')
+
+      expect(useChatStore.getState().error).toBe(
+        'No provider or model selected'
+      )
+      expect(mockSendMessageStream).not.toHaveBeenCalled()
+    })
+
+    it('should set error when provider has no API key', async () => {
+      const providerWithoutKey = { ...mockProvider, apiKey: '' }
+      mockGetCurrentProvider.mockReturnValue(providerWithoutKey)
+      mockGetCurrentModel.mockReturnValue(mockModel)
+
+      await useChatStore
+        .getState()
+        .denyToolCall('conv-1', 'Bash', 'tc-1')
+
+      expect(useChatStore.getState().error).toBe('Provider API key missing')
+      expect(mockSendMessageStream).not.toHaveBeenCalled()
+    })
+
+    it('should send denial message without reason', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+      mockGetCurrentProvider.mockReturnValue(mockProvider)
+      mockGetCurrentModel.mockReturnValue(mockModel)
+      mockSendMessageStream.mockResolvedValue(undefined)
+
+      await useChatStore
+        .getState()
+        .denyToolCall('conv-1', 'Bash', 'tc-1')
+
+      expect(mockAddMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          role: 'user',
+          content: expect.stringContaining('[Tool Denied]'),
+        })
+      )
+      // Should contain the tool name and ID
+      const userMsg = mockAddMessage.mock.calls.find(
+        (c: any) => c[0].role === 'user' && c[0].content.includes('[Tool Denied]')
+      )
+      expect(userMsg[0].content).toContain('Bash')
+      expect(userMsg[0].content).toContain('tc-1')
+      expect(userMsg[0].content).toContain(
+        'Please try a different approach or ask the user for guidance.'
+      )
+    })
+
+    it('should send denial message with reason', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+      mockGetCurrentProvider.mockReturnValue(mockProvider)
+      mockGetCurrentModel.mockReturnValue(mockModel)
+      mockSendMessageStream.mockResolvedValue(undefined)
+
+      await useChatStore
+        .getState()
+        .denyToolCall('conv-1', 'Write', 'tc-2', 'Too dangerous')
+
+      const userMsg = mockAddMessage.mock.calls.find(
+        (c: any) => c[0].role === 'user' && c[0].content.includes('[Tool Denied]')
+      )
+      expect(userMsg[0].content).toContain('Write')
+      expect(userMsg[0].content).toContain('tc-2')
+      expect(userMsg[0].content).toContain('Reason: Too dangerous')
+    })
+  })
+
+  describe('approveToolCall session scope', () => {
+    const mockProvider = {
+      id: 'p1',
+      name: 'OpenAI',
+      type: 'openai',
+      apiKey: 'key',
+      baseURL: null,
+      apiFormat: 'chat-completions',
+      enabled: true,
+      createdAt: new Date(),
+    }
+
+    const mockModel = {
+      id: 'm1',
+      providerId: 'p1',
+      modelId: 'gpt-4',
+      name: 'GPT-4',
+      description: null,
+      enabled: true,
+      createdAt: new Date(),
+    }
+
+    it('should store tool in sessionApprovals for session scope', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+      mockGetCurrentProvider.mockReturnValue(mockProvider)
+      mockGetCurrentModel.mockReturnValue(mockModel)
+      mockSendMessageStream.mockResolvedValue(undefined)
+
+      await useChatStore
+        .getState()
+        .approveToolCall('conv-1', 'Bash', 'session')
+
+      expect(
+        useChatStore.getState().sessionApprovals['conv-1']
+      ).toContain('Bash')
+    })
+
+    it('should not duplicate tool in sessionApprovals', async () => {
+      useChatStore.setState({
+        sessionApprovals: { 'conv-1': ['Bash'] },
+      })
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+      mockGetCurrentProvider.mockReturnValue(mockProvider)
+      mockGetCurrentModel.mockReturnValue(mockModel)
+      mockSendMessageStream.mockResolvedValue(undefined)
+
+      await useChatStore
+        .getState()
+        .approveToolCall('conv-1', 'Bash', 'session')
+
+      expect(
+        useChatStore.getState().sessionApprovals['conv-1']
+      ).toEqual(['Bash'])
+    })
+
+    it('should store tool in sessionApprovals for project scope (fallback)', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+      mockGetCurrentProvider.mockReturnValue(mockProvider)
+      mockGetCurrentModel.mockReturnValue(mockModel)
+      mockSendMessageStream.mockResolvedValue(undefined)
+
+      await useChatStore
+        .getState()
+        .approveToolCall('conv-1', 'Write', 'project')
+
+      expect(
+        useChatStore.getState().sessionApprovals['conv-1']
+      ).toContain('Write')
+    })
+
+    it('should return session approved tools via getSessionApprovedTools', () => {
+      useChatStore.setState({
+        sessionApprovals: { 'conv-1': ['Bash', 'Write'] },
+      })
+
+      const tools = useChatStore
+        .getState()
+        .getSessionApprovedTools('conv-1')
+
+      expect(tools).toEqual(['Bash', 'Write'])
+    })
+
+    it('should return empty array for unknown conversation', () => {
+      const tools = useChatStore
+        .getState()
+        .getSessionApprovedTools('unknown-conv')
+
+      expect(tools).toEqual([])
+    })
+  })
+
+  describe('triggerMemoryExtraction', () => {
+    let mockExtract: ReturnType<typeof vi.fn>
+
+    beforeEach(() => {
+      mockExtract = vi.fn().mockResolvedValue({ extracted: 1, saved: 1 })
+      global.window = global.window || ({} as any)
+      global.window.api = {
+        ...(global.window.api || {}),
+        memory: { extract: mockExtract },
+      } as any
+    })
+
+    afterEach(() => {
+      mockConversations.value = []
+    })
+
+    it('should return early when conversation not found', async () => {
+      mockConversations.value = []
+
+      const { triggerMemoryExtraction } = await import('../chatStore')
+      await triggerMemoryExtraction('nonexistent', 'p1', 'm1')
+
+      expect(mockExtract).not.toHaveBeenCalled()
+    })
+
+    it('should return early when conversation has no messages', async () => {
+      mockConversations.value = [
+        { id: 'conv-1', messages: [] },
+      ]
+
+      const { triggerMemoryExtraction } = await import('../chatStore')
+      await triggerMemoryExtraction('conv-1', 'p1', 'm1')
+
+      expect(mockExtract).not.toHaveBeenCalled()
+    })
+
+    it('should filter to user/assistant messages only', async () => {
+      mockConversations.value = [
+        {
+          id: 'conv-1',
+          messages: [
+            { role: 'user', content: 'Hello' },
+            { role: 'assistant', content: 'Hi there' },
+            { role: 'system', content: 'System prompt' },
+            { role: 'user', content: 'Question' },
+          ],
+        },
+      ]
+
+      const { triggerMemoryExtraction } = await import('../chatStore')
+      await triggerMemoryExtraction('conv-1', 'p1', 'm1')
+
+      const extractCall = mockExtract.mock.calls[0][0]
+      expect(extractCall.messages).toHaveLength(3)
+      expect(extractCall.messages.every(
+        (m: any) => m.role === 'user' || m.role === 'assistant'
+      )).toBe(true)
+    })
+
+    it('should take only last 10 messages', async () => {
+      const messages = Array.from({ length: 15 }, (_, i) => ({
+        role: i % 2 === 0 ? 'user' : 'assistant',
+        content: `Message ${i}`,
+      }))
+      mockConversations.value = [
+        { id: 'conv-1', messages },
+      ]
+
+      const { triggerMemoryExtraction } = await import('../chatStore')
+      await triggerMemoryExtraction('conv-1', 'p1', 'm1')
+
+      const extractCall = mockExtract.mock.calls[0][0]
+      expect(extractCall.messages).toHaveLength(10)
+      expect(extractCall.messages[0].content).toBe('Message 5')
+      expect(extractCall.messages[9].content).toBe('Message 14')
+    })
+
+    it('should pass providerId, modelId, and workspacePath', async () => {
+      mockConversations.value = [
+        {
+          id: 'conv-1',
+          messages: [{ role: 'user', content: 'Hello' }],
+        },
+      ]
+
+      const { triggerMemoryExtraction } = await import('../chatStore')
+      await triggerMemoryExtraction('conv-1', 'provider-x', 'model-y')
+
+      const extractCall = mockExtract.mock.calls[0][0]
+      expect(extractCall.providerId).toBe('provider-x')
+      expect(extractCall.modelId).toBe('model-y')
+      expect(extractCall.workspacePath).toBe('/test/workspace')
+      expect(extractCall.conversationId).toBe('conv-1')
     })
   })
 

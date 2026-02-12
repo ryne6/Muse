@@ -53,6 +53,12 @@ describe('AIProviderFactory', () => {
       }).toThrow('Unknown provider type: unknown')
     })
 
+    it('should throw error for empty string type', () => {
+      expect(() => {
+        AIProviderFactory.getProvider('')
+      }).toThrow('Unknown provider type: ')
+    })
+
     it('should return same instance for multiple calls (singleton pattern)', () => {
       const provider1 = AIProviderFactory.getProvider('claude')
       const provider2 = AIProviderFactory.getProvider('claude')
@@ -94,6 +100,21 @@ describe('AIProviderFactory', () => {
     it('should return null for unknown provider', () => {
       const info = AIProviderFactory.getProviderInfo('unknown')
       expect(info).toBeNull()
+    })
+
+    it('should return null for empty string provider', () => {
+      const info = AIProviderFactory.getProviderInfo('')
+      expect(info).toBeNull()
+    })
+
+    it('should return info with name and models for all registered providers', () => {
+      const allProviders = AIProviderFactory.getAvailableProviders()
+      for (const type of allProviders) {
+        const info = AIProviderFactory.getProviderInfo(type)
+        expect(info).not.toBeNull()
+        expect(typeof info?.name).toBe('string')
+        expect(Array.isArray(info?.models)).toBe(true)
+      }
     })
 
     it('should return correct model list for each provider', () => {

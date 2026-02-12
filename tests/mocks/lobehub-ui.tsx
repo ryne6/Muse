@@ -20,6 +20,34 @@ const Passthrough = React.forwardRef<HTMLDivElement, any>(
 )
 Passthrough.displayName = 'LobeUIMock'
 
+const Button = React.forwardRef<HTMLButtonElement, any>(
+  ({ children, danger, variant, htmlType, type, ...props }, ref) =>
+    React.createElement(
+      'button',
+      { ...props, type: htmlType ?? type, ref },
+      children
+    )
+)
+Button.displayName = 'LobeUIButtonMock'
+
+// Keep dropdown content closed by default to match common initial UI state.
+const DropdownMenuRoot = ({ children }: any) =>
+  React.createElement('div', null, children)
+const DropdownMenuTrigger = ({ children }: any) =>
+  React.createElement(React.Fragment, null, children)
+const DropdownMenuPortal = () => null
+const DropdownMenuPositioner = ({ children }: any) =>
+  React.createElement('div', null, children)
+const DropdownMenuPopup = ({ children }: any) =>
+  React.createElement('div', null, children)
+const DropdownMenuItem = ({ children, ...props }: any) =>
+  React.createElement('button', props, children)
+const DropdownMenuSeparator = () => React.createElement('hr', null)
+const DropdownMenuGroup = ({ children }: any) =>
+  React.createElement('div', null, children)
+const DropdownMenuGroupLabel = ({ children }: any) =>
+  React.createElement('div', null, children)
+
 // Modal mock — renders children inside a div with role="dialog" when open
 function Modal({ children, open, onCancel, title, footer, ...rest }: any) {
   if (open === false) return null
@@ -65,6 +93,16 @@ export {
   ThemeProvider,
   ToastHost,
   toast,
+  Button,
+  DropdownMenuRoot,
+  DropdownMenuTrigger,
+  DropdownMenuPortal,
+  DropdownMenuPositioner,
+  DropdownMenuPopup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuGroup,
+  DropdownMenuGroupLabel,
   Passthrough as ScrollArea,
   Passthrough as DraggableSideNav,
   Passthrough as Markdown,

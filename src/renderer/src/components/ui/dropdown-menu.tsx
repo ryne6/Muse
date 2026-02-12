@@ -10,8 +10,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuGroup,
   DropdownMenuGroupLabel,
-} from '@lobehub/ui/es/DropdownMenu'
-import type { DropdownMenuPlacement } from '@lobehub/ui/es/DropdownMenu'
+  type DropdownMenuPlacement,
+} from '@lobehub/ui'
 
 // Re-export atoms directly
 const DropdownMenu = DropdownMenuRoot

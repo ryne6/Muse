@@ -218,6 +218,14 @@ export function classifyBashCommand(command: string): ToolRiskLevel {
   const trimmed = command.trim()
   if (!trimmed) return 'moderate'
 
+  // Check dangerous patterns against the full command first
+  // (patterns like /\|\s*tee\s/ need to see the original pipe)
+  for (const pattern of DANGEROUS_BASH_PATTERNS) {
+    if (pattern.test(trimmed)) {
+      return 'dangerous'
+    }
+  }
+
   const parts = splitCompoundCommand(trimmed)
   if (parts.length <= 1) {
     return classifySingleCommand(trimmed)

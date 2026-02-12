@@ -1,5 +1,4 @@
-import LobeButton from '@lobehub/ui/es/Button'
-import type { ButtonProps as LobeButtonProps } from '@lobehub/ui/es/Button'
+import { Button as LobeButton, type ButtonProps as LobeButtonProps } from '@lobehub/ui'
 import { cn } from '@/utils/cn'
 
 type ShadcnVariant =

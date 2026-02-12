@@ -44,6 +44,11 @@ vi.mock('@lobehub/ui', () => {
           {children}
         </div>
       ) : null,
+    Button: ({ children, htmlType, type, ...props }: any) => (
+      <button type={htmlType ?? type} {...props}>
+        {children}
+      </button>
+    ),
     Input: React.forwardRef(({ ...props }: any, ref: any) => (
       <input ref={ref} {...props} />
     )),

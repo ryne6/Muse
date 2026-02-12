@@ -68,6 +68,11 @@ vi.mock('@lobehub/ui', () => ({
         {children}
       </div>
     ) : null,
+  Button: ({ children, htmlType, type, ...props }: any) => (
+    <button type={htmlType ?? type} {...props}>
+      {children}
+    </button>
+  ),
 }))
 
 describe('AddProviderDialog', () => {

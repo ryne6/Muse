@@ -1,159 +1,58 @@
 import * as React from 'react'
 
-import { cn } from '@/utils/cn'
+import {
+  DropdownMenuRoot,
+  DropdownMenuTrigger,
+  DropdownMenuPortal,
+  DropdownMenuPositioner,
+  DropdownMenuPopup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuGroup,
+  DropdownMenuGroupLabel,
+} from '@lobehub/ui/es/DropdownMenu'
+import type { DropdownMenuPlacement } from '@lobehub/ui/es/DropdownMenu'
 
-// Context to share state between DropdownMenu components
-const DropdownMenuContext = React.createContext<{
-  open: boolean
-  setOpen: (open: boolean) => void
-  items: React.ReactNode[]
-  setItems: React.Dispatch<React.SetStateAction<React.ReactNode[]>>
-}>({ open: false, setOpen: () => {}, items: [], setItems: () => {} })
+// Re-export atoms directly
+const DropdownMenu = DropdownMenuRoot
 
-interface DropdownMenuProps {
-  children: React.ReactNode
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-}
+// Alias for backward compat
+const DropdownMenuLabel = DropdownMenuGroupLabel
 
-const DropdownMenu = ({
-  children,
-  open: controlledOpen,
-  onOpenChange,
-}: DropdownMenuProps) => {
-  const [internalOpen, setInternalOpen] = React.useState(false)
-  const [items, setItems] = React.useState<React.ReactNode[]>([])
-  const isControlled = controlledOpen !== undefined
-  const open = isControlled ? controlledOpen : internalOpen
-
-  const setOpen = React.useCallback(
-    (newOpen: boolean) => {
-      if (!isControlled) {
-        setInternalOpen(newOpen)
-      }
-      onOpenChange?.(newOpen)
-    },
-    [isControlled, onOpenChange]
-  )
-
-  return (
-    <DropdownMenuContext.Provider value={{ open, setOpen, items, setItems }}>
-      {children}
-    </DropdownMenuContext.Provider>
-  )
-}
-
-const DropdownMenuTrigger = React.forwardRef<
-  HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement> & { asChild?: boolean }
->(({ children, asChild, ...props }, ref) => {
-  const { setOpen } = React.useContext(DropdownMenuContext)
-
-  if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
-      onClick: (e: React.MouseEvent) => {
-        setOpen(true)
-        ;(children as React.ReactElement<Record<string, unknown>>).props?.onClick?.(e)
-      },
-    })
-  }
-
-  return (
-    <button ref={ref} onClick={() => setOpen(true)} {...props}>
-      {children}
-    </button>
-  )
-})
-DropdownMenuTrigger.displayName = 'DropdownMenuTrigger'
-
+// Wrapper that composes Portal + Positioner + Popup into a single component
 interface DropdownMenuContentProps {
   children: React.ReactNode
   className?: string
-  sideOffset?: number
   align?: 'start' | 'center' | 'end'
+  sideOffset?: number
 }
 
-const DropdownMenuContent = ({
+function DropdownMenuContent({
   children,
   className,
-}: DropdownMenuContentProps) => {
-  const { open, setOpen } = React.useContext(DropdownMenuContext)
-
-  if (!open) return null
-
-  return (
-    <div
-      className={cn(
-        'absolute z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover p-1 text-popover-foreground shadow-md',
-        className
-      )}
-      onClick={() => setOpen(false)}
-    >
-      {children}
-    </div>
-  )
-}
-DropdownMenuContent.displayName = 'DropdownMenuContent'
-
-interface DropdownMenuItemProps extends React.HTMLAttributes<HTMLDivElement> {
-  inset?: boolean
-  disabled?: boolean
-}
-
-const DropdownMenuItem = React.forwardRef<
-  HTMLDivElement,
-  DropdownMenuItemProps
->(({ className, inset, disabled, onClick, ...props }, ref) => {
-  const { setOpen } = React.useContext(DropdownMenuContext)
+  align,
+  sideOffset,
+}: DropdownMenuContentProps) {
+  const placementMap: Record<string, DropdownMenuPlacement> = {
+    start: 'bottomLeft',
+    center: 'bottom',
+    end: 'bottomRight',
+  }
+  const placement = placementMap[align ?? 'start']
 
   return (
-    <div
-      ref={ref}
-      className={cn(
-        'relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground',
-        inset && 'pl-8',
-        disabled && 'pointer-events-none opacity-50',
-        className
-      )}
-      onClick={e => {
-        if (!disabled) {
-          onClick?.(e)
-          setOpen(false)
-        }
-      }}
-      {...props}
-    />
+    <DropdownMenuPortal>
+      <DropdownMenuPositioner
+        placement={placement}
+        sideOffset={sideOffset}
+      >
+        <DropdownMenuPopup className={className}>
+          {children}
+        </DropdownMenuPopup>
+      </DropdownMenuPositioner>
+    </DropdownMenuPortal>
   )
-})
-DropdownMenuItem.displayName = 'DropdownMenuItem'
-
-const DropdownMenuSeparator = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn('-mx-1 my-1 h-px bg-muted', className)} {...props} />
-)
-DropdownMenuSeparator.displayName = 'DropdownMenuSeparator'
-
-interface DropdownMenuLabelProps extends React.HTMLAttributes<HTMLDivElement> {
-  inset?: boolean
 }
-
-const DropdownMenuLabel = ({
-  className,
-  inset,
-  ...props
-}: DropdownMenuLabelProps) => (
-  <div
-    className={cn(
-      'px-2 py-1.5 text-sm font-semibold',
-      inset && 'pl-8',
-      className
-    )}
-    {...props}
-  />
-)
-DropdownMenuLabel.displayName = 'DropdownMenuLabel'
 
 export {
   DropdownMenu,
@@ -162,4 +61,5 @@ export {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuLabel,
+  DropdownMenuGroup,
 }

@@ -23,7 +23,7 @@ export function TemperatureControl() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger>
         <Button variant="ghost" size="sm" className="gap-2 px-2">
           <Thermometer className="h-4 w-4" />
           <span className="text-xs font-mono">{temperature.toFixed(1)}</span>

@@ -1,8 +1,7 @@
-import * as React from 'react'
-import { Button as LobeButton } from '@lobehub/ui'
+import LobeButton from '@lobehub/ui/es/Button'
+import type { ButtonProps as LobeButtonProps } from '@lobehub/ui/es/Button'
 import { cn } from '@/utils/cn'
 
-// Map shadcn variants to Lobe UI variants
 type ShadcnVariant =
   | 'default'
   | 'destructive'
@@ -10,49 +9,57 @@ type ShadcnVariant =
   | 'secondary'
   | 'ghost'
   | 'link'
+
 type ShadcnSize = 'default' | 'sm' | 'lg' | 'icon'
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends Omit<LobeButtonProps, 'variant' | 'size'> {
   variant?: ShadcnVariant
   size?: ShadcnSize
-  asChild?: boolean
-  htmlType?: 'button' | 'submit' | 'reset'
 }
 
-const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  (
-    { className, variant = 'default', size = 'default', children, ...props },
-    ref
-  ) => {
-    // Size classes for Tailwind (Lobe UI uses different sizing)
-    const sizeClasses = {
-      default: 'h-9 px-4 py-2',
-      sm: 'h-8 px-3 text-xs',
-      lg: 'h-10 px-8',
-      icon: 'h-9 w-9 p-0',
-    }
+function Button({ variant, size, className, ...rest }: ButtonProps) {
+  const lobeProps: Omit<LobeButtonProps, 'size'> & { size?: LobeButtonProps['size'] } = { ...rest }
 
-    // Variant classes
-    const variantClasses = {
-      default: '',
-      destructive: 'bg-red-500 hover:bg-red-600 text-white',
-      outline: 'border border-input bg-transparent hover:bg-accent',
-      secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-      ghost: 'bg-transparent hover:bg-accent',
-      link: 'bg-transparent underline-offset-4 hover:underline text-primary',
-    }
-
-    return (
-      <LobeButton
-        ref={ref}
-        className={cn(sizeClasses[size], variantClasses[variant], className)}
-        {...props}
-      >
-        {children}
-      </LobeButton>
-    )
+  // Map variant
+  switch (variant) {
+    case 'destructive':
+      lobeProps.danger = true
+      break
+    case 'outline':
+      lobeProps.variant = 'outlined'
+      break
+    case 'ghost':
+      lobeProps.type = 'text'
+      break
+    case 'secondary':
+      lobeProps.variant = 'filled'
+      break
+    case 'link':
+      lobeProps.type = 'link'
+      break
   }
-)
-Button.displayName = 'Button'
+
+  // Map size
+  let extraClass = ''
+  switch (size) {
+    case 'sm':
+      lobeProps.size = 'small'
+      break
+    case 'lg':
+      lobeProps.size = 'large'
+      break
+    case 'icon':
+      lobeProps.size = 'small'
+      extraClass = 'h-9 w-9 p-0'
+      break
+  }
+
+  return (
+    <LobeButton
+      className={cn(extraClass, className)}
+      {...lobeProps}
+    />
+  )
+}
 
 export { Button }

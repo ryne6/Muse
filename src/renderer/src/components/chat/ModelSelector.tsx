@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { ChevronDown, Loader2 } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { useSettingsStore } from '@/stores/settingsStore'
 import type { Model } from '@shared/types/db'
 import {
@@ -19,7 +19,6 @@ export function ModelSelector() {
     getEnabledModels,
     setCurrentModel,
     providers,
-    models,
     loadData,
     lastUpdated,
   } = useSettingsStore()
@@ -91,7 +90,7 @@ export function ModelSelector() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
+      <DropdownMenuTrigger>
         <Button variant="outline" size="sm" className="gap-2">
           <span className="font-mono text-xs">{getCurrentModelDisplay()}</span>
           {currentProvider && (

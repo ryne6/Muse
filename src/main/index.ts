@@ -19,8 +19,53 @@ import { SkillsService } from './db/services/skillsService'
 import { DataMigration } from './db/migration'
 import { WorkspaceService } from './services/workspaceService'
 import { PermissionFileService } from './services/permissionFileService'
+import { MemoryService } from './db/services/memoryService'
+import { MemoryFileService } from './services/memoryFileService'
+import { MemoryManager } from './services/memoryManager'
 
 const permissionFileService = new PermissionFileService()
+
+// Memory input validation helpers
+const VALID_MEMORY_TYPES = ['user', 'project', 'conversation'] as const
+const VALID_MEMORY_CATEGORIES = ['preference', 'knowledge', 'decision', 'pattern'] as const
+const MAX_CONTENT_LENGTH = 10000
+const MAX_QUERY_LENGTH = 500
+
+function validateMemoryInput(
+  data: Record<string, unknown>,
+  requiredFields: string[]
+): string | null {
+  for (const field of requiredFields) {
+    if (field === 'type') {
+      if (!data.type || !VALID_MEMORY_TYPES.includes(data.type as any)) {
+        return `Invalid type: must be one of ${VALID_MEMORY_TYPES.join(', ')}`
+      }
+    } else if (field === 'category') {
+      if (!data.category || !VALID_MEMORY_CATEGORIES.includes(data.category as any)) {
+        return `Invalid category: must be one of ${VALID_MEMORY_CATEGORIES.join(', ')}`
+      }
+    } else if (field === 'content') {
+      if (!data.content || typeof data.content !== 'string' || data.content.trim().length === 0) {
+        return 'content must be a non-empty string'
+      }
+      if ((data.content as string).length > MAX_CONTENT_LENGTH) {
+        return `content exceeds max length of ${MAX_CONTENT_LENGTH}`
+      }
+    } else if (field === 'id') {
+      if (!data.id || typeof data.id !== 'string' || (data.id as string).trim().length === 0) {
+        return 'id must be a non-empty string'
+      }
+    } else if (field === 'query') {
+      if (!data.query || typeof data.query !== 'string' || (data.query as string).trim().length === 0) {
+        return 'query must be a non-empty string'
+      }
+      if ((data.query as string).length > MAX_QUERY_LENGTH) {
+        return `query exceeds max length of ${MAX_QUERY_LENGTH}`
+      }
+    }
+  }
+  return null
+}
 
 function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
@@ -545,6 +590,344 @@ function registerIpcHandlers() {
   ipcMain.handle('permissions:removeRule', async (_event, { ruleId, source, workspacePath }) => {
     permissionFileService.removeRule(ruleId, source, workspacePath)
     return { success: true }
+  })
+
+  // Memory
+  ipcMain.handle('memory:getAll', async () => {
+    try {
+      return await MemoryService.getAll()
+    } catch (error) {
+      console.error('memory:getAll failed:', error)
+      return []
+    }
+  })
+
+  ipcMain.handle('memory:getByType', async (_, { type }) => {
+    const err = validateMemoryInput({ type }, ['type'])
+    if (err) throw new Error(err)
+    try {
+      return await MemoryService.getByType(type)
+    } catch (error) {
+      console.error('memory:getByType failed:', error)
+      return []
+    }
+  })
+
+  ipcMain.handle('memory:create', async (_, data) => {
+    const err = validateMemoryInput(data, ['type', 'category', 'content'])
+    if (err) throw new Error(err)
+    try {
+      return await MemoryService.create(data)
+    } catch (error) {
+      console.error('memory:create failed:', error)
+      throw error
+    }
+  })
+
+  ipcMain.handle('memory:update', async (_, { id, data }) => {
+    const err = validateMemoryInput({ id }, ['id'])
+    if (err) throw new Error(err)
+    try {
+      return await MemoryService.update(id, data)
+    } catch (error) {
+      console.error('memory:update failed:', error)
+      throw error
+    }
+  })
+
+  ipcMain.handle('memory:delete', async (_, { id }) => {
+    const err = validateMemoryInput({ id }, ['id'])
+    if (err) throw new Error(err)
+    try {
+      await MemoryService.delete(id)
+      return { success: true }
+    } catch (error) {
+      console.error('memory:delete failed:', error)
+      throw error
+    }
+  })
+
+  ipcMain.handle('memory:search', async (_, { query }) => {
+    const err = validateMemoryInput({ query }, ['query'])
+    if (err) throw new Error(err)
+    try {
+      return await MemoryService.search(query)
+    } catch (error) {
+      console.error('memory:search failed:', error)
+      return []
+    }
+  })
+
+  ipcMain.handle('memory:upsert', async (_, data) => {
+    const err = validateMemoryInput(data, ['type', 'category', 'content'])
+    if (err) throw new Error(err)
+    try {
+      return await MemoryService.upsertMemory(data)
+    } catch (error) {
+      console.error('memory:upsert failed:', error)
+      throw error
+    }
+  })
+
+  ipcMain.handle('memory:syncToFile', async (_, { memory, workspacePath }) => {
+    try {
+      return await MemoryFileService.syncMemoryToFile(memory, workspacePath)
+    } catch (error) {
+      console.error('memory:syncToFile failed:', error)
+      return ''
+    }
+  })
+
+  // Memory extraction pipeline (P1)
+  ipcMain.handle(
+    'memory:extract',
+    async (_, { messages, providerId, modelId, workspacePath, conversationId }) => {
+      try {
+        // C1 fix: Resolve provider credentials from DB — never accept apiKey from renderer
+        const provider = await ProviderService.getById(providerId)
+        if (!provider || !provider.apiKey) {
+          console.warn('memory:extract — provider not found or missing apiKey:', providerId)
+          return { extracted: 0, saved: 0 }
+        }
+        const model = await ModelService.getById(modelId)
+        if (!model) {
+          console.warn('memory:extract — model not found:', modelId)
+          return { extracted: 0, saved: 0 }
+        }
+
+        const config = {
+          apiKey: provider.apiKey,
+          model: model.modelId,
+          baseURL: provider.baseURL || undefined,
+          apiFormat: provider.apiFormat || 'chat-completions',
+          temperature: 0.1,
+          maxTokens: 4096,
+          thinkingEnabled: false,
+        }
+
+        // TODO(C2): MemoryExtractor lives in api/ layer but is used by main process.
+        // In Electron, both run in the same Node.js process so this is safe at runtime.
+        // Future: move extraction logic to main/services or route via HTTP API.
+        const { MemoryExtractor } = await import('../api/services/memory/extractor')
+        const EXTRACTION_TIMEOUT = 30000 // 30 seconds
+        const extractWithTimeout = Promise.race([
+          MemoryExtractor.extract(messages, provider.type, config),
+          new Promise<import('../api/services/memory/extractor').ExtractedMemory[]>((_, reject) =>
+            setTimeout(() => reject(new Error('Memory extraction timed out')), EXTRACTION_TIMEOUT)
+          ),
+        ])
+        const extracted = await extractWithTimeout
+
+        if (extracted.length === 0) {
+          return { extracted: 0, saved: 0 }
+        }
+
+        let saved = 0
+        for (const item of extracted) {
+          // Determine memory type: preference/pattern → user, knowledge/decision → project (if workspace)
+          const memoryType =
+            ['preference', 'pattern'].includes(item.category) || !workspacePath
+              ? 'user'
+              : 'project'
+
+          const { isNew } = await MemoryService.upsertMemory({
+            type: memoryType,
+            category: item.category,
+            content: item.content,
+            tags: item.tags ? JSON.stringify(item.tags) : undefined,
+            source: 'auto',
+            conversationId: conversationId || undefined,
+          })
+
+          // Sync to .md file
+          await MemoryFileService.syncMemoryToFile(
+            {
+              type: memoryType,
+              category: item.category,
+              content: item.content,
+              source: 'auto',
+              tags: item.tags,
+            },
+            workspacePath || undefined
+          )
+
+          if (isNew) saved++
+        }
+
+        return { extracted: extracted.length, saved }
+      } catch (error) {
+        console.error('Memory extraction failed:', error)
+        return { extracted: 0, saved: 0 }
+      }
+    }
+  )
+
+  ipcMain.handle('memory:getRelevant', async (_, { workspacePath, userMessage }) => {
+    try {
+      return await MemoryManager.getRelevantMemories(workspacePath, userMessage)
+    } catch (error) {
+      console.error('memory:getRelevant failed:', error)
+      return ''
+    }
+  })
+
+  ipcMain.handle('memory:remember', async (_, { content, type, category, workspacePath }) => {
+    const err = validateMemoryInput({ content }, ['content'])
+    if (err) throw new Error(err)
+    try {
+      const resolvedType = type || 'user'
+      const resolvedCategory = category || 'knowledge'
+
+      // Reuse MemoryFileService.resolveFilePath to avoid duplicating path logic (I11)
+      const targetFilePath = MemoryFileService.resolveFilePath(
+        resolvedType,
+        resolvedCategory,
+        workspacePath || undefined
+      )
+
+      // Write to SQLite (with filePath for precise /forget targeting)
+      const memory = await MemoryService.create({
+        type: resolvedType,
+        category: resolvedCategory,
+        content,
+        source: 'manual',
+        filePath: targetFilePath,
+      })
+
+      // Write to .md file
+      if (targetFilePath) {
+        const frontmatter = { type: resolvedType, source: 'manual' }
+        MemoryFileService.ensureDirectory(join(targetFilePath, '..'))
+        await MemoryFileService.appendToFile(targetFilePath, content, frontmatter)
+      }
+
+      return memory
+    } catch (error) {
+      console.error('memory:remember failed:', error)
+      throw error
+    }
+  })
+
+  ipcMain.handle('memory:getByConversationId', async (_, { conversationId }) => {
+    try {
+      return await MemoryService.getByConversationId(conversationId)
+    } catch (error) {
+      console.error('memory:getByConversationId failed:', error)
+      return []
+    }
+  })
+
+  ipcMain.handle('memory:forget', async (_, { keyword, workspacePath }) => {
+    const err = validateMemoryInput({ query: keyword }, ['query'])
+    if (err) throw new Error(err)
+    try {
+      // Search for matching memories — cap at 20 to prevent mass deletion
+      const MAX_FORGET = 20
+      const allMatches = await MemoryService.search(keyword)
+      const matches = allMatches.slice(0, MAX_FORGET)
+      let deletedCount = 0
+
+      for (const match of matches) {
+        // M3: Remove from .md files FIRST, then delete from DB.
+        // If .md removal fails, the DB record remains and can be retried via /forget.
+        if (match.filePath) {
+          await MemoryFileService.removeFromFile(match.filePath, match.content)
+        } else {
+          // Try both user and project dirs
+          const userDir = MemoryFileService.getUserMemoryDir()
+          const files = await MemoryFileService.readAllMemoryFiles(userDir)
+          for (const file of files) {
+            await MemoryFileService.removeFromFile(file.filePath, match.content)
+          }
+          if (workspacePath) {
+            const projectDir = MemoryFileService.getProjectMemoryDir(workspacePath)
+            const projectFiles = await MemoryFileService.readAllMemoryFiles(projectDir)
+            for (const file of projectFiles) {
+              await MemoryFileService.removeFromFile(file.filePath, match.content)
+            }
+          }
+        }
+
+        // Delete from SQLite after .md cleanup
+        await MemoryService.delete(match.id)
+        deletedCount++
+      }
+
+      return { deletedCount }
+    } catch (error) {
+      console.error('memory:forget failed:', error)
+      return { deletedCount: 0 }
+    }
+  })
+
+  // P2-18: Export all memories as JSON
+  ipcMain.handle('memory:export', async () => {
+    try {
+      return await MemoryService.exportAll()
+    } catch (error) {
+      console.error('memory:export failed:', error)
+      return []
+    }
+  })
+
+  // P2-18: Import memories from JSON array (with dedup via upsert)
+  ipcMain.handle('memory:import', async (_, { memories: items }) => {
+    try {
+      if (!Array.isArray(items)) throw new Error('Expected array')
+
+      // C2: Server-side validation constants
+      const VALID_TYPES = ['user', 'project', 'conversation']
+      const VALID_CATEGORIES = ['preference', 'knowledge', 'decision', 'pattern']
+      const MAX_CONTENT_LENGTH = 10000
+      const MAX_IMPORT_ITEMS = 500
+
+      const safeItems = items.slice(0, MAX_IMPORT_ITEMS)
+      let imported = 0
+      let skipped = 0
+      for (const item of safeItems) {
+        if (
+          !item.content || typeof item.content !== 'string' ||
+          !item.type || !VALID_TYPES.includes(item.type) ||
+          !item.category || !VALID_CATEGORIES.includes(item.category) ||
+          !item.source || typeof item.source !== 'string'
+        ) {
+          skipped++
+          continue
+        }
+        // Cap content length
+        const content = item.content.slice(0, MAX_CONTENT_LENGTH)
+        // Validate tags is string if present
+        const tags = (typeof item.tags === 'string') ? item.tags : undefined
+
+        const { isNew } = await MemoryService.upsertMemory({
+          type: item.type,
+          category: item.category,
+          content,
+          tags,
+          source: item.source,
+          conversationId: item.conversationId || undefined,
+        })
+        if (isNew) imported++
+        else skipped++
+      }
+      return { imported, skipped }
+    } catch (error) {
+      console.error('memory:import failed:', error)
+      throw error
+    }
+  })
+
+  // P2-15: Delete all memories of a given type
+  ipcMain.handle('memory:deleteByType', async (_, { type }) => {
+    const err = validateMemoryInput({ type }, ['type'])
+    if (err) throw new Error(err)
+    try {
+      await MemoryService.deleteByType(type)
+      return { success: true }
+    } catch (error) {
+      console.error('memory:deleteByType failed:', error)
+      throw error
+    }
   })
 }
 

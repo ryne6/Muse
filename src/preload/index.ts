@@ -84,6 +84,35 @@ const api: IpcApi = {
     removeRule: (ruleId: string, source: string, workspacePath?: string) =>
       ipcRenderer.invoke('permissions:removeRule', { ruleId, source, workspacePath }),
   },
+  memory: {
+    getAll: () => ipcRenderer.invoke('memory:getAll'),
+    getByType: (type: string) => ipcRenderer.invoke('memory:getByType', { type }),
+    create: (data: any) => ipcRenderer.invoke('memory:create', data),
+    update: (id: string, data: any) => ipcRenderer.invoke('memory:update', { id, data }),
+    delete: (id: string) => ipcRenderer.invoke('memory:delete', { id }),
+    search: (query: string) => ipcRenderer.invoke('memory:search', { query }),
+    getRelevant: (workspacePath: string | null, userMessage: string) =>
+      ipcRenderer.invoke('memory:getRelevant', { workspacePath, userMessage }),
+    remember: (content: string, type?: string, workspacePath?: string, category?: string) =>
+      ipcRenderer.invoke('memory:remember', { content, type, workspacePath, category }),
+    forget: (keyword: string, workspacePath?: string) =>
+      ipcRenderer.invoke('memory:forget', { keyword, workspacePath }),
+    getByConversationId: (conversationId: string) =>
+      ipcRenderer.invoke('memory:getByConversationId', { conversationId }),
+    upsert: (data: any) => ipcRenderer.invoke('memory:upsert', data),
+    syncToFile: (memory: any, workspacePath?: string) =>
+      ipcRenderer.invoke('memory:syncToFile', { memory, workspacePath }),
+    extract: (data: {
+      messages: any[]
+      providerId: string
+      modelId: string
+      workspacePath?: string
+      conversationId?: string
+    }) => ipcRenderer.invoke('memory:extract', data),
+    export: () => ipcRenderer.invoke('memory:export'),
+    import: (memories: any[]) => ipcRenderer.invoke('memory:import', { memories }),
+    deleteByType: (type: string) => ipcRenderer.invoke('memory:deleteByType', { type }),
+  },
   updater: {
     check: () => ipcRenderer.invoke('updater:check'),
     download: () => ipcRenderer.invoke('updater:download'),

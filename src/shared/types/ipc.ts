@@ -39,6 +39,20 @@ export interface PromptPreset {
   updatedAt: Date
 }
 
+// Memory types
+export interface MemoryRecord {
+  id: string
+  type: string
+  category: string
+  content: string
+  tags: string | null
+  source: string
+  conversationId: string | null
+  filePath: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
 export interface FileInfo {
   name: string
   path: string
@@ -149,6 +163,43 @@ export interface IpcApi {
     load: (workspacePath?: string) => Promise<PermissionRule[]>
     addRule: (rule: any, source: string, workspacePath?: string) => Promise<{ success: boolean }>
     removeRule: (ruleId: string, source: string, workspacePath?: string) => Promise<{ success: boolean }>
+  }
+  memory: {
+    getAll: () => Promise<MemoryRecord[]>
+    getByType: (type: string) => Promise<MemoryRecord[]>
+    create: (data: Omit<MemoryRecord, 'id' | 'createdAt' | 'updatedAt'>) => Promise<MemoryRecord>
+    update: (id: string, data: Partial<MemoryRecord>) => Promise<MemoryRecord | null>
+    delete: (id: string) => Promise<{ success: boolean }>
+    search: (query: string) => Promise<MemoryRecord[]>
+    getRelevant: (workspacePath: string | null, userMessage: string) => Promise<string>
+    remember: (content: string, type?: string, workspacePath?: string, category?: string) => Promise<MemoryRecord>
+    forget: (keyword: string, workspacePath?: string) => Promise<{ deletedCount: number }>
+    getByConversationId: (conversationId: string) => Promise<MemoryRecord[]>
+    upsert: (data: {
+      type: string
+      category: string
+      content: string
+      tags?: string
+      source: string
+      conversationId?: string
+    }) => Promise<{ memory: MemoryRecord; isNew: boolean }>
+    syncToFile: (memory: {
+      type: string
+      category: string
+      content: string
+      source: string
+      tags?: string[]
+    }, workspacePath?: string) => Promise<string>
+    extract: (data: {
+      messages: Array<{ role: string; content: string | any[] }>
+      providerId: string
+      modelId: string
+      workspacePath?: string
+      conversationId?: string
+    }) => Promise<{ extracted: number; saved: number }>
+    export: () => Promise<Array<Record<string, unknown>>>
+    import: (memories: any[]) => Promise<{ imported: number; skipped: number }>
+    deleteByType: (type: string) => Promise<{ success: boolean }>
   }
 }
 

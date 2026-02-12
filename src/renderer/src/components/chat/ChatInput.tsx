@@ -90,6 +90,73 @@ export function ChatInput() {
     )
   }, [])
 
+  // Handle memory slash commands
+  const handleMemoryCommand = useCallback(async (message: string): Promise<boolean> => {
+    const memoryEnabled = useSettingsStore.getState().memoryEnabled
+    const workspacePath = useConversationStore.getState().getEffectiveWorkspace()
+
+    if (message === '/memories') {
+      if (!memoryEnabled) {
+        notify.info('记忆功能未开启，请在设置中开启')
+        return true
+      }
+      try {
+        const memories = await window.api.memory.getAll()
+        if (memories.length === 0) {
+          notify.info('暂无记忆')
+        } else {
+          const summary = memories.slice(0, 10).map((m) => `[${m.category}] ${m.content}`).join('\n')
+          notify.info(`当前记忆 (${memories.length} 条):\n${summary}`)
+        }
+      } catch { notify.error('获取记忆失败') }
+      return true
+    }
+
+    if (message.startsWith('/remember-project ')) {
+      if (!memoryEnabled) {
+        notify.info('记忆功能未开启，请在设置中开启')
+        return true
+      }
+      const content = message.slice('/remember-project '.length).trim()
+      if (!content) return true
+      try {
+        await window.api.memory.remember(content, 'project', workspacePath || undefined)
+        notify.success('已保存到项目记忆')
+      } catch { notify.error('保存记忆失败') }
+      return true
+    }
+
+    if (message.startsWith('/remember ')) {
+      if (!memoryEnabled) {
+        notify.info('记忆功能未开启，请在设置中开启')
+        return true
+      }
+      const content = message.slice('/remember '.length).trim()
+      if (!content) return true
+      try {
+        await window.api.memory.remember(content, 'user')
+        notify.success('已保存到用户记忆')
+      } catch { notify.error('保存记忆失败') }
+      return true
+    }
+
+    if (message.startsWith('/forget ')) {
+      if (!memoryEnabled) {
+        notify.info('记忆功能未开启，请在设置中开启')
+        return true
+      }
+      const keyword = message.slice('/forget '.length).trim()
+      if (!keyword) return true
+      try {
+        const result = await window.api.memory.forget(keyword, workspacePath || undefined)
+        notify.success(`已删除 ${result.deletedCount} 条匹配的记忆`)
+      } catch { notify.error('删除记忆失败') }
+      return true
+    }
+
+    return false
+  }, [])
+
   const handleSend = async () => {
     if ((!input.trim() && pendingAttachments.length === 0) || isLoading) return
 
@@ -116,6 +183,9 @@ export function ChatInput() {
     const attachments = [...pendingAttachments]
     setInput('')
     setPendingAttachments([])
+
+    // Intercept memory slash commands
+    if (await handleMemoryCommand(message)) return
 
     try {
       // Construct AI config from database provider/model

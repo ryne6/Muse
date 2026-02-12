@@ -172,3 +172,26 @@ export const promptPresets = sqliteTable('prompt_presets', {
 
 export type PromptPreset = typeof promptPresets.$inferSelect
 export type NewPromptPreset = typeof promptPresets.$inferInsert
+
+// 12. Memories table
+export const memories = sqliteTable('memories', {
+  id: text('id').primaryKey(),
+  type: text('type').notNull(), // 'user' | 'project' | 'conversation'
+  category: text('category').notNull(), // 'preference' | 'knowledge' | 'decision' | 'pattern'
+  content: text('content').notNull(),
+  tags: text('tags'), // JSON array string
+  source: text('source').notNull(), // 'auto' | 'manual'
+  conversationId: text('conversation_id').references(() => conversations.id, { onDelete: 'set null' }),
+  filePath: text('file_path'),
+  createdAt: integer('created_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  lastAccessedAt: integer('last_accessed_at', { mode: 'timestamp' })
+    .default(sql`(unixepoch())`),
+})
+
+export type Memory = typeof memories.$inferSelect
+export type NewMemory = typeof memories.$inferInsert

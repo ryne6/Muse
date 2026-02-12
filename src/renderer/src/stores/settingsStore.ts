@@ -16,6 +16,7 @@ interface SettingsStore {
   toolPermissionsByWorkspace: Record<string, { allowAll: boolean }>
   selectedSkill: string | null  // null = Auto mode
   globalSystemPrompt: string
+  memoryEnabled: boolean
 
   // Cached data
   providers: Provider[]
@@ -30,6 +31,7 @@ interface SettingsStore {
   setToolAllowAll: (workspacePath: string, allowAll: boolean) => void
   setSelectedSkill: (skillPath: string | null) => void
   setGlobalSystemPrompt: (prompt: string) => void
+  setMemoryEnabled: (enabled: boolean) => void
   clearError: () => void
   triggerRefresh: () => void
 
@@ -77,6 +79,7 @@ export const useSettingsStore = create<SettingsStore>()(
       toolPermissionsByWorkspace: {},
       selectedSkill: null,
       globalSystemPrompt: '',
+      memoryEnabled: false,
 
       // Cached data
       providers: [],
@@ -177,6 +180,9 @@ export const useSettingsStore = create<SettingsStore>()(
       setGlobalSystemPrompt: (prompt: string) => {
         set({ globalSystemPrompt: prompt })
       },
+      setMemoryEnabled: (enabled: boolean) => {
+        set({ memoryEnabled: enabled })
+      },
       triggerRefresh: () => {
         set({ lastUpdated: Date.now() })
       },
@@ -232,6 +238,7 @@ export const useSettingsStore = create<SettingsStore>()(
         toolPermissionsByWorkspace: state.toolPermissionsByWorkspace,
         selectedSkill: state.selectedSkill,
         globalSystemPrompt: state.globalSystemPrompt,
+        memoryEnabled: state.memoryEnabled,
       }),
       migrate: (persistedState) => {
         const state =
@@ -246,6 +253,7 @@ export const useSettingsStore = create<SettingsStore>()(
           toolPermissionsByWorkspace: state?.toolPermissionsByWorkspace ?? {},
           selectedSkill: state?.selectedSkill ?? null,
           globalSystemPrompt: state?.globalSystemPrompt ?? '',
+          memoryEnabled: state?.memoryEnabled ?? false,
         }
       }
     }

@@ -11,6 +11,51 @@ import type { ApprovalScope } from '@shared/types/toolPermissions'
 import { useConversationStore } from './conversationStore'
 import { useSettingsStore } from './settingsStore'
 import { useWorkspaceStore } from './workspaceStore'
+import { getTextContent } from '@shared/types/ai'
+
+// TODO: Consider extracting memory-related logic into a dedicated memoryStore.ts
+
+/**
+ * P1: Fire-and-forget memory extraction.
+ * Gathers recent messages from the conversation and calls the extraction pipeline.
+ * C1 fix: Only passes providerId + modelId — main process resolves credentials from DB.
+ */
+async function triggerMemoryExtraction(
+  conversationId: string,
+  providerId: string,
+  modelId: string
+): Promise<void> {
+  const conv = useConversationStore
+    .getState()
+    .conversations.find((c) => c.id === conversationId)
+  if (!conv || conv.messages.length === 0) return
+
+  const workspacePath = useConversationStore.getState().getEffectiveWorkspace()
+
+  // Build lightweight message array for extraction (last 10, text only)
+  const recentMessages = conv.messages
+    .filter((m) => m.role === 'user' || m.role === 'assistant')
+    .slice(-10)
+    .map((m) => ({
+      role: m.role,
+      content: typeof m.content === 'string' ? m.content : getTextContent(m.content as any),
+    }))
+
+  const result = await window.api.memory.extract({
+    messages: recentMessages,
+    providerId,
+    modelId,
+    workspacePath: workspacePath || undefined,
+    conversationId,
+  })
+
+  if (result.saved > 0) {
+    console.log(`🧠 Auto-extracted ${result.extracted} memories, ${result.saved} new saved`)
+  }
+}
+
+/** Export for use by conversationStore on conversation switch */
+export { triggerMemoryExtraction }
 
 interface ChatStore {
   // State
@@ -253,9 +298,22 @@ Current workspace: ${workspacePath || 'Not set'}`
       .join('\n\n')
 
     // Final system prompt = built-in + custom
-    const finalSystemPrompt = customPrompts
+    let finalSystemPrompt = customPrompts
       ? `${systemPrompt}\n\n## Custom Instructions\n\n${customPrompts}`
       : systemPrompt
+
+    // Inject memory context if enabled
+    const memoryEnabled = useSettingsStore.getState().memoryEnabled
+    if (memoryEnabled) {
+      try {
+        const memoryBlock = await window.api.memory.getRelevant(workspacePath, content)
+        if (memoryBlock) {
+          finalSystemPrompt = `${finalSystemPrompt}\n\n${memoryBlock}`
+        }
+      } catch (error) {
+        console.error('Failed to load memory context:', error)
+      }
+    }
 
     // Combine system prompt with history messages
     const aiMessages: AIMessage[] = [
@@ -424,6 +482,21 @@ Current workspace: ${workspacePath || 'Not set'}`
       if (currentConv && currentConv.messages.filter((m) => m.role === 'user').length === 1) {
         const title = content.slice(0, 50) + (content.length > 50 ? '...' : '')
         useConversationStore.getState().renameConversation(conversationId, title)
+      }
+
+      // P1: Auto-extract memories every 5 rounds (fire-and-forget)
+      if (memoryEnabled && currentConv) {
+        const userMsgCount = currentConv.messages.filter((m) => m.role === 'user').length
+        if (userMsgCount >= 5 && userMsgCount % 5 === 0) {
+          const settings = useSettingsStore.getState()
+          const pid = settings.currentProviderId
+          const mid = settings.currentModelId
+          if (pid && mid) {
+            triggerMemoryExtraction(conversationId, pid, mid).catch((err) =>
+              console.error('Background memory extraction failed:', err)
+            )
+          }
+        }
       }
     } catch (error) {
       // Ignore abort errors (user cancelled)

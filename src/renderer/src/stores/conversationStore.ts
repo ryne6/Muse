@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import type { Conversation, Message } from '@shared/types/conversation'
 import { dbClient } from '@/services/dbClient'
 import { useWorkspaceStore } from './workspaceStore'
+import { useSettingsStore } from './settingsStore'
 
 interface ConversationStore {
   // State
@@ -141,6 +142,29 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
   },
 
   loadConversation: async (id: string) => {
+    // P1: Trigger memory extraction on the previous conversation before switching
+    const previousId = get().currentConversationId
+    if (previousId && previousId !== id) {
+      const prevConv = get().conversations.find((c) => c.id === previousId)
+      const memoryEnabled = useSettingsStore.getState().memoryEnabled
+      if (memoryEnabled && prevConv) {
+        const userMsgCount = prevConv.messages.filter((m) => m.role === 'user').length
+        if (userMsgCount >= 5) {
+          // Fire-and-forget: dynamic import to avoid circular dependency
+          import('./chatStore').then(({ triggerMemoryExtraction }) => {
+            const settings = useSettingsStore.getState()
+            const pid = settings.currentProviderId
+            const mid = settings.currentModelId
+            if (pid && mid) {
+              triggerMemoryExtraction(previousId, pid, mid).catch((err) =>
+                console.error('Memory extraction on switch failed:', err)
+              )
+            }
+          })
+        }
+      }
+    }
+
     set({ currentConversationId: id })
 
     const { loadedConversationIds } = get()

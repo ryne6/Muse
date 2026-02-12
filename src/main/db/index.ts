@@ -144,6 +144,84 @@ function runSchemaMigrations(sqlite: Database.Database) {
       `)
       console.log('✅ Created prompt_presets table')
     }
+
+    // Create memories table if not exists
+    const hasMemories = tables.some((t) => t.name === 'memories')
+
+    if (!hasMemories) {
+      console.log('📦 Creating memories table...')
+      sqlite.exec(`
+        CREATE TABLE memories (
+          id TEXT PRIMARY KEY NOT NULL,
+          type TEXT NOT NULL,
+          category TEXT NOT NULL,
+          content TEXT NOT NULL,
+          tags TEXT,
+          source TEXT NOT NULL,
+          conversation_id TEXT REFERENCES conversations(id) ON DELETE SET NULL,
+          file_path TEXT,
+          created_at INTEGER DEFAULT (unixepoch()) NOT NULL,
+          updated_at INTEGER DEFAULT (unixepoch()) NOT NULL
+        )
+      `)
+      console.log('✅ Created memories table')
+    }
+
+    // Add indexes to memories table (idempotent)
+    sqlite.exec(`CREATE INDEX IF NOT EXISTS idx_memories_type ON memories(type)`)
+    sqlite.exec(`CREATE INDEX IF NOT EXISTS idx_memories_conversation_id ON memories(conversation_id)`)
+    sqlite.exec(`CREATE INDEX IF NOT EXISTS idx_memories_updated_at ON memories(updated_at)`)
+
+    // Create FTS5 virtual table and triggers for memories
+    const hasMemoriesFts = tables.some((t) => t.name === 'memories_fts')
+
+    if (!hasMemoriesFts) {
+      console.log('📦 Creating memories FTS5 index and triggers...')
+      sqlite.exec(`
+        CREATE VIRTUAL TABLE IF NOT EXISTS memories_fts USING fts5(
+          content,
+          tags,
+          content=memories,
+          content_rowid=rowid
+        )
+      `)
+
+      sqlite.exec(`
+        CREATE TRIGGER IF NOT EXISTS memories_ai AFTER INSERT ON memories BEGIN
+          INSERT INTO memories_fts(rowid, content, tags)
+          VALUES (new.rowid, new.content, new.tags);
+        END
+      `)
+
+      sqlite.exec(`
+        CREATE TRIGGER IF NOT EXISTS memories_ad AFTER DELETE ON memories BEGIN
+          INSERT INTO memories_fts(memories_fts, rowid, content, tags)
+          VALUES ('delete', old.rowid, old.content, old.tags);
+        END
+      `)
+
+      sqlite.exec(`
+        CREATE TRIGGER IF NOT EXISTS memories_au AFTER UPDATE ON memories BEGIN
+          INSERT INTO memories_fts(memories_fts, rowid, content, tags)
+          VALUES ('delete', old.rowid, old.content, old.tags);
+          INSERT INTO memories_fts(rowid, content, tags)
+          VALUES (new.rowid, new.content, new.tags);
+        END
+      `)
+      console.log('✅ Created memories FTS5 index and triggers')
+    }
+
+    // Add last_accessed_at column to memories table if not exists (P2-16: decay)
+    const memColumns = sqlite.pragma('table_info(memories)') as { name: string }[]
+    const hasLastAccessed = memColumns.some((col) => col.name === 'last_accessed_at')
+
+    if (!hasLastAccessed) {
+      console.log('📦 Adding last_accessed_at column to memories table...')
+      sqlite.exec('ALTER TABLE memories ADD COLUMN last_accessed_at INTEGER DEFAULT (unixepoch())')
+      // Backfill existing rows with updated_at value
+      sqlite.exec('UPDATE memories SET last_accessed_at = updated_at WHERE last_accessed_at IS NULL')
+      console.log('✅ Added last_accessed_at column')
+    }
   } catch (error) {
     console.error('❌ Schema migration failed:', error)
   }

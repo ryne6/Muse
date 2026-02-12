@@ -3,6 +3,7 @@ import { stream } from 'hono/streaming'
 import { AIManager } from '../services/ai/manager'
 import { ProviderValidator } from '../services/ai/validator'
 import { AIError } from '../services/ai/errors'
+import { MemoryExtractor } from '../services/memory/extractor'
 import { ErrorCode } from '../../shared/types/error'
 import type {
   AIMessage,
@@ -161,6 +162,35 @@ app.post('/providers/validate', async (c) => {
       },
       aiError.httpStatus
     )
+  }
+})
+
+// 从对话中提取记忆
+app.post('/chat/extract', async (c) => {
+  try {
+    const { provider, messages, config } = await c.req.json<{
+      provider: string
+      messages: AIMessage[]
+      config: AIConfig
+    }>()
+
+    if (!provider || !messages || !config) {
+      const error = new AIError(ErrorCode.INVALID_REQUEST, 'Missing required fields: provider, messages, config')
+      return c.json(createErrorResponse(error), error.httpStatus)
+    }
+
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return c.json({ memories: [] })
+    }
+    if (messages.length > 50) {
+      return c.json({ memories: [] })
+    }
+
+    const memories = await MemoryExtractor.extract(messages, provider, config)
+    return c.json({ memories })
+  } catch (error) {
+    const aiError = AIError.fromUnknown(error)
+    return c.json(createErrorResponse(aiError), aiError.httpStatus)
   }
 })
 

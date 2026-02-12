@@ -34,7 +34,7 @@ describe('ClaudeProvider', () => {
     it('should return true for valid config', () => {
       const config: AIConfig = {
         apiKey: 'sk-ant-valid-key',
-        model: 'claude-3-5-sonnet-20241022'
+        model: 'claude-3-5-sonnet-20241022',
       }
       expect(provider.validateConfig(config)).toBe(true)
     })
@@ -43,7 +43,7 @@ describe('ClaudeProvider', () => {
       provider.supportedModels.forEach(model => {
         const config: AIConfig = {
           apiKey: 'sk-ant-valid-key',
-          model
+          model,
         }
         expect(provider.validateConfig(config)).toBe(true)
       })
@@ -52,7 +52,7 @@ describe('ClaudeProvider', () => {
     it('should return false for empty apiKey', () => {
       const config: AIConfig = {
         apiKey: '',
-        model: 'claude-3-5-sonnet-20241022'
+        model: 'claude-3-5-sonnet-20241022',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -60,7 +60,7 @@ describe('ClaudeProvider', () => {
     it('should return false for whitespace-only apiKey', () => {
       const config: AIConfig = {
         apiKey: '   ',
-        model: 'claude-3-5-sonnet-20241022'
+        model: 'claude-3-5-sonnet-20241022',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -68,7 +68,7 @@ describe('ClaudeProvider', () => {
     it('should return false for unsupported model', () => {
       const config: AIConfig = {
         apiKey: 'sk-ant-valid-key',
-        model: 'claude-2'
+        model: 'claude-2',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -76,14 +76,14 @@ describe('ClaudeProvider', () => {
     it('should return false for empty model', () => {
       const config: AIConfig = {
         apiKey: 'sk-ant-valid-key',
-        model: ''
+        model: '',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
 
     it('should return false for missing model', () => {
       const config = {
-        apiKey: 'sk-ant-valid-key'
+        apiKey: 'sk-ant-valid-key',
       } as AIConfig
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -93,25 +93,29 @@ describe('ClaudeProvider', () => {
     it('should throw error for invalid config before calling API', async () => {
       const invalidConfig: AIConfig = {
         apiKey: '',
-        model: 'claude-3-5-sonnet-20241022'
+        model: 'claude-3-5-sonnet-20241022',
       }
 
-      await expect(provider.sendMessage(
-        [{ role: 'user', content: 'Hello' }],
-        invalidConfig
-      )).rejects.toThrow('Invalid configuration')
+      await expect(
+        provider.sendMessage(
+          [{ role: 'user', content: 'Hello' }],
+          invalidConfig
+        )
+      ).rejects.toThrow('Invalid configuration')
     })
 
     it('should throw error for unsupported model', async () => {
       const invalidConfig: AIConfig = {
         apiKey: 'sk-ant-test',
-        model: 'unsupported-model'
+        model: 'unsupported-model',
       }
 
-      await expect(provider.sendMessage(
-        [{ role: 'user', content: 'Hello' }],
-        invalidConfig
-      )).rejects.toThrow('Invalid configuration')
+      await expect(
+        provider.sendMessage(
+          [{ role: 'user', content: 'Hello' }],
+          invalidConfig
+        )
+      ).rejects.toThrow('Invalid configuration')
     })
   })
 
@@ -128,13 +132,17 @@ describe('ClaudeProvider', () => {
     })
 
     it('should have Claude 3 variants', () => {
-      const claude3Models = provider.supportedModels.filter(m => m.includes('claude-3'))
+      const claude3Models = provider.supportedModels.filter(m =>
+        m.includes('claude-3')
+      )
       expect(claude3Models.length).toBeGreaterThan(0)
     })
 
     it('should have different capability tiers', () => {
       expect(provider.supportedModels.some(m => m.includes('opus'))).toBe(true)
-      expect(provider.supportedModels.some(m => m.includes('sonnet'))).toBe(true)
+      expect(provider.supportedModels.some(m => m.includes('sonnet'))).toBe(
+        true
+      )
       expect(provider.supportedModels.some(m => m.includes('haiku'))).toBe(true)
     })
   })

@@ -8,7 +8,11 @@ interface ImagePreviewProps {
   onNoteChange: (note: string) => void
 }
 
-export function ImagePreview({ attachment, onRemove, onNoteChange }: ImagePreviewProps) {
+export function ImagePreview({
+  attachment,
+  onRemove,
+  onNoteChange,
+}: ImagePreviewProps) {
   return (
     <div className="relative group">
       <div className="relative w-20 h-20 rounded-lg overflow-hidden border bg-muted">
@@ -29,7 +33,7 @@ export function ImagePreview({ attachment, onRemove, onNoteChange }: ImagePrevie
       <input
         type="text"
         value={attachment.note}
-        onChange={(e) => onNoteChange(e.target.value)}
+        onChange={e => onNoteChange(e.target.value)}
         placeholder="Add note..."
         className="mt-1 w-20 text-xs px-1 py-0.5 border rounded bg-background"
       />

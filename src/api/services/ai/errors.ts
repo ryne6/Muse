@@ -12,7 +12,17 @@ import {
   createAPIError,
 } from '../../../shared/types/error'
 
-export type HttpStatusCode = 400 | 401 | 403 | 404 | 408 | 429 | 500 | 502 | 503 | 504
+export type HttpStatusCode =
+  | 400
+  | 401
+  | 403
+  | 404
+  | 408
+  | 429
+  | 500
+  | 502
+  | 503
+  | 504
 
 /**
  * Custom error class for AI-related errors
@@ -52,7 +62,12 @@ export class AIError extends Error {
    * Convert to API error response format
    */
   toAPIError(): APIError {
-    return createAPIError(this.code, this.message, this.retryAfter, this.details)
+    return createAPIError(
+      this.code,
+      this.message,
+      this.retryAfter,
+      this.details
+    )
   }
 
   /**
@@ -102,8 +117,13 @@ export class AIError extends Error {
 /**
  * Map ErrorCode to HTTP status code
  */
-export function errorCodeToHttpStatus(code: ErrorCode): 400 | 401 | 403 | 404 | 408 | 429 | 500 | 502 | 503 | 504 {
-  const mapping: Record<ErrorCode, 400 | 401 | 403 | 404 | 408 | 429 | 500 | 502 | 503 | 504> = {
+export function errorCodeToHttpStatus(
+  code: ErrorCode
+): 400 | 401 | 403 | 404 | 408 | 429 | 500 | 502 | 503 | 504 {
+  const mapping: Record<
+    ErrorCode,
+    400 | 401 | 403 | 404 | 408 | 429 | 500 | 502 | 503 | 504
+  > = {
     [ErrorCode.INVALID_REQUEST]: 400,
     [ErrorCode.UNAUTHORIZED]: 401,
     [ErrorCode.FORBIDDEN]: 403,
@@ -135,7 +155,7 @@ export function isNetworkError(error: Error): boolean {
     'Failed to fetch',
   ]
   const message = error.message.toLowerCase()
-  return networkPatterns.some((pattern) =>
+  return networkPatterns.some(pattern =>
     message.includes(pattern.toLowerCase())
   )
 }
@@ -146,7 +166,7 @@ export function isNetworkError(error: Error): boolean {
 export function isTimeoutError(error: Error): boolean {
   const timeoutPatterns = ['timeout', 'ETIMEDOUT', 'aborted']
   const message = error.message.toLowerCase()
-  return timeoutPatterns.some((pattern) =>
+  return timeoutPatterns.some(pattern =>
     message.includes(pattern.toLowerCase())
   )
 }

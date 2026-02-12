@@ -85,7 +85,10 @@ export interface IpcApi {
       path?: string,
       options?: { glob?: string; ignoreCase?: boolean; maxResults?: number }
     ) => Promise<{ results: { file: string; line: number; content: string }[] }>
-    listFiles: (path: string, pattern?: string) => Promise<{ files: FileInfo[] }>
+    listFiles: (
+      path: string,
+      pattern?: string
+    ) => Promise<{ files: FileInfo[] }>
     exists: (path: string) => Promise<{ exists: boolean }>
     mkdir: (path: string) => Promise<{ success: boolean }>
   }
@@ -94,11 +97,27 @@ export interface IpcApi {
   }
   git: {
     status: (path?: string) => Promise<CommandResult>
-    diff: (path?: string, staged?: boolean, file?: string) => Promise<CommandResult>
+    diff: (
+      path?: string,
+      staged?: boolean,
+      file?: string
+    ) => Promise<CommandResult>
     log: (path?: string, maxCount?: number) => Promise<CommandResult>
-    commit: (path: string | undefined, message: string, files?: string[]) => Promise<CommandResult>
-    push: (path?: string, remote?: string, branch?: string) => Promise<CommandResult>
-    checkout: (path: string | undefined, branch: string, create?: boolean) => Promise<CommandResult>
+    commit: (
+      path: string | undefined,
+      message: string,
+      files?: string[]
+    ) => Promise<CommandResult>
+    push: (
+      path?: string,
+      remote?: string,
+      branch?: string
+    ) => Promise<CommandResult>
+    checkout: (
+      path: string | undefined,
+      branch: string,
+      create?: boolean
+    ) => Promise<CommandResult>
   }
   web: {
     fetch: (url: string, maxLength?: number) => Promise<{ content: string }>
@@ -107,14 +126,18 @@ export interface IpcApi {
       limit?: number,
       recencyDays?: number,
       domains?: string[]
-    ) => Promise<{ results: { title: string; url: string; snippet?: string }[] }>
+    ) => Promise<{
+      results: { title: string; url: string; snippet?: string }[]
+    }>
   }
   workspace: {
     get: () => Promise<{ path: string | null }>
     set: (path: string) => Promise<{ success: boolean }>
     select: () => Promise<{ path: string | null }>
     createDefault: (conversationId: string) => Promise<{ path: string }>
-    cleanup: (workspacePath: string) => Promise<{ deleted: boolean; reason: string }>
+    cleanup: (
+      workspacePath: string
+    ) => Promise<{ deleted: boolean; reason: string }>
     cleanupOrphans: () => Promise<{
       deletedCount: number
       nonEmpty: Array<{ path: string; id: string; isEmpty: boolean }>
@@ -134,7 +157,10 @@ export interface IpcApi {
     getPreviewsByMessageId: (messageId: string) => Promise<AttachmentPreview[]>
     getById: (id: string) => Promise<any>
     getBase64: (id: string) => Promise<string | null>
-    updateNote: (id: string, note: string | null) => Promise<{ success: boolean }>
+    updateNote: (
+      id: string,
+      note: string | null
+    ) => Promise<{ success: boolean }>
     delete: (id: string) => Promise<{ success: boolean }>
   }
   mcp: {
@@ -156,24 +182,51 @@ export interface IpcApi {
     getAll: () => Promise<PromptPreset[]>
     getById: (id: string) => Promise<PromptPreset | null>
     create: (data: { name: string; content: string }) => Promise<PromptPreset>
-    update: (id: string, data: { name?: string; content?: string }) => Promise<PromptPreset | null>
+    update: (
+      id: string,
+      data: { name?: string; content?: string }
+    ) => Promise<PromptPreset | null>
     delete: (id: string) => Promise<{ success: boolean }>
   }
   permissions: {
     load: (workspacePath?: string) => Promise<PermissionRule[]>
-    addRule: (rule: any, source: string, workspacePath?: string) => Promise<{ success: boolean }>
-    removeRule: (ruleId: string, source: string, workspacePath?: string) => Promise<{ success: boolean }>
+    addRule: (
+      rule: any,
+      source: string,
+      workspacePath?: string
+    ) => Promise<{ success: boolean }>
+    removeRule: (
+      ruleId: string,
+      source: string,
+      workspacePath?: string
+    ) => Promise<{ success: boolean }>
   }
   memory: {
     getAll: () => Promise<MemoryRecord[]>
     getByType: (type: string) => Promise<MemoryRecord[]>
-    create: (data: Omit<MemoryRecord, 'id' | 'createdAt' | 'updatedAt'>) => Promise<MemoryRecord>
-    update: (id: string, data: Partial<MemoryRecord>) => Promise<MemoryRecord | null>
+    create: (
+      data: Omit<MemoryRecord, 'id' | 'createdAt' | 'updatedAt'>
+    ) => Promise<MemoryRecord>
+    update: (
+      id: string,
+      data: Partial<MemoryRecord>
+    ) => Promise<MemoryRecord | null>
     delete: (id: string) => Promise<{ success: boolean }>
     search: (query: string) => Promise<MemoryRecord[]>
-    getRelevant: (workspacePath: string | null, userMessage: string) => Promise<string>
-    remember: (content: string, type?: string, workspacePath?: string, category?: string) => Promise<MemoryRecord>
-    forget: (keyword: string, workspacePath?: string) => Promise<{ deletedCount: number }>
+    getRelevant: (
+      workspacePath: string | null,
+      userMessage: string
+    ) => Promise<string>
+    remember: (
+      content: string,
+      type?: string,
+      workspacePath?: string,
+      category?: string
+    ) => Promise<MemoryRecord>
+    forget: (
+      keyword: string,
+      workspacePath?: string
+    ) => Promise<{ deletedCount: number }>
     getByConversationId: (conversationId: string) => Promise<MemoryRecord[]>
     upsert: (data: {
       type: string
@@ -183,13 +236,16 @@ export interface IpcApi {
       source: string
       conversationId?: string
     }) => Promise<{ memory: MemoryRecord; isNew: boolean }>
-    syncToFile: (memory: {
-      type: string
-      category: string
-      content: string
-      source: string
-      tags?: string[]
-    }, workspacePath?: string) => Promise<string>
+    syncToFile: (
+      memory: {
+        type: string
+        category: string
+        content: string
+        source: string
+        tags?: string[]
+      },
+      workspacePath?: string
+    ) => Promise<string>
     extract: (data: {
       messages: Array<{ role: string; content: string | any[] }>
       providerId: string

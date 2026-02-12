@@ -29,7 +29,7 @@ export function FileExplorer() {
     setIsLoading(true)
     try {
       const result = await window.api.fs.listFiles(path)
-      const nodes: FileNode[] = result.files.map((file) => ({
+      const nodes: FileNode[] = result.files.map(file => ({
         name: file.name,
         path: file.path,
         isDirectory: file.isDirectory,
@@ -62,7 +62,7 @@ export function FileExplorer() {
   const loadFolderChildren = async (folderPath: string) => {
     try {
       const result = await window.api.fs.listFiles(folderPath)
-      const children: FileNode[] = result.files.map((file) => ({
+      const children: FileNode[] = result.files.map(file => ({
         name: file.name,
         path: file.path,
         isDirectory: file.isDirectory,
@@ -71,7 +71,9 @@ export function FileExplorer() {
       }))
 
       // Update the file tree with children
-      setFileTree((prevTree) => updateTreeWithChildren(prevTree, folderPath, children))
+      setFileTree(prevTree =>
+        updateTreeWithChildren(prevTree, folderPath, children)
+      )
     } catch (error) {
       console.error('Failed to load folder children:', error)
     }
@@ -82,7 +84,7 @@ export function FileExplorer() {
     targetPath: string,
     children: FileNode[]
   ): FileNode[] => {
-    return nodes.map((node) => {
+    return nodes.map(node => {
       if (node.path === targetPath) {
         return { ...node, children }
       }

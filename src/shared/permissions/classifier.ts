@@ -36,35 +36,83 @@ const STATIC_TOOL_LEVELS: Record<string, ToolRiskLevel> = {
  */
 const SAFE_BASH_PREFIXES = [
   // 文件查看
-  'cat ', 'head ', 'tail ', 'less ', 'wc ',
+  'cat ',
+  'head ',
+  'tail ',
+  'less ',
+  'wc ',
   // 目录浏览
-  'ls ', 'ls\t', 'pwd', 'find ', 'tree ',
+  'ls ',
+  'ls\t',
+  'pwd',
+  'find ',
+  'tree ',
   // 搜索
-  'grep ', 'rg ', 'ag ', 'ack ',
+  'grep ',
+  'rg ',
+  'ag ',
+  'ack ',
   // Git 只读
-  'git status', 'git log', 'git diff', 'git branch',
-  'git show', 'git blame', 'git stash list',
+  'git status',
+  'git log',
+  'git diff',
+  'git branch',
+  'git show',
+  'git blame',
+  'git stash list',
   // 包管理只读
-  'npm list', 'npm ls', 'npm outdated', 'npm view',
-  'yarn list', 'yarn info', 'yarn why',
-  'pnpm list', 'pnpm ls', 'pnpm why',
+  'npm list',
+  'npm ls',
+  'npm outdated',
+  'npm view',
+  'yarn list',
+  'yarn info',
+  'yarn why',
+  'pnpm list',
+  'pnpm ls',
+  'pnpm why',
   'bun pm ls',
   // 构建/测试
-  'npm test', 'npm run test', 'npm run lint', 'npm run check',
-  'yarn test', 'yarn lint', 'pnpm test', 'bun test',
-  'npx tsc --noEmit', 'npx eslint',
+  'npm test',
+  'npm run test',
+  'npm run lint',
+  'npm run check',
+  'yarn test',
+  'yarn lint',
+  'pnpm test',
+  'bun test',
+  'npx tsc --noEmit',
+  'npx eslint',
   // 系统信息
-  'which ', 'where ', 'whoami', 'uname', 'env',
-  'node --version', 'npm --version', 'python --version',
+  'which ',
+  'where ',
+  'whoami',
+  'uname',
+  'env',
+  'node --version',
+  'npm --version',
+  'python --version',
   // 文本处理（只读）
-  'echo ', 'printf ', 'sort ', 'uniq ', 'cut ', 'tr ',
-  'awk ', 'jq ',
+  'echo ',
+  'printf ',
+  'sort ',
+  'uniq ',
+  'cut ',
+  'tr ',
+  'awk ',
+  'jq ',
   // 注意：sed -n 需要额外检查，不在此列表中
 ]
 
 const SAFE_BASH_EXACT = [
-  'ls', 'pwd', 'whoami', 'date', 'uname',
-  'git status', 'git branch', 'git log',
+  'ls',
+  'pwd',
+  'whoami',
+  'date',
+  'uname',
+  'git status',
+  'git branch',
+  'git log',
 ]
 
 /**
@@ -72,22 +120,35 @@ const SAFE_BASH_EXACT = [
  */
 const DANGEROUS_BASH_PATTERNS: RegExp[] = [
   // 删除操作
-  /\brm\s/, /\brmdir\s/,
+  /\brm\s/,
+  /\brmdir\s/,
   // 权限修改
-  /\bchmod\s/, /\bchown\s/,
+  /\bchmod\s/,
+  /\bchown\s/,
   // 系统操作
-  /\bsudo\s/, /\bsu\s/,
+  /\bsudo\s/,
+  /\bsu\s/,
   // 网络写操作
   /\bcurl\s.*(-X|--request)\s*(POST|PUT|DELETE|PATCH)/,
   /\bwget\s/,
   // 进程操作
-  /\bkill\s/, /\bkillall\s/,
+  /\bkill\s/,
+  /\bkillall\s/,
   // 包安装
-  /\bnpm install/, /\bnpm i\s/, /\byarn add/, /\bpnpm add/, /\bbun add/,
-  /\bpip install/, /\bbrew install/,
+  /\bnpm install/,
+  /\bnpm i\s/,
+  /\byarn add/,
+  /\bpnpm add/,
+  /\bbun add/,
+  /\bpip install/,
+  /\bbrew install/,
   // Git 写操作
-  /\bgit push/, /\bgit commit/, /\bgit checkout/,
-  /\bgit reset/, /\bgit rebase/, /\bgit merge/,
+  /\bgit push/,
+  /\bgit commit/,
+  /\bgit checkout/,
+  /\bgit reset/,
+  /\bgit rebase/,
+  /\bgit merge/,
   /\bgit stash (drop|pop|clear)/,
   // 危险重定向
   />\s*\//, // 写入绝对路径
@@ -103,7 +164,7 @@ function splitCompoundCommand(command: string): string[] {
   // Simple approach: split on operators, trim each part
   return command
     .split(/\s*(?:&&|\|\||[;|])\s*/)
-    .map((s) => s.trim())
+    .map(s => s.trim())
     .filter(Boolean)
 }
 

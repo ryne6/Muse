@@ -88,7 +88,7 @@ export const notify = {
     })
   },
 
-  promise: <T,>(
+  promise: <T>(
     promise: Promise<T>,
     {
       loading,

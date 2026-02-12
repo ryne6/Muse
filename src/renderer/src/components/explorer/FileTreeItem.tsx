@@ -82,7 +82,7 @@ export function FileTreeItem({
       {/* Children (if expanded) */}
       {node.isDirectory && isExpanded && node.children && (
         <div>
-          {node.children.map((child) => (
+          {node.children.map(child => (
             <FileTreeItem
               key={child.path}
               node={child}

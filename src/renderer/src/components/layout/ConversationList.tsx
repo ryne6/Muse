@@ -8,7 +8,11 @@ import { SearchResults } from './SearchResults'
 import { cn } from '@/utils/cn'
 import type { Conversation } from '@shared/types/conversation'
 
-function ConversationIconItem({ conversation }: { conversation: Conversation }) {
+function ConversationIconItem({
+  conversation,
+}: {
+  conversation: Conversation
+}) {
   const { currentConversationId, loadConversation } = useConversationStore()
   const isActive = currentConversationId === conversation.id
 
@@ -34,7 +38,8 @@ interface ConversationListProps {
 
 export function ConversationList({ showText = true }: ConversationListProps) {
   const isCollapsed = !showText
-  const { conversations, createConversation, getConversationsByDate } = useConversationStore()
+  const { conversations, createConversation, getConversationsByDate } =
+    useConversationStore()
   const { isOpen: isSearchOpen, results: searchResults } = useSearchStore()
 
   const conversationGroups = getConversationsByDate()
@@ -47,10 +52,14 @@ export function ConversationList({ showText = true }: ConversationListProps) {
   return (
     <div className="flex flex-col h-full">
       {/* Header with New Chat button */}
-      <div className={cn(
-        'border-b border-[hsl(var(--border))]',
-        isCollapsed ? 'px-2 py-2 flex flex-col items-center' : 'px-3 pb-3 pt-1 space-y-2'
-      )}>
+      <div
+        className={cn(
+          'border-b border-[hsl(var(--border))]',
+          isCollapsed
+            ? 'px-2 py-2 flex flex-col items-center'
+            : 'px-3 pb-3 pt-1 space-y-2'
+        )}
+      >
         <Button
           onClick={handleNewChat}
           variant="ghost"
@@ -75,26 +84,41 @@ export function ConversationList({ showText = true }: ConversationListProps) {
       <div className="flex-1 overflow-y-auto">
         {isCollapsed ? (
           <div className="flex flex-col items-center gap-1 py-2">
-            {conversations.slice(0, 10).map((conv) => (
+            {conversations.slice(0, 10).map(conv => (
               <ConversationIconItem key={conv.id} conversation={conv} />
             ))}
           </div>
         ) : hasConversations ? (
           <div className="p-2 space-y-4">
             {conversationGroups.today.length > 0 && (
-              <ConversationGroup label="# 今天" conversations={conversationGroups.today} />
+              <ConversationGroup
+                label="# 今天"
+                conversations={conversationGroups.today}
+              />
             )}
             {conversationGroups.yesterday.length > 0 && (
-              <ConversationGroup label="# 昨天" conversations={conversationGroups.yesterday} />
+              <ConversationGroup
+                label="# 昨天"
+                conversations={conversationGroups.yesterday}
+              />
             )}
             {conversationGroups.lastWeek.length > 0 && (
-              <ConversationGroup label="# 本周" conversations={conversationGroups.lastWeek} />
+              <ConversationGroup
+                label="# 本周"
+                conversations={conversationGroups.lastWeek}
+              />
             )}
             {conversationGroups.lastMonth.length > 0 && (
-              <ConversationGroup label="# 本月" conversations={conversationGroups.lastMonth} />
+              <ConversationGroup
+                label="# 本月"
+                conversations={conversationGroups.lastMonth}
+              />
             )}
             {conversationGroups.older.length > 0 && (
-              <ConversationGroup label="# 更早" conversations={conversationGroups.older} />
+              <ConversationGroup
+                label="# 更早"
+                conversations={conversationGroups.older}
+              />
             )}
           </div>
         ) : (

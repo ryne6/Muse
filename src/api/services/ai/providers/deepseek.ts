@@ -1,5 +1,9 @@
 import { BaseAIProvider } from './base'
-import type { AIMessage, AIConfig, AIStreamChunk } from '../../../../shared/types/ai'
+import type {
+  AIMessage,
+  AIConfig,
+  AIStreamChunk,
+} from '../../../../shared/types/ai'
 
 export class DeepSeekProvider extends BaseAIProvider {
   readonly name = 'deepseek'
@@ -52,7 +56,7 @@ export class DeepSeekProvider extends BaseAIProvider {
   ): Promise<string> {
     const requestBody = {
       model: config.model || this.getDefaultModel(),
-      messages: messages.map((msg) => ({
+      messages: messages.map(msg => ({
         role: msg.role,
         content: msg.content,
       })),
@@ -145,7 +149,7 @@ export class DeepSeekProvider extends BaseAIProvider {
   ): Promise<string> {
     const requestBody = {
       model: config.model || this.getDefaultModel(),
-      messages: messages.map((msg) => ({
+      messages: messages.map(msg => ({
         role: msg.role,
         content: msg.content,
       })),

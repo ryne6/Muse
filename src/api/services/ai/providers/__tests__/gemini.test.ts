@@ -33,7 +33,7 @@ describe('GeminiProvider', () => {
     it('should return true for valid config', () => {
       const config: AIConfig = {
         apiKey: 'valid-api-key',
-        model: 'gemini-pro'
+        model: 'gemini-pro',
       }
       expect(provider.validateConfig(config)).toBe(true)
     })
@@ -41,7 +41,7 @@ describe('GeminiProvider', () => {
     it('should return false for empty apiKey', () => {
       const config: AIConfig = {
         apiKey: '',
-        model: 'gemini-pro'
+        model: 'gemini-pro',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -49,7 +49,7 @@ describe('GeminiProvider', () => {
     it('should return false for whitespace-only apiKey', () => {
       const config: AIConfig = {
         apiKey: '   ',
-        model: 'gemini-pro'
+        model: 'gemini-pro',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -57,7 +57,7 @@ describe('GeminiProvider', () => {
     it('should accept any model (Gemini has dynamic models)', () => {
       const config: AIConfig = {
         apiKey: 'valid-key',
-        model: 'some-new-gemini-model'
+        model: 'some-new-gemini-model',
       }
       // Gemini provider doesn't strictly validate model
       expect(provider.validateConfig(config)).toBe(true)
@@ -68,13 +68,15 @@ describe('GeminiProvider', () => {
     it('should throw error for invalid config before calling API', async () => {
       const invalidConfig: AIConfig = {
         apiKey: '',
-        model: 'gemini-pro'
+        model: 'gemini-pro',
       }
 
-      await expect(provider.sendMessage(
-        [{ role: 'user', content: 'Hello' }],
-        invalidConfig
-      )).rejects.toThrow('Invalid configuration')
+      await expect(
+        provider.sendMessage(
+          [{ role: 'user', content: 'Hello' }],
+          invalidConfig
+        )
+      ).rejects.toThrow('Invalid configuration')
     })
   })
 
@@ -91,11 +93,15 @@ describe('GeminiProvider', () => {
     })
 
     it('should have Gemini Pro', () => {
-      expect(provider.supportedModels.some(m => m.includes('gemini-pro'))).toBe(true)
+      expect(provider.supportedModels.some(m => m.includes('gemini-pro'))).toBe(
+        true
+      )
     })
 
     it('should have Gemini 1.5 variants', () => {
-      const gemini15Models = provider.supportedModels.filter(m => m.includes('1.5'))
+      const gemini15Models = provider.supportedModels.filter(m =>
+        m.includes('1.5')
+      )
       expect(gemini15Models.length).toBeGreaterThan(0)
     })
   })

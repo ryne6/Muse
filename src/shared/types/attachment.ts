@@ -78,6 +78,8 @@ export const MAX_ATTACHMENT_SIZE = 10 * 1024 * 1024
 /**
  * Check if a MIME type is a supported image type
  */
-export function isSupportedImageType(mimeType: string): mimeType is SupportedImageType {
+export function isSupportedImageType(
+  mimeType: string
+): mimeType is SupportedImageType {
   return SUPPORTED_IMAGE_TYPES.includes(mimeType as SupportedImageType)
 }

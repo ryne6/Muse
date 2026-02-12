@@ -36,7 +36,11 @@ export class PermissionEngine {
 
     // Step 2: 检查 deny 规则（P1，deny 优先）
     if (options.permissionRules?.length) {
-      const ruleDecision = this.matchRules(toolName, input, options.permissionRules)
+      const ruleDecision = this.matchRules(
+        toolName,
+        input,
+        options.permissionRules
+      )
       if (ruleDecision) return ruleDecision
     }
 
@@ -56,7 +60,10 @@ export class PermissionEngine {
     }
 
     // Step 6: 需要用户审批
-    return { action: 'ask', reason: `Tool "${toolName}" requires approval (${riskLevel})` }
+    return {
+      action: 'ask',
+      reason: `Tool "${toolName}" requires approval (${riskLevel})`,
+    }
   }
 
   /**
@@ -68,7 +75,7 @@ export class PermissionEngine {
     input: Record<string, any>,
     rules: PermissionRule[]
   ): PermissionDecision | null {
-    const matchingRules = rules.filter((rule) => {
+    const matchingRules = rules.filter(rule => {
       // 工具名匹配（支持 * 通配符）
       if (rule.tool !== '*' && rule.tool !== toolName) return false
 
@@ -90,7 +97,7 @@ export class PermissionEngine {
     if (matchingRules.length === 0) return null
 
     // deny 优先
-    const denyRule = matchingRules.find((r) => r.action === 'deny')
+    const denyRule = matchingRules.find(r => r.action === 'deny')
     if (denyRule) {
       return {
         action: 'deny',
@@ -99,7 +106,7 @@ export class PermissionEngine {
       }
     }
 
-    const allowRule = matchingRules.find((r) => r.action === 'allow')
+    const allowRule = matchingRules.find(r => r.action === 'allow')
     if (allowRule) {
       return {
         action: 'allow',

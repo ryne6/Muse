@@ -29,12 +29,9 @@ describe('fontService', () => {
     })
 
     it('should return system fonts when queryLocalFonts is available', async () => {
-      const mockFonts = [
-        { family: 'Custom Font' },
-        { family: 'Another Font' },
-      ]
+      const mockFonts = [{ family: 'Custom Font' }, { family: 'Another Font' }]
       ;(global as any).window = {
-        queryLocalFonts: vi.fn().mockResolvedValue(mockFonts)
+        queryLocalFonts: vi.fn().mockResolvedValue(mockFonts),
       }
 
       const fonts = await getSystemFonts()
@@ -46,7 +43,9 @@ describe('fontService', () => {
 
     it('should return fallback fonts on error', async () => {
       ;(global as any).window = {
-        queryLocalFonts: vi.fn().mockRejectedValue(new Error('Permission denied'))
+        queryLocalFonts: vi
+          .fn()
+          .mockRejectedValue(new Error('Permission denied')),
       }
 
       const fonts = await getSystemFonts()
@@ -62,7 +61,7 @@ describe('fontService', () => {
         { family: 'Alpha Font' },
       ]
       ;(global as any).window = {
-        queryLocalFonts: vi.fn().mockResolvedValue(mockFonts)
+        queryLocalFonts: vi.fn().mockResolvedValue(mockFonts),
       }
 
       const fonts = await getSystemFonts()
@@ -79,7 +78,7 @@ describe('fontService', () => {
         { family: null },
       ]
       ;(global as any).window = {
-        queryLocalFonts: vi.fn().mockResolvedValue(mockFonts)
+        queryLocalFonts: vi.fn().mockResolvedValue(mockFonts),
       }
 
       const fonts = await getSystemFonts()
@@ -91,7 +90,10 @@ describe('fontService', () => {
 
   describe('applyUIFont', () => {
     it('should set font CSS variable', () => {
-      const setPropertySpy = vi.spyOn(document.documentElement.style, 'setProperty')
+      const setPropertySpy = vi.spyOn(
+        document.documentElement.style,
+        'setProperty'
+      )
 
       applyUIFont('Custom Font')
 
@@ -99,7 +101,10 @@ describe('fontService', () => {
     })
 
     it('should remove font CSS variable when font is null', () => {
-      const removePropertySpy = vi.spyOn(document.documentElement.style, 'removeProperty')
+      const removePropertySpy = vi.spyOn(
+        document.documentElement.style,
+        'removeProperty'
+      )
 
       applyUIFont(null)
 
@@ -107,7 +112,10 @@ describe('fontService', () => {
     })
 
     it('should remove font CSS variable when font is undefined', () => {
-      const removePropertySpy = vi.spyOn(document.documentElement.style, 'removeProperty')
+      const removePropertySpy = vi.spyOn(
+        document.documentElement.style,
+        'removeProperty'
+      )
 
       applyUIFont(undefined)
 

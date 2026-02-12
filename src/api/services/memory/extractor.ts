@@ -38,7 +38,7 @@ export class MemoryExtractor {
   ): Promise<ExtractedMemory[]> {
     // Take last 10 messages (user + assistant only)
     const recentMessages = messages
-      .filter((m) => m.role === 'user' || m.role === 'assistant')
+      .filter(m => m.role === 'user' || m.role === 'assistant')
       .slice(-10)
 
     if (recentMessages.length === 0) {
@@ -47,7 +47,7 @@ export class MemoryExtractor {
 
     // Format messages into conversation text
     let conversationText = recentMessages
-      .map((m) => {
+      .map(m => {
         const role = m.role === 'user' ? 'User' : 'Assistant'
         const text = getTextContent(m.content)
         return `${role}: ${text}`
@@ -113,7 +113,9 @@ export class MemoryExtractor {
           item &&
           typeof item.content === 'string' &&
           typeof item.category === 'string' &&
-          ['preference', 'knowledge', 'decision', 'pattern'].includes(item.category) &&
+          ['preference', 'knowledge', 'decision', 'pattern'].includes(
+            item.category
+          ) &&
           Array.isArray(item.tags) &&
           item.tags.every((t: unknown) => typeof t === 'string')
       )

@@ -15,7 +15,7 @@ export function parseCorsOrigins(raw?: string): string[] {
   if (!raw) return defaultCorsOrigins
   const origins = raw
     .split(',')
-    .map((origin) => origin.trim())
+    .map(origin => origin.trim())
     .filter(Boolean)
   return origins.length > 0 ? origins : defaultCorsOrigins
 }
@@ -25,7 +25,7 @@ app.use('*', logger())
 app.use('*', cors({ origin: '*' }))
 
 // 健康检查
-app.get('/health', (c) => {
+app.get('/health', c => {
   return c.json({ status: 'ok', timestamp: Date.now() })
 })
 
@@ -33,7 +33,7 @@ app.get('/health', (c) => {
 app.route('/api', chatRoutes)
 
 // 404 处理
-app.notFound((c) => {
+app.notFound(c => {
   return c.json({ error: 'Not Found' }, 404)
 })
 
@@ -54,7 +54,10 @@ export default app
 declare const Bun: any
 
 // 如果直接运行此文件，启动服务器（仅在支持的运行时）
-if (typeof Bun !== 'undefined' && import.meta.url === `file://${process.argv[1]}`) {
+if (
+  typeof Bun !== 'undefined' &&
+  import.meta.url === `file://${process.argv[1]}`
+) {
   const port = process.env.PORT || 3000
   console.log(`🚀 Hono API Server starting on port ${port}`)
 

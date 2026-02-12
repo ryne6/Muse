@@ -22,7 +22,9 @@ export function ConversationSettingsDialog({
   open,
   onClose,
 }: ConversationSettingsDialogProps) {
-  const [systemPrompt, setSystemPrompt] = useState(conversation.systemPrompt || '')
+  const [systemPrompt, setSystemPrompt] = useState(
+    conversation.systemPrompt || ''
+  )
   const [presets, setPresets] = useState<PromptPreset[]>([])
   const { updateConversationSystemPrompt } = useConversationStore()
 
@@ -44,7 +46,7 @@ export function ConversationSettingsDialog({
   }, [open, conversation.systemPrompt, loadPresets])
 
   const handleSelectPreset = (presetId: string) => {
-    const preset = presets.find((p) => p.id === presetId)
+    const preset = presets.find(p => p.id === presetId)
     if (preset) {
       setSystemPrompt(preset.content)
     }
@@ -52,7 +54,10 @@ export function ConversationSettingsDialog({
 
   const handleSave = async () => {
     try {
-      await updateConversationSystemPrompt(conversation.id, systemPrompt || null)
+      await updateConversationSystemPrompt(
+        conversation.id,
+        systemPrompt || null
+      )
       notify.success('Conversation settings saved')
       onClose()
     } catch (error) {
@@ -72,9 +77,7 @@ export function ConversationSettingsDialog({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSave}>
-            Save
-          </Button>
+          <Button onClick={handleSave}>Save</Button>
         </div>
       }
     >
@@ -85,7 +88,7 @@ export function ConversationSettingsDialog({
             {presets.length > 0 && (
               <Dropdown
                 menu={{
-                  items: presets.map((preset) => ({
+                  items: presets.map(preset => ({
                     key: preset.id,
                     label: preset.name,
                     onClick: () => handleSelectPreset(preset.id),
@@ -100,12 +103,13 @@ export function ConversationSettingsDialog({
           </div>
           <textarea
             value={systemPrompt}
-            onChange={(e) => setSystemPrompt(e.target.value)}
+            onChange={e => setSystemPrompt(e.target.value)}
             placeholder="Enter custom instructions for this conversation..."
             className="w-full min-h-[120px] p-3 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--bg-main))] resize-y focus:outline-none focus:ring-2 focus:ring-primary"
           />
           <p className="text-xs text-muted-foreground">
-            This prompt will be appended after the global system prompt for this conversation only.
+            This prompt will be appended after the global system prompt for this
+            conversation only.
           </p>
           <p className="text-xs text-amber-500">
             Changes will take effect on subsequent messages.

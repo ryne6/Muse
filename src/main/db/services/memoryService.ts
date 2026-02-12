@@ -22,7 +22,11 @@ export class MemoryService {
   // Get memory by ID
   static async getById(id: string) {
     const db = getDatabase()
-    const result = await db.select().from(memories).where(eq(memories.id, id)).limit(1)
+    const result = await db
+      .select()
+      .from(memories)
+      .where(eq(memories.id, id))
+      .limit(1)
     return result[0] || null
   }
 
@@ -37,7 +41,9 @@ export class MemoryService {
   }
 
   // Create a new memory
-  static async create(data: Omit<NewMemory, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }) {
+  static async create(
+    data: Omit<NewMemory, 'id' | 'createdAt' | 'updatedAt'> & { id?: string }
+  ) {
     try {
       const db = getDatabase()
 
@@ -64,7 +70,10 @@ export class MemoryService {
   }
 
   // Update a memory
-  static async update(id: string, data: Partial<Omit<NewMemory, 'id' | 'createdAt'>>) {
+  static async update(
+    id: string,
+    data: Partial<Omit<NewMemory, 'id' | 'createdAt'>>
+  ) {
     try {
       const db = getDatabase()
 
@@ -109,7 +118,7 @@ export class MemoryService {
   static async touchAccessTime(ids: string[]) {
     if (ids.length === 0) return
     const db = getDatabase()
-    const placeholders = ids.map((id) => sql`${id}`)
+    const placeholders = ids.map(id => sql`${id}`)
     await db
       .update(memories)
       .set({ lastAccessedAt: new Date() })
@@ -119,16 +128,21 @@ export class MemoryService {
   // Export all memories as plain objects (for JSON export)
   static async exportAll(): Promise<Array<Record<string, unknown>>> {
     const db = getDatabase()
-    const all = await db.select().from(memories).orderBy(desc(memories.createdAt))
-    return all.map((m) => ({
+    const all = await db
+      .select()
+      .from(memories)
+      .orderBy(desc(memories.createdAt))
+    return all.map(m => ({
       type: m.type,
       category: m.category,
       content: m.content,
       tags: m.tags,
       source: m.source,
       conversationId: m.conversationId,
-      createdAt: m.createdAt instanceof Date ? m.createdAt.toISOString() : m.createdAt,
-      updatedAt: m.updatedAt instanceof Date ? m.updatedAt.toISOString() : m.updatedAt,
+      createdAt:
+        m.createdAt instanceof Date ? m.createdAt.toISOString() : m.createdAt,
+      updatedAt:
+        m.updatedAt instanceof Date ? m.updatedAt.toISOString() : m.updatedAt,
     }))
   }
 
@@ -171,7 +185,7 @@ export class MemoryService {
     // Extract key terms from content for matching
     const terms = content
       .split(/\s+/)
-      .filter((t) => t.length > 2)
+      .filter(t => t.length > 2)
       .slice(0, 10)
       .join(' ')
 
@@ -193,10 +207,13 @@ export class MemoryService {
       LIMIT 10
     `) as any[]
 
-    const mapped = results.map((r) => ({ ...this.mapRawToMemory(r), rank: r.rank as number }))
+    const mapped = results.map(r => ({
+      ...this.mapRawToMemory(r),
+      rank: r.rank as number,
+    }))
 
     if (threshold !== undefined) {
-      return mapped.filter((r) => r.rank < threshold)
+      return mapped.filter(r => r.rank < threshold)
     }
 
     return mapped
@@ -212,7 +229,7 @@ export class MemoryService {
     conversationId?: string
   }): Promise<{ memory: Memory; isNew: boolean }> {
     const db = getDatabase()
-    return db.transaction((tx) => {
+    return db.transaction(tx => {
       // findSimilar uses db.all() with raw SQL, so we run it inside the transaction scope
       // by calling the class methods which will see the same connection.
       // Since better-sqlite3 is synchronous and single-connection, the transaction
@@ -234,7 +251,12 @@ export class MemoryService {
           .where(eq(memories.id, best.id))
           .run()
 
-        const updated = tx.select().from(memories).where(eq(memories.id, best.id)).limit(1).get()
+        const updated = tx
+          .select()
+          .from(memories)
+          .where(eq(memories.id, best.id))
+          .limit(1)
+          .get()
         return { memory: updated as Memory, isNew: false }
       }
 
@@ -270,7 +292,7 @@ export class MemoryService {
     const db = getDatabase()
     const terms = content
       .split(/\s+/)
-      .filter((t) => t.length > 2)
+      .filter(t => t.length > 2)
       .slice(0, 10)
       .join(' ')
 
@@ -292,8 +314,8 @@ export class MemoryService {
     `) as any[]
 
     return results
-      .map((r) => ({ ...this.mapRawToMemory(r), rank: r.rank as number }))
-      .filter((r) => r.rank < threshold)
+      .map(r => ({ ...this.mapRawToMemory(r), rank: r.rank as number }))
+      .filter(r => r.rank < threshold)
   }
 
   /**
@@ -310,11 +332,18 @@ export class MemoryService {
       source: row.source,
       conversationId: row.conversation_id ?? row.conversationId ?? null,
       filePath: row.file_path ?? row.filePath ?? null,
-      createdAt: row.created_at != null ? new Date(row.created_at * 1000) : (row.createdAt ?? new Date()),
-      updatedAt: row.updated_at != null ? new Date(row.updated_at * 1000) : (row.updatedAt ?? new Date()),
-      lastAccessedAt: row.last_accessed_at != null
-        ? new Date(row.last_accessed_at * 1000)
-        : (row.lastAccessedAt ?? null),
+      createdAt:
+        row.created_at != null
+          ? new Date(row.created_at * 1000)
+          : (row.createdAt ?? new Date()),
+      updatedAt:
+        row.updated_at != null
+          ? new Date(row.updated_at * 1000)
+          : (row.updatedAt ?? new Date()),
+      lastAccessedAt:
+        row.last_accessed_at != null
+          ? new Date(row.last_accessed_at * 1000)
+          : (row.lastAccessedAt ?? null),
     }
   }
 
@@ -327,10 +356,10 @@ export class MemoryService {
       .replace(/[*"(){}[\]^~\\:+\-]/g, ' ')
       .trim()
       .split(/\s+/)
-      .filter((t) => t.length > 0)
-      .filter((t) => !FTS5_KEYWORDS.has(t.toUpperCase()))
+      .filter(t => t.length > 0)
+      .filter(t => !FTS5_KEYWORDS.has(t.toUpperCase()))
       .slice(0, 20)
-      .map((t) => `"${t}"`)
+      .map(t => `"${t}"`)
       .join(' ')
   }
 }

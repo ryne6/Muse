@@ -1,6 +1,9 @@
 import { useState, useCallback, type ReactNode } from 'react'
 import { ImagePlus } from 'lucide-react'
-import { SUPPORTED_IMAGE_TYPES, MAX_ATTACHMENT_SIZE } from '@shared/types/attachment'
+import {
+  SUPPORTED_IMAGE_TYPES,
+  MAX_ATTACHMENT_SIZE,
+} from '@shared/types/attachment'
 import { notify } from '@/utils/notify'
 
 interface ImageDropZoneProps {
@@ -9,7 +12,11 @@ interface ImageDropZoneProps {
   disabled?: boolean
 }
 
-export function ImageDropZone({ children, onImagesDropped, disabled }: ImageDropZoneProps) {
+export function ImageDropZone({
+  children,
+  onImagesDropped,
+  disabled,
+}: ImageDropZoneProps) {
   const [isDragging, setIsDragging] = useState(false)
 
   const validateFiles = useCallback((files: File[]): File[] => {
@@ -30,51 +37,60 @@ export function ImageDropZone({ children, onImagesDropped, disabled }: ImageDrop
     return validFiles
   }, [])
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    if (!disabled) {
-      setIsDragging(true)
-    }
-  }, [disabled])
+  const handleDragOver = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      if (!disabled) {
+        setIsDragging(true)
+      }
+    },
+    [disabled]
+  )
 
   const handleDragLeave = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
   }, [])
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      setIsDragging(false)
 
-    if (disabled) return
+      if (disabled) return
 
-    const files = Array.from(e.dataTransfer.files)
-    const imageFiles = files.filter(f => f.type.startsWith('image/'))
-    const validFiles = validateFiles(imageFiles)
+      const files = Array.from(e.dataTransfer.files)
+      const imageFiles = files.filter(f => f.type.startsWith('image/'))
+      const validFiles = validateFiles(imageFiles)
 
-    if (validFiles.length > 0) {
-      onImagesDropped(validFiles)
-    }
-  }, [disabled, validateFiles, onImagesDropped])
+      if (validFiles.length > 0) {
+        onImagesDropped(validFiles)
+      }
+    },
+    [disabled, validateFiles, onImagesDropped]
+  )
 
-  const handlePaste = useCallback((e: React.ClipboardEvent) => {
-    if (disabled) return
+  const handlePaste = useCallback(
+    (e: React.ClipboardEvent) => {
+      if (disabled) return
 
-    const items = Array.from(e.clipboardData.items)
-    const imageItems = items.filter(item => item.type.startsWith('image/'))
+      const items = Array.from(e.clipboardData.items)
+      const imageItems = items.filter(item => item.type.startsWith('image/'))
 
-    if (imageItems.length === 0) return
+      if (imageItems.length === 0) return
 
-    const files = imageItems
-      .map(item => item.getAsFile())
-      .filter((f): f is File => f !== null)
+      const files = imageItems
+        .map(item => item.getAsFile())
+        .filter((f): f is File => f !== null)
 
-    const validFiles = validateFiles(files)
+      const validFiles = validateFiles(files)
 
-    if (validFiles.length > 0) {
-      onImagesDropped(validFiles)
-    }
-  }, [disabled, validateFiles, onImagesDropped])
+      if (validFiles.length > 0) {
+        onImagesDropped(validFiles)
+      }
+    },
+    [disabled, validateFiles, onImagesDropped]
+  )
 
   return (
     <div

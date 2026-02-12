@@ -27,22 +27,22 @@ const mockDbClient = vi.hoisted(() => {
           type: 'claude',
           apiKey: 'test-key-1',
           enabled: true,
-          baseURL: 'https://api.anthropic.com'
+          baseURL: 'https://api.anthropic.com',
         },
         {
           id: 'provider-2',
           name: 'OpenAI',
           type: 'openai',
           apiKey: 'test-key-2',
-          enabled: false
-        }
-      ])
-    }
+          enabled: false,
+        },
+      ]),
+    },
   }
 })
 
 vi.mock('@/services/dbClient', () => ({
-  dbClient: mockDbClient
+  dbClient: mockDbClient,
 }))
 
 // Mock child components
@@ -54,7 +54,7 @@ vi.mock('../ProviderCard', () => ({
       <button onClick={() => onManageModels(provider)}>Manage Models</button>
       <button onClick={onUpdate}>Update</button>
     </div>
-  )
+  ),
 }))
 
 vi.mock('../AddProviderDialog', () => ({
@@ -62,7 +62,7 @@ vi.mock('../AddProviderDialog', () => ({
     <button data-testid="add-provider-dialog" onClick={onProviderAdded}>
       Add Provider
     </button>
-  )
+  ),
 }))
 
 vi.mock('../ManageModelsDialog', () => ({
@@ -72,7 +72,7 @@ vi.mock('../ManageModelsDialog', () => ({
         <div>Managing models for {providerName}</div>
         <div>Provider ID: {providerId}</div>
       </div>
-    ) : null
+    ) : null,
 }))
 
 describe('ProviderList', () => {
@@ -86,7 +86,9 @@ describe('ProviderList', () => {
 
       await waitFor(() => {
         expect(screen.getByText('AI Providers')).toBeInTheDocument()
-        expect(screen.getByText('Manage your AI provider configurations')).toBeInTheDocument()
+        expect(
+          screen.getByText('Manage your AI provider configurations')
+        ).toBeInTheDocument()
       })
     })
 
@@ -155,7 +157,7 @@ describe('ProviderList', () => {
   describe('加载状态测试', () => {
     it('should show loading spinner initially', async () => {
       let resolveProviders: (providers: any[]) => void
-      const pendingProviders = new Promise<any[]>((resolve) => {
+      const pendingProviders = new Promise<any[]>(resolve => {
         resolveProviders = resolve
       })
       mockDbClient.providers.getAll.mockReturnValueOnce(pendingProviders)
@@ -177,7 +179,9 @@ describe('ProviderList', () => {
       render(<ProviderList />)
 
       await waitFor(() => {
-        expect(screen.queryByRole('img', { hidden: true })).not.toBeInTheDocument()
+        expect(
+          screen.queryByRole('img', { hidden: true })
+        ).not.toBeInTheDocument()
       })
     })
   })
@@ -199,7 +203,9 @@ describe('ProviderList', () => {
       // Should show ManageModelsDialog
       await waitFor(() => {
         expect(screen.getByTestId('manage-models-dialog')).toBeInTheDocument()
-        expect(screen.getByText('Managing models for Claude')).toBeInTheDocument()
+        expect(
+          screen.getByText('Managing models for Claude')
+        ).toBeInTheDocument()
       })
     })
   })
@@ -224,7 +230,7 @@ describe('ProviderList', () => {
       expect(onConfigureProvider).toHaveBeenCalledWith(
         expect.objectContaining({
           id: 'provider-1',
-          name: 'Claude'
+          name: 'Claude',
         })
       )
     })

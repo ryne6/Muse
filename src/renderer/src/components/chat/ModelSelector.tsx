@@ -40,7 +40,7 @@ export function ModelSelector() {
   // Group models by provider
   const modelsByProvider = enabledModels.reduce(
     (acc, model) => {
-      const provider = providers.find((p) => p.id === model.providerId)
+      const provider = providers.find(p => p.id === model.providerId)
       if (!provider) return acc
 
       if (!acc[provider.name]) {
@@ -71,7 +71,9 @@ export function ModelSelector() {
   if (providers.length === 0) {
     return (
       <Button variant="outline" size="sm" disabled className="gap-2">
-        <span className="text-xs text-muted-foreground">No providers - Add in Settings</span>
+        <span className="text-xs text-muted-foreground">
+          No providers - Add in Settings
+        </span>
       </Button>
     )
   }
@@ -80,7 +82,9 @@ export function ModelSelector() {
   if (enabledModels.length === 0) {
     return (
       <Button variant="outline" size="sm" disabled className="gap-2">
-        <span className="text-xs text-muted-foreground">No models available</span>
+        <span className="text-xs text-muted-foreground">
+          No models available
+        </span>
       </Button>
     )
   }
@@ -91,32 +95,42 @@ export function ModelSelector() {
         <Button variant="outline" size="sm" className="gap-2">
           <span className="font-mono text-xs">{getCurrentModelDisplay()}</span>
           {currentProvider && (
-            <span className="text-xs text-muted-foreground">({currentProvider.name})</span>
+            <span className="text-xs text-muted-foreground">
+              ({currentProvider.name})
+            </span>
           )}
           <ChevronDown className="h-4 w-4 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-64">
-        {Object.entries(modelsByProvider).map(([providerName, providerModels], index) => (
-          <div key={providerName}>
-            {index > 0 && <DropdownMenuSeparator />}
-            <DropdownMenuLabel className="text-xs uppercase text-muted-foreground">
-              {providerName}
-            </DropdownMenuLabel>
-            {providerModels.map((model) => (
-              <DropdownMenuItem
-                key={model.id}
-                onClick={() => handleModelSelect(model.id)}
-                className="flex items-center justify-between font-mono text-xs cursor-pointer"
-              >
-                <span className={model.id === currentModel?.id ? 'font-semibold' : ''}>
-                  {model.name}
-                </span>
-                {model.id === currentModel?.id && <span className="text-primary">✓</span>}
-              </DropdownMenuItem>
-            ))}
-          </div>
-        ))}
+        {Object.entries(modelsByProvider).map(
+          ([providerName, providerModels], index) => (
+            <div key={providerName}>
+              {index > 0 && <DropdownMenuSeparator />}
+              <DropdownMenuLabel className="text-xs uppercase text-muted-foreground">
+                {providerName}
+              </DropdownMenuLabel>
+              {providerModels.map(model => (
+                <DropdownMenuItem
+                  key={model.id}
+                  onClick={() => handleModelSelect(model.id)}
+                  className="flex items-center justify-between font-mono text-xs cursor-pointer"
+                >
+                  <span
+                    className={
+                      model.id === currentModel?.id ? 'font-semibold' : ''
+                    }
+                  >
+                    {model.name}
+                  </span>
+                  {model.id === currentModel?.id && (
+                    <span className="text-primary">✓</span>
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </div>
+          )
+        )}
         {enabledModels.length === 0 && (
           <div className="p-4 text-center text-sm text-muted-foreground">
             No models available. Add a provider in Settings.

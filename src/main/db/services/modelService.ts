@@ -37,7 +37,11 @@ export class ModelService {
   // Get model by ID
   static async getById(id: string) {
     const db = getDatabase()
-    const result = await db.select().from(models).where(eq(models.id, id)).limit(1)
+    const result = await db
+      .select()
+      .from(models)
+      .where(eq(models.id, id))
+      .limit(1)
     return result[0] || null
   }
 
@@ -56,7 +60,8 @@ export class ModelService {
       providerId: data.providerId,
       modelId: data.modelId,
       name: data.name,
-      contextLength: data.contextLength ?? getDefaultContextLength(data.modelId),
+      contextLength:
+        data.contextLength ?? getDefaultContextLength(data.modelId),
       isCustom: data.isCustom || false,
       enabled: data.enabled ?? true,
     }
@@ -69,12 +74,13 @@ export class ModelService {
   static async createMany(modelList: Omit<NewModel, 'id'>[]) {
     const db = getDatabase()
 
-    const newModels: NewModel[] = modelList.map((data) => ({
+    const newModels: NewModel[] = modelList.map(data => ({
       id: generateId(),
       providerId: data.providerId,
       modelId: data.modelId,
       name: data.name,
-      contextLength: data.contextLength ?? getDefaultContextLength(data.modelId),
+      contextLength:
+        data.contextLength ?? getDefaultContextLength(data.modelId),
       isCustom: data.isCustom || false,
       enabled: data.enabled ?? true,
     }))
@@ -123,7 +129,7 @@ export class ModelService {
     const db = getDatabase()
 
     await Promise.all(
-      ids.map((id) => db.update(models).set({ enabled }).where(eq(models.id, id)))
+      ids.map(id => db.update(models).set({ enabled }).where(eq(models.id, id)))
     )
   }
 }

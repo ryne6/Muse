@@ -15,7 +15,7 @@ const mockFsService = {
 
 // Mock the FileSystemService module before importing
 vi.mock('../services/fileSystemService', () => ({
-  FileSystemService: vi.fn().mockImplementation(() => mockFsService)
+  FileSystemService: vi.fn().mockImplementation(() => mockFsService),
 }))
 
 describe('IPC Bridge', () => {
@@ -27,9 +27,9 @@ describe('IPC Bridge', () => {
     // Dynamically create an app that mimics ipcBridge behavior for testing
     app = new Hono()
 
-    app.get('/health', (c) => c.json({ status: 'ok' }))
+    app.get('/health', c => c.json({ status: 'ok' }))
 
-    app.post('/ipc/:channel', async (c) => {
+    app.post('/ipc/:channel', async c => {
       const channel = c.req.param('channel')
       const body = await c.req.json()
 
@@ -41,10 +41,14 @@ describe('IPC Bridge', () => {
             result = { content: await mockFsService.readFile(body.path) }
             break
           case 'fs:writeFile':
-            result = { success: await mockFsService.writeFile(body.path, body.content) }
+            result = {
+              success: await mockFsService.writeFile(body.path, body.content),
+            }
             break
           case 'fs:listFiles':
-            result = { files: await mockFsService.listFiles(body.path, body.pattern) }
+            result = {
+              files: await mockFsService.listFiles(body.path, body.pattern),
+            }
             break
           case 'fs:exists':
             result = { exists: await mockFsService.exists(body.path) }
@@ -89,7 +93,7 @@ describe('IPC Bridge', () => {
         const res = await app.request('/ipc/fs:readFile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: '/test/file.txt' })
+          body: JSON.stringify({ path: '/test/file.txt' }),
         })
 
         expect(res.status).toBe(200)
@@ -104,7 +108,7 @@ describe('IPC Bridge', () => {
         const res = await app.request('/ipc/fs:readFile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: '/nonexistent.txt' })
+          body: JSON.stringify({ path: '/nonexistent.txt' }),
         })
 
         expect(res.status).toBe(500)
@@ -120,22 +124,30 @@ describe('IPC Bridge', () => {
         const res = await app.request('/ipc/fs:writeFile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: '/test/file.txt', content: 'new content' })
+          body: JSON.stringify({
+            path: '/test/file.txt',
+            content: 'new content',
+          }),
         })
 
         expect(res.status).toBe(200)
         const json = await res.json()
         expect(json.success).toBe(true)
-        expect(mockFsService.writeFile).toHaveBeenCalledWith('/test/file.txt', 'new content')
+        expect(mockFsService.writeFile).toHaveBeenCalledWith(
+          '/test/file.txt',
+          'new content'
+        )
       })
 
       it('should handle write errors', async () => {
-        mockFsService.writeFile.mockRejectedValue(new Error('Permission denied'))
+        mockFsService.writeFile.mockRejectedValue(
+          new Error('Permission denied')
+        )
 
         const res = await app.request('/ipc/fs:writeFile', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: '/readonly/file.txt', content: 'test' })
+          body: JSON.stringify({ path: '/readonly/file.txt', content: 'test' }),
         })
 
         expect(res.status).toBe(500)
@@ -148,14 +160,14 @@ describe('IPC Bridge', () => {
       it('should list files in directory', async () => {
         const files = [
           { name: 'file1.txt', isDirectory: false, size: 100 },
-          { name: 'subdir', isDirectory: true, size: 0 }
+          { name: 'subdir', isDirectory: true, size: 0 },
         ]
         mockFsService.listFiles.mockResolvedValue(files)
 
         const res = await app.request('/ipc/fs:listFiles', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: '/test' })
+          body: JSON.stringify({ path: '/test' }),
         })
 
         expect(res.status).toBe(200)
@@ -170,7 +182,7 @@ describe('IPC Bridge', () => {
         await app.request('/ipc/fs:listFiles', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: '/src', pattern: '*.ts' })
+          body: JSON.stringify({ path: '/src', pattern: '*.ts' }),
         })
 
         expect(mockFsService.listFiles).toHaveBeenCalledWith('/src', '*.ts')
@@ -184,7 +196,7 @@ describe('IPC Bridge', () => {
         const res = await app.request('/ipc/fs:exists', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: '/test/file.txt' })
+          body: JSON.stringify({ path: '/test/file.txt' }),
         })
 
         expect(res.status).toBe(200)
@@ -198,7 +210,7 @@ describe('IPC Bridge', () => {
         const res = await app.request('/ipc/fs:exists', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: '/nonexistent.txt' })
+          body: JSON.stringify({ path: '/nonexistent.txt' }),
         })
 
         expect(res.status).toBe(200)
@@ -214,7 +226,7 @@ describe('IPC Bridge', () => {
         const res = await app.request('/ipc/fs:mkdir', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: '/test/newdir' })
+          body: JSON.stringify({ path: '/test/newdir' }),
         })
 
         expect(res.status).toBe(200)
@@ -230,28 +242,33 @@ describe('IPC Bridge', () => {
       it('should execute command', async () => {
         mockFsService.executeCommand.mockResolvedValue({
           output: 'command output',
-          error: ''
+          error: '',
         })
 
         const res = await app.request('/ipc/exec:command', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ command: 'echo hello', cwd: '/test' })
+          body: JSON.stringify({ command: 'echo hello', cwd: '/test' }),
         })
 
         expect(res.status).toBe(200)
         const json = await res.json()
         expect(json.output).toBe('command output')
-        expect(mockFsService.executeCommand).toHaveBeenCalledWith('echo hello', '/test')
+        expect(mockFsService.executeCommand).toHaveBeenCalledWith(
+          'echo hello',
+          '/test'
+        )
       })
 
       it('should handle command errors', async () => {
-        mockFsService.executeCommand.mockRejectedValue(new Error('Command failed'))
+        mockFsService.executeCommand.mockRejectedValue(
+          new Error('Command failed')
+        )
 
         const res = await app.request('/ipc/exec:command', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ command: 'invalid-command' })
+          body: JSON.stringify({ command: 'invalid-command' }),
         })
 
         expect(res.status).toBe(500)
@@ -269,7 +286,7 @@ describe('IPC Bridge', () => {
         const res = await app.request('/ipc/workspace:get', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({})
+          body: JSON.stringify({}),
         })
 
         expect(res.status).toBe(200)
@@ -283,7 +300,7 @@ describe('IPC Bridge', () => {
         const res = await app.request('/ipc/workspace:get', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({})
+          body: JSON.stringify({}),
         })
 
         expect(res.status).toBe(200)
@@ -299,13 +316,15 @@ describe('IPC Bridge', () => {
         const res = await app.request('/ipc/workspace:set', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: '/new/workspace' })
+          body: JSON.stringify({ path: '/new/workspace' }),
         })
 
         expect(res.status).toBe(200)
         const json = await res.json()
         expect(json.success).toBe(true)
-        expect(mockFsService.setWorkspace).toHaveBeenCalledWith('/new/workspace')
+        expect(mockFsService.setWorkspace).toHaveBeenCalledWith(
+          '/new/workspace'
+        )
       })
     })
   })
@@ -315,7 +334,7 @@ describe('IPC Bridge', () => {
       const res = await app.request('/ipc/unknown:channel', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+        body: JSON.stringify({}),
       })
 
       expect(res.status).toBe(400)

@@ -42,18 +42,19 @@ export const useSearchStore = create<SearchStore>((set, get) => ({
   // Actions
   openSearch: () => set({ isOpen: true }),
 
-  closeSearch: () => set({
-    isOpen: false,
-    query: '',
-    results: [],
-    total: 0,
-    hasMore: false,
-    error: null,
-  }),
+  closeSearch: () =>
+    set({
+      isOpen: false,
+      query: '',
+      results: [],
+      total: 0,
+      hasMore: false,
+      error: null,
+    }),
 
-  setQuery: (query) => set({ query }),
+  setQuery: query => set({ query }),
 
-  setFilters: (filters) => set({ filters }),
+  setFilters: filters => set({ filters }),
 
   search: async () => {
     const { query, filters } = get()
@@ -117,10 +118,11 @@ export const useSearchStore = create<SearchStore>((set, get) => ({
     }
   },
 
-  clearResults: () => set({
-    results: [],
-    total: 0,
-    hasMore: false,
-    error: null,
-  }),
+  clearResults: () =>
+    set({
+      results: [],
+      total: 0,
+      hasMore: false,
+      error: null,
+    }),
 }))

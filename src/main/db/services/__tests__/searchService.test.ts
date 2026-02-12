@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { createTestDatabase, clearDatabase } from '../../../../../tests/setup/test-db'
+import {
+  createTestDatabase,
+  clearDatabase,
+} from '../../../../../tests/setup/test-db'
 import type { Database } from 'better-sqlite3'
 
 /**
@@ -20,13 +23,14 @@ const { getTestDb, setTestDb } = vi.hoisted(() => {
     getTestDb: () => testDb,
     setTestDb: (db: any) => {
       testDb = db
-    }
+    },
   }
 })
 
 // Mock the database module with hoisted functions
 vi.mock('../../index', async () => {
-  const actualSchema = await vi.importActual<typeof import('../../schema')>('../../schema')
+  const actualSchema =
+    await vi.importActual<typeof import('../../schema')>('../../schema')
   return {
     getDatabase: () => {
       const db = getTestDb()
@@ -35,7 +39,7 @@ vi.mock('../../index', async () => {
       }
       return db
     },
-    schema: actualSchema
+    schema: actualSchema,
   }
 })
 
@@ -49,7 +53,8 @@ describe('SearchService', () => {
 
   // Helper to create test conversation
   function createTestConversation(title: string = 'Test Conversation') {
-    const convId = 'test-conv-' + Date.now() + '-' + Math.random().toString(36).slice(2)
+    const convId =
+      'test-conv-' + Date.now() + '-' + Math.random().toString(36).slice(2)
     const now = Math.floor(Date.now() / 1000)
     testDb.sqlite.exec(`
       INSERT INTO conversations (id, title, created_at, updated_at)
@@ -59,8 +64,13 @@ describe('SearchService', () => {
   }
 
   // Helper to create test message
-  function createTestMessage(conversationId: string, content: string, role: string = 'user') {
-    const msgId = 'test-msg-' + Date.now() + '-' + Math.random().toString(36).slice(2)
+  function createTestMessage(
+    conversationId: string,
+    content: string,
+    role: string = 'user'
+  ) {
+    const msgId =
+      'test-msg-' + Date.now() + '-' + Math.random().toString(36).slice(2)
     const now = Math.floor(Date.now() / 1000)
     testDb.sqlite.exec(`
       INSERT INTO messages (id, conversation_id, role, content, timestamp)
@@ -71,7 +81,8 @@ describe('SearchService', () => {
 
   // Helper to create test tool call
   function createTestToolCall(messageId: string, name: string, input: string) {
-    const tcId = 'test-tc-' + Date.now() + '-' + Math.random().toString(36).slice(2)
+    const tcId =
+      'test-tc-' + Date.now() + '-' + Math.random().toString(36).slice(2)
     testDb.sqlite.exec(`
       INSERT INTO tool_calls (id, message_id, name, input)
       VALUES ('${tcId}', '${messageId}', '${name}', '${input}')
@@ -81,7 +92,8 @@ describe('SearchService', () => {
 
   // Helper to create test tool result
   function createTestToolResult(toolCallId: string, output: string) {
-    const trId = 'test-tr-' + Date.now() + '-' + Math.random().toString(36).slice(2)
+    const trId =
+      'test-tr-' + Date.now() + '-' + Math.random().toString(36).slice(2)
     testDb.sqlite.exec(`
       INSERT INTO tool_results (id, tool_call_id, output, is_error)
       VALUES ('${trId}', '${toolCallId}', '${output}', 0)
@@ -91,7 +103,8 @@ describe('SearchService', () => {
 
   // Helper to create test attachment with note
   function createTestAttachment(messageId: string, note: string) {
-    const attId = 'test-att-' + Date.now() + '-' + Math.random().toString(36).slice(2)
+    const attId =
+      'test-att-' + Date.now() + '-' + Math.random().toString(36).slice(2)
     const now = Math.floor(Date.now() / 1000)
     testDb.sqlite.exec(`
       INSERT INTO attachments (id, message_id, filename, mime_type, data, note, size, created_at)
@@ -125,7 +138,10 @@ describe('SearchService', () => {
     })
 
     it('should search message content', async () => {
-      createTestMessage(testConversationId, 'This contains searchable keyword beta')
+      createTestMessage(
+        testConversationId,
+        'This contains searchable keyword beta'
+      )
 
       const response = await SearchService.search({ query: 'beta' })
 
@@ -134,7 +150,11 @@ describe('SearchService', () => {
     })
 
     it('should search tool call names', async () => {
-      const msgId = createTestMessage(testConversationId, 'Tool message', 'assistant')
+      const msgId = createTestMessage(
+        testConversationId,
+        'Tool message',
+        'assistant'
+      )
       createTestToolCall(msgId, 'read_file_gamma', '{"path": "/test"}')
 
       const response = await SearchService.search({ query: 'gamma' })
@@ -144,7 +164,11 @@ describe('SearchService', () => {
     })
 
     it('should search tool result output', async () => {
-      const msgId = createTestMessage(testConversationId, 'Tool message', 'assistant')
+      const msgId = createTestMessage(
+        testConversationId,
+        'Tool message',
+        'assistant'
+      )
       const tcId = createTestToolCall(msgId, 'read_file', '{}')
       createTestToolResult(tcId, 'File content with delta keyword')
 
@@ -156,7 +180,10 @@ describe('SearchService', () => {
 
     it('should search attachment notes', async () => {
       // Create a new message for this test to ensure clean state
-      const msgId = createTestMessage(testConversationId, 'Message with attachment')
+      const msgId = createTestMessage(
+        testConversationId,
+        'Message with attachment'
+      )
       createTestAttachment(msgId, 'Screenshot showing epsilon error')
 
       const response = await SearchService.search({ query: 'epsilon' })
@@ -164,13 +191,17 @@ describe('SearchService', () => {
       // The search should find results - either from attachment_note or message
       expect(response.results.length).toBeGreaterThan(0)
       // Check if attachment_note is in results, or if the search found it via other means
-      const hasAttachmentNote = response.results.some(r => r.contentType === 'attachment_note')
+      const hasAttachmentNote = response.results.some(
+        r => r.contentType === 'attachment_note'
+      )
       const hasAnyResult = response.results.length > 0
       expect(hasAttachmentNote || hasAnyResult).toBe(true)
     })
 
     it('should return empty for no matches', async () => {
-      const response = await SearchService.search({ query: 'nonexistentkeyword12345' })
+      const response = await SearchService.search({
+        query: 'nonexistentkeyword12345',
+      })
 
       expect(response.results).toHaveLength(0)
       expect(response.total).toBe(0)
@@ -181,7 +212,9 @@ describe('SearchService', () => {
       createTestMessage(testConversationId, 'Message with special chars')
 
       // Special FTS5 characters should be sanitized
-      const response = await SearchService.search({ query: 'special*chars"test' })
+      const response = await SearchService.search({
+        query: 'special*chars"test',
+      })
 
       // Should not throw and should return results if matching
       expect(response).toBeDefined()
@@ -211,10 +244,12 @@ describe('SearchService', () => {
 
       const response = await SearchService.search({
         query: 'zeta',
-        filters: { contentTypes: ['conversation_title'] }
+        filters: { contentTypes: ['conversation_title'] },
       })
 
-      expect(response.results.every(r => r.contentType === 'conversation_title')).toBe(true)
+      expect(
+        response.results.every(r => r.contentType === 'conversation_title')
+      ).toBe(true)
     })
 
     it('should filter by conversation IDs', async () => {
@@ -225,7 +260,7 @@ describe('SearchService', () => {
 
       const response = await SearchService.search({
         query: 'Eta',
-        filters: { conversationIds: [conv1] }
+        filters: { conversationIds: [conv1] },
       })
 
       expect(response.results.every(r => r.conversationId === conv1)).toBe(true)
@@ -239,13 +274,15 @@ describe('SearchService', () => {
         query: 'Theta',
         filters: {
           contentTypes: ['message'],
-          conversationIds: [conv]
-        }
+          conversationIds: [conv],
+        },
       })
 
-      expect(response.results.every(r =>
-        r.contentType === 'message' && r.conversationId === conv
-      )).toBe(true)
+      expect(
+        response.results.every(
+          r => r.contentType === 'message' && r.conversationId === conv
+        )
+      ).toBe(true)
     })
   })
 
@@ -258,7 +295,7 @@ describe('SearchService', () => {
 
       const response = await SearchService.search({
         query: 'Iota',
-        pagination: { limit: 2 }
+        pagination: { limit: 2 },
       })
 
       expect(response.results.length).toBeLessThanOrEqual(2)
@@ -272,12 +309,12 @@ describe('SearchService', () => {
 
       const firstPage = await SearchService.search({
         query: 'Kappa',
-        pagination: { limit: 2, offset: 0 }
+        pagination: { limit: 2, offset: 0 },
       })
 
       const secondPage = await SearchService.search({
         query: 'Kappa',
-        pagination: { limit: 2, offset: 2 }
+        pagination: { limit: 2, offset: 2 },
       })
 
       // Both pages should have results
@@ -295,7 +332,7 @@ describe('SearchService', () => {
 
       const response = await SearchService.search({
         query: 'Lambda',
-        pagination: { limit: 2 }
+        pagination: { limit: 2 },
       })
 
       expect(response.hasMore).toBe(true)

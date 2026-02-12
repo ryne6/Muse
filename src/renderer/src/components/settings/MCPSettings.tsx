@@ -38,7 +38,11 @@ export function MCPSettings() {
   const [serverStates, setServerStates] = useState<MCPServerState[]>([])
   const [isAdding, setIsAdding] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  const [newServer, setNewServer] = useState({ name: '', command: '', args: '' })
+  const [newServer, setNewServer] = useState({
+    name: '',
+    command: '',
+    args: '',
+  })
 
   const loadServers = async () => {
     try {
@@ -110,7 +114,9 @@ export function MCPSettings() {
   const handleToggle = async (server: MCPServer) => {
     try {
       await dbClient.mcp.toggleEnabled(server.id)
-      notify.success(`${server.name} ${server.enabled ? 'disabled' : 'enabled'}`)
+      notify.success(
+        `${server.name} ${server.enabled ? 'disabled' : 'enabled'}`
+      )
       loadServers()
       // Wait a bit for connection change, then refresh states
       setTimeout(loadServerStates, 1000)
@@ -138,8 +144,15 @@ export function MCPSettings() {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">MCP Servers</h3>
         <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={handleRefresh} disabled={isRefreshing}>
-            <RefreshCw className={cn("h-4 w-4 mr-1", isRefreshing && "animate-spin")} />
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCw
+              className={cn('h-4 w-4 mr-1', isRefreshing && 'animate-spin')}
+            />
             Refresh
           </Button>
           <Button size="sm" onClick={() => setIsAdding(!isAdding)}>
@@ -154,21 +167,29 @@ export function MCPSettings() {
           <Input
             placeholder="Server name (e.g., filesystem)"
             value={newServer.name}
-            onChange={(e) => setNewServer({ ...newServer, name: e.target.value })}
+            onChange={e => setNewServer({ ...newServer, name: e.target.value })}
           />
           <Input
             placeholder="Command (e.g., npx)"
             value={newServer.command}
-            onChange={(e) => setNewServer({ ...newServer, command: e.target.value })}
+            onChange={e =>
+              setNewServer({ ...newServer, command: e.target.value })
+            }
           />
           <Input
             placeholder="Arguments (space-separated, e.g., -y @anthropic/mcp-server-filesystem)"
             value={newServer.args}
-            onChange={(e) => setNewServer({ ...newServer, args: e.target.value })}
+            onChange={e => setNewServer({ ...newServer, args: e.target.value })}
           />
           <div className="flex gap-2">
-            <Button size="sm" onClick={handleAdd}>Add</Button>
-            <Button size="sm" variant="outline" onClick={() => setIsAdding(false)}>
+            <Button size="sm" onClick={handleAdd}>
+              Add
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => setIsAdding(false)}
+            >
               Cancel
             </Button>
           </div>
@@ -183,7 +204,7 @@ export function MCPSettings() {
         </div>
       ) : (
         <div className="space-y-2">
-          {servers.map((server) => {
+          {servers.map(server => {
             const state = getServerState(server.name)
             const status = state?.status || 'disconnected'
             const toolCount = state?.tools?.length || 0
@@ -204,10 +225,14 @@ export function MCPSettings() {
                     <span
                       className={cn(
                         'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
-                        status === 'connected' && 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-                        status === 'connecting' && 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-                        status === 'error' && 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-                        status === 'disconnected' && 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
+                        status === 'connected' &&
+                          'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+                        status === 'connecting' &&
+                          'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
+                        status === 'error' &&
+                          'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
+                        status === 'disconnected' &&
+                          'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200'
                       )}
                     >
                       {status === 'connected' && `${toolCount} tools`}
@@ -220,7 +245,10 @@ export function MCPSettings() {
                     {server.command} {parseArgs(server.args).join(' ')}
                   </div>
                   {error && (
-                    <div className="text-xs text-red-500 mt-1 truncate" title={error}>
+                    <div
+                      className="text-xs text-red-500 mt-1 truncate"
+                      title={error}
+                    >
                       {error}
                     </div>
                   )}

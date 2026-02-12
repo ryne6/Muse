@@ -38,7 +38,11 @@ export class GitService {
     return this.run('git status', this.getCwd(path))
   }
 
-  async diff(path?: string, staged?: boolean, file?: string): Promise<CommandResult> {
+  async diff(
+    path?: string,
+    staged?: boolean,
+    file?: string
+  ): Promise<CommandResult> {
     let command = 'git diff'
     if (staged) command += ' --staged'
     if (file) command += ` -- ${this.quote(file)}`
@@ -51,11 +55,15 @@ export class GitService {
     return this.run(command, this.getCwd(path))
   }
 
-  async commit(path: string | undefined, message: string, files?: string[]): Promise<CommandResult> {
+  async commit(
+    path: string | undefined,
+    message: string,
+    files?: string[]
+  ): Promise<CommandResult> {
     const cwd = this.getCwd(path)
 
     if (files && files.length > 0) {
-      const quotedFiles = files.map((file) => this.quote(file)).join(' ')
+      const quotedFiles = files.map(file => this.quote(file)).join(' ')
       const addResult = await this.run(`git add -- ${quotedFiles}`, cwd)
       if (addResult.error) {
         return addResult
@@ -65,14 +73,24 @@ export class GitService {
     return this.run(`git commit -m ${this.quote(message)}`, cwd)
   }
 
-  async push(path?: string, remote = 'origin', branch?: string): Promise<CommandResult> {
+  async push(
+    path?: string,
+    remote = 'origin',
+    branch?: string
+  ): Promise<CommandResult> {
     let command = `git push ${remote}`
     if (branch) command += ` ${branch}`
     return this.run(command, this.getCwd(path))
   }
 
-  async checkout(path: string | undefined, branch: string, create?: boolean): Promise<CommandResult> {
-    const command = create ? `git checkout -b ${branch}` : `git checkout ${branch}`
+  async checkout(
+    path: string | undefined,
+    branch: string,
+    create?: boolean
+  ): Promise<CommandResult> {
+    const command = create
+      ? `git checkout -b ${branch}`
+      : `git checkout ${branch}`
     return this.run(command, this.getCwd(path))
   }
 }

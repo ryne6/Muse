@@ -95,7 +95,9 @@ export class DataMigration {
           if (msg.toolResults && msg.toolResults.length > 0) {
             for (const toolResult of msg.toolResults) {
               // Find corresponding tool call
-              const toolCall = msg.toolCalls?.find((tc) => tc.id === toolResult.toolCallId)
+              const toolCall = msg.toolCalls?.find(
+                tc => tc.id === toolResult.toolCallId
+              )
               if (toolCall) {
                 await MessageService.addToolResult(toolCall.id, {
                   output: toolResult.output,
@@ -215,7 +217,9 @@ export class DataMigration {
     conversations?: LocalStorageConversation[]
     settings?: LocalStorageSettings
   }) {
-    console.log('\n🚀 Starting data migration from localStorage to database...\n')
+    console.log(
+      '\n🚀 Starting data migration from localStorage to database...\n'
+    )
 
     try {
       // Migrate settings first (creates providers)
@@ -224,7 +228,10 @@ export class DataMigration {
       }
 
       // Then migrate conversations
-      if (localStorageData.conversations && localStorageData.conversations.length > 0) {
+      if (
+        localStorageData.conversations &&
+        localStorageData.conversations.length > 0
+      ) {
         await this.migrateConversations(localStorageData.conversations)
       }
 

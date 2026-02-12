@@ -32,7 +32,9 @@ describe('MarkdownRenderer', () => {
     it('should render heading', () => {
       render(<MarkdownRenderer content="# Heading 1" />)
 
-      expect(screen.getByRole('heading', { level: 1, name: 'Heading 1' })).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { level: 1, name: 'Heading 1' })
+      ).toBeInTheDocument()
     })
   })
 
@@ -53,7 +55,9 @@ describe('MarkdownRenderer', () => {
       expect(codeElement).toBeInTheDocument()
       expect(codeElement.tagName).toBe('CODE')
       expect(codeElement.closest('pre')).not.toBeNull()
-      expect(container.querySelector('[data-code-type="highlighter"]')).toBeInTheDocument()
+      expect(
+        container.querySelector('[data-code-type="highlighter"]')
+      ).toBeInTheDocument()
     })
 
     it('should render code block without language', () => {

@@ -9,13 +9,20 @@ export class ConversationService {
   // Get all conversations
   static async getAll() {
     const db = getDatabase()
-    return db.select().from(conversations).orderBy(desc(conversations.updatedAt))
+    return db
+      .select()
+      .from(conversations)
+      .orderBy(desc(conversations.updatedAt))
   }
 
   // Get conversation by ID
   static async getById(id: string) {
     const db = getDatabase()
-    const result = await db.select().from(conversations).where(eq(conversations.id, id)).limit(1)
+    const result = await db
+      .select()
+      .from(conversations)
+      .where(eq(conversations.id, id))
+      .limit(1)
     return result[0] || null
   }
 
@@ -82,7 +89,11 @@ export class ConversationService {
   }
 
   // Update last used provider/model
-  static async updateProviderModel(id: string, provider: string, model: string) {
+  static async updateProviderModel(
+    id: string,
+    provider: string,
+    model: string
+  ) {
     return this.update(id, { provider, model })
   }
 

@@ -21,10 +21,12 @@ interface ProviderListProps {
 }
 
 export function ProviderList({ onConfigureProvider }: ProviderListProps) {
-  const lastUpdated = useSettingsStore((s) => s.lastUpdated)
+  const lastUpdated = useSettingsStore(s => s.lastUpdated)
   const [providers, setProviders] = useState<Provider[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(null)
+  const [selectedProvider, setSelectedProvider] = useState<Provider | null>(
+    null
+  )
   const [isManageModelsOpen, setIsManageModelsOpen] = useState(false)
 
   useEffect(() => {
@@ -81,7 +83,7 @@ export function ProviderList({ onConfigureProvider }: ProviderListProps) {
         </div>
         <div className="flex-1 rounded-lg border bg-card p-4">
           <div className="text-2xl font-bold">
-            {providers.filter((p) => p.enabled).length}
+            {providers.filter(p => p.enabled).length}
           </div>
           <div className="text-sm text-muted-foreground">Active</div>
         </div>

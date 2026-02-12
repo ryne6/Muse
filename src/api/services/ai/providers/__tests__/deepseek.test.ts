@@ -33,7 +33,7 @@ describe('DeepSeekProvider', () => {
     it('should return true for valid config', () => {
       const config: AIConfig = {
         apiKey: 'valid-key',
-        model: 'deepseek-chat'
+        model: 'deepseek-chat',
       }
       expect(provider.validateConfig(config)).toBe(true)
     })
@@ -42,7 +42,7 @@ describe('DeepSeekProvider', () => {
       provider.supportedModels.forEach(model => {
         const config: AIConfig = {
           apiKey: 'valid-key',
-          model
+          model,
         }
         expect(provider.validateConfig(config)).toBe(true)
       })
@@ -51,7 +51,7 @@ describe('DeepSeekProvider', () => {
     it('should return false for empty apiKey', () => {
       const config: AIConfig = {
         apiKey: '',
-        model: 'deepseek-chat'
+        model: 'deepseek-chat',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -59,7 +59,7 @@ describe('DeepSeekProvider', () => {
     it('should return false for whitespace-only apiKey', () => {
       const config: AIConfig = {
         apiKey: '   ',
-        model: 'deepseek-chat'
+        model: 'deepseek-chat',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -67,7 +67,7 @@ describe('DeepSeekProvider', () => {
     it('should return false for unsupported model', () => {
       const config: AIConfig = {
         apiKey: 'valid-key',
-        model: 'invalid-model'
+        model: 'invalid-model',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -75,7 +75,7 @@ describe('DeepSeekProvider', () => {
     it('should return false for empty model', () => {
       const config: AIConfig = {
         apiKey: 'valid-key',
-        model: ''
+        model: '',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -85,25 +85,29 @@ describe('DeepSeekProvider', () => {
     it('should throw error for invalid config before calling API', async () => {
       const invalidConfig: AIConfig = {
         apiKey: '',
-        model: 'deepseek-chat'
+        model: 'deepseek-chat',
       }
 
-      await expect(provider.sendMessage(
-        [{ role: 'user', content: 'Hello' }],
-        invalidConfig
-      )).rejects.toThrow('Invalid configuration')
+      await expect(
+        provider.sendMessage(
+          [{ role: 'user', content: 'Hello' }],
+          invalidConfig
+        )
+      ).rejects.toThrow('Invalid configuration')
     })
 
     it('should throw error for unsupported model', async () => {
       const invalidConfig: AIConfig = {
         apiKey: 'test-key',
-        model: 'unsupported-model'
+        model: 'unsupported-model',
       }
 
-      await expect(provider.sendMessage(
-        [{ role: 'user', content: 'Hello' }],
-        invalidConfig
-      )).rejects.toThrow('Invalid configuration')
+      await expect(
+        provider.sendMessage(
+          [{ role: 'user', content: 'Hello' }],
+          invalidConfig
+        )
+      ).rejects.toThrow('Invalid configuration')
     })
   })
 
@@ -128,7 +132,9 @@ describe('DeepSeekProvider', () => {
     })
 
     it('should have reasoner model', () => {
-      expect(provider.supportedModels.some(m => m.includes('reasoner'))).toBe(true)
+      expect(provider.supportedModels.some(m => m.includes('reasoner'))).toBe(
+        true
+      )
     })
   })
 })

@@ -21,7 +21,10 @@ export function LoadingOverlay() {
   )
 }
 
-export function LoadingInline({ label = 'Loading...', className }: LoadingInlineProps) {
+export function LoadingInline({
+  label = 'Loading...',
+  className,
+}: LoadingInlineProps) {
   return (
     <div className={className || 'flex items-center justify-center p-4'}>
       <Loader2 className="w-4 h-4 animate-spin" />

@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { createTestDatabase, clearDatabase } from '../../../../../tests/setup/test-db'
+import {
+  createTestDatabase,
+  clearDatabase,
+} from '../../../../../tests/setup/test-db'
 import type { Database } from 'better-sqlite3'
 import * as schema from '../../schema'
 
@@ -20,13 +23,14 @@ const { getTestDb, setTestDb } = vi.hoisted(() => {
     getTestDb: () => testDb,
     setTestDb: (db: any) => {
       testDb = db
-    }
+    },
   }
 })
 
 // Mock the database module with hoisted functions
 vi.mock('../../index', async () => {
-  const actualSchema = await vi.importActual<typeof import('../../schema')>('../../schema')
+  const actualSchema =
+    await vi.importActual<typeof import('../../schema')>('../../schema')
   return {
     getDatabase: () => {
       const db = getTestDb()
@@ -35,13 +39,13 @@ vi.mock('../../index', async () => {
       }
       return db
     },
-    schema: actualSchema
+    schema: actualSchema,
   }
 })
 
 // Mock generateId
 vi.mock('../../utils/idGenerator', () => ({
-  generateId: vi.fn(() => `test-id-${Date.now()}`)
+  generateId: vi.fn(() => `test-id-${Date.now()}`),
 }))
 
 // Import ProviderService after mocking
@@ -71,7 +75,7 @@ describe('ProviderService', () => {
       const providerData = {
         name: 'Test Provider',
         type: 'openai' as const,
-        apiKey: 'test-api-key-12345'
+        apiKey: 'test-api-key-12345',
       }
 
       const created = await ProviderService.create(providerData)
@@ -80,9 +84,9 @@ describe('ProviderService', () => {
       expect(created.apiKey).toBe('test-api-key-12345')
 
       // But in the database, it should be encrypted
-      const dbProvider = await testDb.sqlite.prepare(
-        'SELECT * FROM providers WHERE id = ?'
-      ).get(created.id) as any
+      const dbProvider = (await testDb.sqlite
+        .prepare('SELECT * FROM providers WHERE id = ?')
+        .get(created.id)) as any
 
       expect(dbProvider.api_key).not.toBe('test-api-key-12345')
       expect(dbProvider.api_key).toContain(':') // Encrypted format: iv:encrypted
@@ -92,7 +96,7 @@ describe('ProviderService', () => {
       const providerData = {
         name: 'Test Provider',
         type: 'openai' as const,
-        apiKey: 'test-api-key-12345'
+        apiKey: 'test-api-key-12345',
       }
 
       const created = await ProviderService.create(providerData)
@@ -106,7 +110,7 @@ describe('ProviderService', () => {
       const providerData = {
         name: 'Test Provider',
         type: 'openai' as const,
-        apiKey: 'original-key'
+        apiKey: 'original-key',
       }
 
       const created = await ProviderService.create(providerData)
@@ -123,7 +127,7 @@ describe('ProviderService', () => {
         name: 'OpenAI',
         type: 'openai' as const,
         apiKey: 'sk-test-key',
-        baseURL: 'https://api.openai.com'
+        baseURL: 'https://api.openai.com',
       }
 
       const created = await ProviderService.create(providerData)
@@ -141,13 +145,13 @@ describe('ProviderService', () => {
       await ProviderService.create({
         name: 'Provider 1',
         type: 'openai' as const,
-        apiKey: 'key1'
+        apiKey: 'key1',
       })
 
       await ProviderService.create({
         name: 'Provider 2',
         type: 'claude' as const,
-        apiKey: 'key2'
+        apiKey: 'key2',
       })
 
       const allProviders = await ProviderService.getAll()
@@ -161,7 +165,7 @@ describe('ProviderService', () => {
       const created = await ProviderService.create({
         name: 'Test Provider',
         type: 'openai' as const,
-        apiKey: 'test-key'
+        apiKey: 'test-key',
       })
 
       const retrieved = await ProviderService.getById(created.id)
@@ -175,7 +179,7 @@ describe('ProviderService', () => {
       await ProviderService.create({
         name: 'Unique Provider',
         type: 'openai' as const,
-        apiKey: 'test-key'
+        apiKey: 'test-key',
       })
 
       const retrieved = await ProviderService.getByName('Unique Provider')
@@ -188,12 +192,12 @@ describe('ProviderService', () => {
       const created = await ProviderService.create({
         name: 'Original Name',
         type: 'openai' as const,
-        apiKey: 'original-key'
+        apiKey: 'original-key',
       })
 
       await ProviderService.update(created.id, {
         name: 'Updated Name',
-        baseURL: 'https://new-url.com'
+        baseURL: 'https://new-url.com',
       })
 
       const updated = await ProviderService.getById(created.id)
@@ -207,7 +211,7 @@ describe('ProviderService', () => {
       const created = await ProviderService.create({
         name: 'To Delete',
         type: 'openai' as const,
-        apiKey: 'test-key'
+        apiKey: 'test-key',
       })
 
       await ProviderService.delete(created.id)
@@ -223,14 +227,14 @@ describe('ProviderService', () => {
         name: 'Enabled Provider',
         type: 'openai' as const,
         apiKey: 'key1',
-        enabled: true
+        enabled: true,
       })
 
       await ProviderService.create({
         name: 'Disabled Provider',
         type: 'claude' as const,
         apiKey: 'key2',
-        enabled: false
+        enabled: false,
       })
 
       const enabledProviders = await ProviderService.getEnabled()
@@ -245,7 +249,7 @@ describe('ProviderService', () => {
         name: 'Disabled Provider',
         type: 'openai' as const,
         apiKey: 'key1',
-        enabled: false
+        enabled: false,
       })
 
       const enabledProviders = await ProviderService.getEnabled()
@@ -271,7 +275,7 @@ describe('ProviderService', () => {
       const created = await ProviderService.create({
         name: 'Minimal Provider',
         type: 'openai' as const,
-        apiKey: 'test-key'
+        apiKey: 'test-key',
       })
 
       expect(created.enabled).toBe(true)
@@ -292,7 +296,7 @@ describe('ProviderService', () => {
         name: 'Test Provider',
         type: 'openai' as const,
         apiKey: 'test-key',
-        enabled: true
+        enabled: true,
       })
 
       const toggled = await ProviderService.toggleEnabled(created.id)
@@ -306,7 +310,7 @@ describe('ProviderService', () => {
         name: 'Test Provider',
         type: 'openai' as const,
         apiKey: 'test-key',
-        enabled: false
+        enabled: false,
       })
 
       const toggled = await ProviderService.toggleEnabled(created.id)
@@ -328,7 +332,7 @@ describe('ProviderService', () => {
       const provider = await ProviderService.create({
         name: 'Test Provider',
         type: 'openai' as const,
-        apiKey: 'test-key'
+        apiKey: 'test-key',
       })
 
       // Create models associated with this provider using raw SQL
@@ -340,9 +344,9 @@ describe('ProviderService', () => {
       `)
 
       // Verify models exist
-      const modelsBefore = testDb.sqlite.prepare(
-        'SELECT * FROM models WHERE provider_id = ?'
-      ).all(provider.id)
+      const modelsBefore = testDb.sqlite
+        .prepare('SELECT * FROM models WHERE provider_id = ?')
+        .all(provider.id)
       expect(modelsBefore).toHaveLength(2)
 
       // Delete the provider
@@ -353,9 +357,9 @@ describe('ProviderService', () => {
       expect(deletedProvider).toBeNull()
 
       // Verify models are also deleted (cascade)
-      const modelsAfter = testDb.sqlite.prepare(
-        'SELECT * FROM models WHERE provider_id = ?'
-      ).all(provider.id)
+      const modelsAfter = testDb.sqlite
+        .prepare('SELECT * FROM models WHERE provider_id = ?')
+        .all(provider.id)
       expect(modelsAfter).toHaveLength(0)
     })
   })

@@ -10,7 +10,11 @@ export interface MCPServerConfig {
 }
 
 // MCP Server Connection Status
-export type MCPServerStatus = 'disconnected' | 'connecting' | 'connected' | 'error'
+export type MCPServerStatus =
+  | 'disconnected'
+  | 'connecting'
+  | 'connected'
+  | 'error'
 
 // MCP Tool Definition (converted from MCP SDK format)
 export interface MCPTool {
@@ -21,7 +25,7 @@ export interface MCPTool {
     properties?: Record<string, unknown>
     required?: string[]
   }
-  serverName: string  // Which server this tool belongs to
+  serverName: string // Which server this tool belongs to
 }
 
 // MCP Server State (runtime)
@@ -47,7 +51,9 @@ export interface MCPToolResult {
 export const MCP_TOOL_PREFIX = 'mcp__'
 
 // Parse MCP tool name to get server name and original tool name
-export function parseMCPToolName(fullName: string): { serverName: string; toolName: string } | null {
+export function parseMCPToolName(
+  fullName: string
+): { serverName: string; toolName: string } | null {
   if (!fullName.startsWith(MCP_TOOL_PREFIX)) {
     return null
   }
@@ -62,6 +68,9 @@ export function parseMCPToolName(fullName: string): { serverName: string; toolNa
 }
 
 // Create MCP tool name from server name and tool name
-export function createMCPToolName(serverName: string, toolName: string): string {
+export function createMCPToolName(
+  serverName: string,
+  toolName: string
+): string {
   return `${MCP_TOOL_PREFIX}${serverName}__${toolName}`
 }

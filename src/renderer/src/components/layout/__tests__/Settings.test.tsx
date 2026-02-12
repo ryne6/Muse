@@ -21,11 +21,15 @@ vi.mock('../../settings/ProviderList', () => ({
   ProviderList: ({ onConfigureProvider }: any) => (
     <div data-testid="provider-list">
       <div>Provider List Component</div>
-      <button onClick={() => onConfigureProvider({ id: 'test-provider', name: 'Test Provider' })}>
+      <button
+        onClick={() =>
+          onConfigureProvider({ id: 'test-provider', name: 'Test Provider' })
+        }
+      >
         Configure Provider
       </button>
     </div>
-  )
+  ),
 }))
 
 vi.mock('../../settings/ProviderConfigDialog', () => ({
@@ -35,7 +39,7 @@ vi.mock('../../settings/ProviderConfigDialog', () => ({
         <div>Configuring: {provider?.name}</div>
         <button onClick={onClose}>Close Dialog</button>
       </div>
-    ) : null
+    ) : null,
 }))
 
 describe('Settings', () => {
@@ -118,7 +122,9 @@ describe('Settings', () => {
 
       await waitFor(() => {
         expect(screen.getByText('General Settings')).toBeInTheDocument()
-        expect(screen.getByText('More settings coming soon.')).toBeInTheDocument()
+        expect(
+          screen.getByText('More settings coming soon.')
+        ).toBeInTheDocument()
       })
     })
 
@@ -154,7 +160,9 @@ describe('Settings', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('provider-config-dialog')).toBeInTheDocument()
-        expect(screen.getByText('Configuring: Test Provider')).toBeInTheDocument()
+        expect(
+          screen.getByText('Configuring: Test Provider')
+        ).toBeInTheDocument()
       })
     })
 
@@ -174,7 +182,9 @@ describe('Settings', () => {
       await user.click(screen.getByText('Close Dialog'))
 
       await waitFor(() => {
-        expect(screen.queryByTestId('provider-config-dialog')).not.toBeInTheDocument()
+        expect(
+          screen.queryByTestId('provider-config-dialog')
+        ).not.toBeInTheDocument()
       })
     })
   })

@@ -30,14 +30,22 @@ export class MemoryManager {
     const userItems = await this.loadUserMemories()
 
     // 2. Load project-level memories from workspace/.muse/memory/*.md
-    const projectItems = workspacePath ? await this.loadProjectMemories(workspacePath) : []
+    const projectItems = workspacePath
+      ? await this.loadProjectMemories(workspacePath)
+      : []
 
     // 3. FTS5 search for relevant conversation memories (with decay-aware sorting)
     const conversationItems = await this.searchConversationMemories(userMessage)
 
     // 4. Truncate each section to its token budget
-    const truncatedUser = this.truncateToTokenBudget(userItems, USER_TOKEN_BUDGET)
-    const truncatedProject = this.truncateToTokenBudget(projectItems, PROJECT_TOKEN_BUDGET)
+    const truncatedUser = this.truncateToTokenBudget(
+      userItems,
+      USER_TOKEN_BUDGET
+    )
+    const truncatedProject = this.truncateToTokenBudget(
+      projectItems,
+      PROJECT_TOKEN_BUDGET
+    )
     const truncatedConversation = this.truncateToTokenBudget(
       conversationItems,
       CONVERSATION_TOKEN_BUDGET
@@ -72,7 +80,9 @@ export class MemoryManager {
   /**
    * Load project-level memories from markdown files
    */
-  private static async loadProjectMemories(workspacePath: string): Promise<string[]> {
+  private static async loadProjectMemories(
+    workspacePath: string
+  ): Promise<string[]> {
     const projectDir = MemoryFileService.getProjectMemoryDir(workspacePath)
     const files = await MemoryFileService.readAllMemoryFiles(projectDir)
     return this.extractItemsFromFiles(files)
@@ -84,7 +94,9 @@ export class MemoryManager {
    * since user/project memories are already loaded from .md files above.
    * Applies decay: deprioritizes memories not accessed in DECAY_DAYS.
    */
-  private static async searchConversationMemories(userMessage: string): Promise<string[]> {
+  private static async searchConversationMemories(
+    userMessage: string
+  ): Promise<string[]> {
     if (!userMessage.trim()) return []
 
     try {
@@ -94,25 +106,29 @@ export class MemoryManager {
 
       // Filter to conversation-specific memories and apply decay sorting
       const filtered = results
-        .filter((r) => r.conversationId != null)
-        .map((r) => {
+        .filter(r => r.conversationId != null)
+        .map(r => {
           const accessTime = r.lastAccessedAt
-            ? (r.lastAccessedAt instanceof Date ? r.lastAccessedAt.getTime() : Number(r.lastAccessedAt) * 1000)
+            ? r.lastAccessedAt instanceof Date
+              ? r.lastAccessedAt.getTime()
+              : Number(r.lastAccessedAt) * 1000
             : 0
           const isStale = accessTime < decayCutoff
           return { content: r.content, id: r.id, isStale }
         })
 
       // Fresh memories first, stale ones last
-      filtered.sort((a, b) => (a.isStale === b.isStale ? 0 : a.isStale ? 1 : -1))
+      filtered.sort((a, b) =>
+        a.isStale === b.isStale ? 0 : a.isStale ? 1 : -1
+      )
 
       // Touch access time for the memories we're about to inject
-      const idsToTouch = filtered.slice(0, 10).map((r) => r.id)
+      const idsToTouch = filtered.slice(0, 10).map(r => r.id)
       if (idsToTouch.length > 0) {
         MemoryService.touchAccessTime(idsToTouch).catch(() => {})
       }
 
-      return filtered.slice(0, 10).map((r) => r.content)
+      return filtered.slice(0, 10).map(r => r.content)
     } catch {
       return []
     }
@@ -149,7 +165,10 @@ export class MemoryManager {
   /**
    * Truncate items to fit within a token budget
    */
-  private static truncateToTokenBudget(items: string[], tokenBudget: number): string[] {
+  private static truncateToTokenBudget(
+    items: string[],
+    tokenBudget: number
+  ): string[] {
     const charBudget = tokenBudget * CHARS_PER_TOKEN
     const result: string[] = []
     let totalChars = 0

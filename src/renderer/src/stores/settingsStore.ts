@@ -14,7 +14,7 @@ interface SettingsStore {
   error: string | null
   lastUpdated: number
   toolPermissionsByWorkspace: Record<string, { allowAll: boolean }>
-  selectedSkill: string | null  // null = Auto mode
+  selectedSkill: string | null // null = Auto mode
   globalSystemPrompt: string
   memoryEnabled: boolean
 
@@ -41,7 +41,9 @@ interface SettingsStore {
   getEnabledProviders: () => Provider[]
   getModelsForProvider: (providerId: string) => Model[]
   getEnabledModels: () => Model[]
-  getToolPermissions: (workspacePath: string | null | undefined) => { allowAll: boolean }
+  getToolPermissions: (workspacePath: string | null | undefined) => {
+    allowAll: boolean
+  }
 }
 
 const SETTINGS_STORAGE_KEY = 'muse-settings'
@@ -62,7 +64,7 @@ const legacyAwareStorage = {
     if (typeof localStorage === 'undefined') return
     localStorage.removeItem(name)
     localStorage.removeItem(LEGACY_SETTINGS_KEY)
-  }
+  },
 }
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -114,7 +116,8 @@ export const useSettingsStore = create<SettingsStore>()(
             }
           }
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Failed to load settings'
+          const errorMessage =
+            error instanceof Error ? error.message : 'Failed to load settings'
           console.error('Failed to load settings data:', error)
           set({ isLoading: false, error: errorMessage })
 
@@ -128,7 +131,7 @@ export const useSettingsStore = create<SettingsStore>()(
 
       setCurrentProvider: async (providerId: string) => {
         const state = get()
-        const provider = state.providers.find((p) => p.id === providerId)
+        const provider = state.providers.find(p => p.id === providerId)
         if (!provider) {
           notify.warning('Provider not found. Please refresh settings.')
           return
@@ -136,7 +139,7 @@ export const useSettingsStore = create<SettingsStore>()(
 
         // Find first enabled model for this provider
         const firstModel = state.models.find(
-          (m) => m.providerId === providerId && m.enabled
+          m => m.providerId === providerId && m.enabled
         )
 
         set({
@@ -147,7 +150,7 @@ export const useSettingsStore = create<SettingsStore>()(
 
       setCurrentModel: async (modelId: string) => {
         const state = get()
-        const model = state.models.find((m) => m.id === modelId)
+        const model = state.models.find(m => m.id === modelId)
         if (!model) {
           notify.warning('Model not found. Please refresh settings.')
           return
@@ -167,7 +170,7 @@ export const useSettingsStore = create<SettingsStore>()(
       },
       setToolAllowAll: (workspacePath: string, allowAll: boolean) => {
         const key = workspacePath?.trim() || '__no_workspace__'
-        set((state) => ({
+        set(state => ({
           toolPermissionsByWorkspace: {
             ...state.toolPermissionsByWorkspace,
             [key]: { allowAll },
@@ -191,32 +194,34 @@ export const useSettingsStore = create<SettingsStore>()(
       getCurrentProvider: () => {
         const state = get()
         if (!state.currentProviderId) return null
-        return state.providers.find((p) => p.id === state.currentProviderId) || null
+        return (
+          state.providers.find(p => p.id === state.currentProviderId) || null
+        )
       },
 
       getCurrentModel: () => {
         const state = get()
         if (!state.currentModelId) return null
-        return state.models.find((m) => m.id === state.currentModelId) || null
+        return state.models.find(m => m.id === state.currentModelId) || null
       },
 
       getEnabledProviders: () => {
         const state = get()
-        return state.providers.filter((p) => p.enabled)
+        return state.providers.filter(p => p.enabled)
       },
 
       getModelsForProvider: (providerId: string) => {
         const state = get()
-        return state.models.filter((m) => m.providerId === providerId)
+        return state.models.filter(m => m.providerId === providerId)
       },
 
       getEnabledModels: () => {
         const state = get()
         const enabledProviderIds = state.providers
-          .filter((p) => p.enabled)
-          .map((p) => p.id)
+          .filter(p => p.enabled)
+          .map(p => p.id)
         return state.models.filter(
-          (m) => m.enabled && enabledProviderIds.includes(m.providerId)
+          m => m.enabled && enabledProviderIds.includes(m.providerId)
         )
       },
       getToolPermissions: (workspacePath: string | null | undefined) => {
@@ -230,7 +235,7 @@ export const useSettingsStore = create<SettingsStore>()(
       version: 1,
       storage: createJSONStorage(() => legacyAwareStorage),
       // Only persist user preferences, not cached data
-      partialize: (state) => ({
+      partialize: state => ({
         currentProviderId: state.currentProviderId,
         currentModelId: state.currentModelId,
         temperature: state.temperature,
@@ -240,7 +245,7 @@ export const useSettingsStore = create<SettingsStore>()(
         globalSystemPrompt: state.globalSystemPrompt,
         memoryEnabled: state.memoryEnabled,
       }),
-      migrate: (persistedState) => {
+      migrate: persistedState => {
         const state =
           persistedState && typeof persistedState === 'object'
             ? (persistedState as Partial<SettingsStore>)
@@ -248,14 +253,15 @@ export const useSettingsStore = create<SettingsStore>()(
         return {
           currentProviderId: state?.currentProviderId ?? null,
           currentModelId: state?.currentModelId ?? null,
-          temperature: typeof state?.temperature === 'number' ? state.temperature : 1,
+          temperature:
+            typeof state?.temperature === 'number' ? state.temperature : 1,
           thinkingEnabled: state?.thinkingEnabled ?? false,
           toolPermissionsByWorkspace: state?.toolPermissionsByWorkspace ?? {},
           selectedSkill: state?.selectedSkill ?? null,
           globalSystemPrompt: state?.globalSystemPrompt ?? '',
           memoryEnabled: state?.memoryEnabled ?? false,
         }
-      }
+      },
     }
   )
 )

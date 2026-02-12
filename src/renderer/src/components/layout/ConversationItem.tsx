@@ -10,8 +10,12 @@ interface ConversationItemProps {
 }
 
 export function ConversationItem({ conversation }: ConversationItemProps) {
-  const { currentConversationId, loadConversation, deleteConversation, renameConversation } =
-    useConversationStore()
+  const {
+    currentConversationId,
+    loadConversation,
+    deleteConversation,
+    renameConversation,
+  } = useConversationStore()
   const [isEditing, setIsEditing] = useState(false)
   const [editTitle, setEditTitle] = useState(conversation.title)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
@@ -82,12 +86,12 @@ export function ConversationItem({ conversation }: ConversationItemProps) {
         <input
           type="text"
           value={editTitle}
-          onChange={(e) => setEditTitle(e.target.value)}
+          onChange={e => setEditTitle(e.target.value)}
           onBlur={handleSaveRename}
           onKeyDown={handleKeyDown}
           className="flex-1 bg-background border rounded px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           autoFocus
-          onClick={(e) => e.stopPropagation()}
+          onClick={e => e.stopPropagation()}
         />
       ) : (
         <div className="flex-1 min-w-0">
@@ -122,7 +126,7 @@ export function ConversationItem({ conversation }: ConversationItemProps) {
       >
         <button
           className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-[hsl(var(--text-muted))] flex items-center justify-center rounded hover:bg-[hsl(var(--surface-2))]"
-          onClick={(e) => e.stopPropagation()}
+          onClick={e => e.stopPropagation()}
           aria-label="Conversation actions"
         >
           <MoreVertical className="w-3 h-3" />

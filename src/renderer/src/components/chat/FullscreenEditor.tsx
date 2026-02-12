@@ -47,7 +47,7 @@ export function FullscreenEditor({
       <div className="flex-1 p-6">
         <textarea
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={e => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="从任何想法开始…"
           className="w-full h-full resize-none bg-transparent text-lg focus:outline-none"

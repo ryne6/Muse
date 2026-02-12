@@ -18,7 +18,7 @@ describe('ProviderValidator', () => {
       supportedModels: ['model-1', 'model-2'],
       sendMessage: vi.fn(),
       validateConfig: vi.fn(),
-      getDefaultModel: vi.fn(() => 'model-1')
+      getDefaultModel: vi.fn(() => 'model-1'),
     }
 
     vi.mocked(AIProviderFactory.getProvider).mockReturnValue(mockProvider)
@@ -27,14 +27,17 @@ describe('ProviderValidator', () => {
   describe('validateProvider', () => {
     const mockConfig: AIConfig = {
       apiKey: 'test-key',
-      model: 'model-1'
+      model: 'model-1',
     }
 
     it('should return valid true for successful validation', async () => {
       mockProvider.validateConfig.mockReturnValue(true)
       mockProvider.sendMessage.mockResolvedValue('Test response')
 
-      const result = await ProviderValidator.validateProvider('openai', mockConfig)
+      const result = await ProviderValidator.validateProvider(
+        'openai',
+        mockConfig
+      )
 
       expect(result).toEqual({ valid: true })
       expect(mockProvider.validateConfig).toHaveBeenCalledWith(mockConfig)
@@ -44,11 +47,15 @@ describe('ProviderValidator', () => {
     it('should return valid false for invalid config format', async () => {
       mockProvider.validateConfig.mockReturnValue(false)
 
-      const result = await ProviderValidator.validateProvider('openai', mockConfig)
+      const result = await ProviderValidator.validateProvider(
+        'openai',
+        mockConfig
+      )
 
       expect(result).toEqual({
         valid: false,
-        error: 'Invalid configuration. Please check API key and other settings.'
+        error:
+          'Invalid configuration. Please check API key and other settings.',
       })
       expect(mockProvider.sendMessage).not.toHaveBeenCalled()
     })
@@ -57,11 +64,14 @@ describe('ProviderValidator', () => {
       mockProvider.validateConfig.mockReturnValue(true)
       mockProvider.sendMessage.mockResolvedValue('')
 
-      const result = await ProviderValidator.validateProvider('openai', mockConfig)
+      const result = await ProviderValidator.validateProvider(
+        'openai',
+        mockConfig
+      )
 
       expect(result).toEqual({
         valid: false,
-        error: 'Received empty response from provider'
+        error: 'Received empty response from provider',
       })
     })
 
@@ -69,11 +79,14 @@ describe('ProviderValidator', () => {
       mockProvider.validateConfig.mockReturnValue(true)
       mockProvider.sendMessage.mockRejectedValue(new Error('401 Unauthorized'))
 
-      const result = await ProviderValidator.validateProvider('openai', mockConfig)
+      const result = await ProviderValidator.validateProvider(
+        'openai',
+        mockConfig
+      )
 
       expect(result).toEqual({
         valid: false,
-        error: 'Invalid API key'
+        error: 'Invalid API key',
       })
     })
 
@@ -81,23 +94,31 @@ describe('ProviderValidator', () => {
       mockProvider.validateConfig.mockReturnValue(true)
       mockProvider.sendMessage.mockRejectedValue(new Error('403 Forbidden'))
 
-      const result = await ProviderValidator.validateProvider('openai', mockConfig)
+      const result = await ProviderValidator.validateProvider(
+        'openai',
+        mockConfig
+      )
 
       expect(result).toEqual({
         valid: false,
-        error: 'API key does not have required permissions'
+        error: 'API key does not have required permissions',
       })
     })
 
     it('should handle 429 rate limit error', async () => {
       mockProvider.validateConfig.mockReturnValue(true)
-      mockProvider.sendMessage.mockRejectedValue(new Error('429 Too Many Requests'))
+      mockProvider.sendMessage.mockRejectedValue(
+        new Error('429 Too Many Requests')
+      )
 
-      const result = await ProviderValidator.validateProvider('openai', mockConfig)
+      const result = await ProviderValidator.validateProvider(
+        'openai',
+        mockConfig
+      )
 
       expect(result).toEqual({
         valid: false,
-        error: 'Rate limit exceeded. Please try again later.'
+        error: 'Rate limit exceeded. Please try again later.',
       })
     })
 
@@ -105,11 +126,14 @@ describe('ProviderValidator', () => {
       mockProvider.validateConfig.mockReturnValue(true)
       mockProvider.sendMessage.mockRejectedValue(new Error('Request timeout'))
 
-      const result = await ProviderValidator.validateProvider('openai', mockConfig)
+      const result = await ProviderValidator.validateProvider(
+        'openai',
+        mockConfig
+      )
 
       expect(result).toEqual({
         valid: false,
-        error: 'Request timeout. Please check your network connection.'
+        error: 'Request timeout. Please check your network connection.',
       })
     })
 
@@ -117,23 +141,31 @@ describe('ProviderValidator', () => {
       mockProvider.validateConfig.mockReturnValue(true)
       mockProvider.sendMessage.mockRejectedValue(new Error('fetch failed'))
 
-      const result = await ProviderValidator.validateProvider('openai', mockConfig)
+      const result = await ProviderValidator.validateProvider(
+        'openai',
+        mockConfig
+      )
 
       expect(result).toEqual({
         valid: false,
-        error: 'Network error. Please check your internet connection.'
+        error: 'Network error. Please check your internet connection.',
       })
     })
 
     it('should handle unknown error', async () => {
       mockProvider.validateConfig.mockReturnValue(true)
-      mockProvider.sendMessage.mockRejectedValue(new Error('Something went wrong'))
+      mockProvider.sendMessage.mockRejectedValue(
+        new Error('Something went wrong')
+      )
 
-      const result = await ProviderValidator.validateProvider('openai', mockConfig)
+      const result = await ProviderValidator.validateProvider(
+        'openai',
+        mockConfig
+      )
 
       expect(result).toEqual({
         valid: false,
-        error: 'Something went wrong'
+        error: 'Something went wrong',
       })
     })
   })

@@ -7,7 +7,12 @@ interface FileTreeProps {
   selectedPath?: string
 }
 
-export function FileTree({ nodes, onToggle, onSelect, selectedPath }: FileTreeProps) {
+export function FileTree({
+  nodes,
+  onToggle,
+  onSelect,
+  selectedPath,
+}: FileTreeProps) {
   if (nodes.length === 0) {
     return (
       <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">
@@ -18,7 +23,7 @@ export function FileTree({ nodes, onToggle, onSelect, selectedPath }: FileTreePr
 
   return (
     <div className="overflow-y-auto">
-      {nodes.map((node) => (
+      {nodes.map(node => (
         <FileTreeItem
           key={node.path}
           node={node}

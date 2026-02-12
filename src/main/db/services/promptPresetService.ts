@@ -9,13 +9,20 @@ export class PromptPresetService {
   // Get all presets
   static async getAll() {
     const db = getDatabase()
-    return db.select().from(promptPresets).orderBy(desc(promptPresets.updatedAt))
+    return db
+      .select()
+      .from(promptPresets)
+      .orderBy(desc(promptPresets.updatedAt))
   }
 
   // Get preset by ID
   static async getById(id: string) {
     const db = getDatabase()
-    const result = await db.select().from(promptPresets).where(eq(promptPresets.id, id)).limit(1)
+    const result = await db
+      .select()
+      .from(promptPresets)
+      .where(eq(promptPresets.id, id))
+      .limit(1)
     return result[0] || null
   }
 

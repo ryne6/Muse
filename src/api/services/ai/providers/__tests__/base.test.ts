@@ -1,6 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
 import { BaseAIProvider } from '../base'
-import type { AIMessage, AIConfig, AIStreamChunk } from '../../../../../shared/types/ai'
+import type {
+  AIMessage,
+  AIConfig,
+  AIStreamChunk,
+} from '../../../../../shared/types/ai'
 
 // Create a concrete implementation for testing
 class TestProvider extends BaseAIProvider {
@@ -31,7 +35,7 @@ describe('BaseAIProvider', () => {
     it('should return true for valid config', () => {
       const config: AIConfig = {
         apiKey: 'valid-key',
-        model: 'model-1'
+        model: 'model-1',
       }
       expect(provider.validateConfig(config)).toBe(true)
     })
@@ -39,7 +43,7 @@ describe('BaseAIProvider', () => {
     it('should return false for empty apiKey', () => {
       const config: AIConfig = {
         apiKey: '',
-        model: 'model-1'
+        model: 'model-1',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -47,14 +51,14 @@ describe('BaseAIProvider', () => {
     it('should return false for whitespace-only apiKey', () => {
       const config: AIConfig = {
         apiKey: '   ',
-        model: 'model-1'
+        model: 'model-1',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
 
     it('should return false for missing apiKey', () => {
       const config = {
-        model: 'model-1'
+        model: 'model-1',
       } as AIConfig
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -62,7 +66,7 @@ describe('BaseAIProvider', () => {
     it('should return false for unsupported model', () => {
       const config: AIConfig = {
         apiKey: 'valid-key',
-        model: 'unsupported-model'
+        model: 'unsupported-model',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -70,7 +74,7 @@ describe('BaseAIProvider', () => {
     it('should return false for empty model', () => {
       const config: AIConfig = {
         apiKey: 'valid-key',
-        model: ''
+        model: '',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -95,7 +99,11 @@ describe('BaseAIProvider', () => {
     })
 
     it('should have supportedModels property', () => {
-      expect(provider.supportedModels).toEqual(['model-1', 'model-2', 'model-3'])
+      expect(provider.supportedModels).toEqual([
+        'model-1',
+        'model-2',
+        'model-3',
+      ])
     })
 
     it('should implement getDefaultModel', () => {

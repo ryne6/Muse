@@ -1,5 +1,11 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
-import { APIClient, apiClient, APIClientError, initApiClient, getApiBaseUrl } from '../apiClient'
+import {
+  APIClient,
+  apiClient,
+  APIClientError,
+  initApiClient,
+  getApiBaseUrl,
+} from '../apiClient'
 import { ErrorCode } from '@shared/types/error'
 
 describe('APIClient', () => {
@@ -21,7 +27,7 @@ describe('APIClient', () => {
     it('should send message and return content', async () => {
       vi.mocked(global.fetch).mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ content: 'Hello response' })
+        json: () => Promise.resolve({ content: 'Hello response' }),
       } as Response)
 
       const result = await client.sendMessage(
@@ -35,7 +41,7 @@ describe('APIClient', () => {
         'http://localhost:2323/api/chat',
         expect.objectContaining({
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' }
+          headers: { 'Content-Type': 'application/json' },
         })
       )
     })
@@ -43,7 +49,7 @@ describe('APIClient', () => {
     it('should include tool permissions in request body when provided', async () => {
       vi.mocked(global.fetch).mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ content: 'Hello response' })
+        json: () => Promise.resolve({ content: 'Hello response' }),
       } as Response)
 
       await client.sendMessage(
@@ -53,7 +59,8 @@ describe('APIClient', () => {
         { toolPermissions: { allowAll: true } }
       )
 
-      const body = (vi.mocked(global.fetch).mock.calls[0]?.[1] as RequestInit)?.body as string
+      const body = (vi.mocked(global.fetch).mock.calls[0]?.[1] as RequestInit)
+        ?.body as string
       expect(body).toContain('\"toolPermissions\"')
       expect(body).toContain('\"allowAll\":true')
     })
@@ -61,7 +68,7 @@ describe('APIClient', () => {
     it('should throw error on non-ok response', async () => {
       vi.mocked(global.fetch).mockResolvedValue({
         ok: false,
-        json: () => Promise.resolve({ error: 'API error' })
+        json: () => Promise.resolve({ error: 'API error' }),
       } as Response)
 
       await expect(
@@ -74,7 +81,7 @@ describe('APIClient', () => {
     it('should return list of providers', async () => {
       vi.mocked(global.fetch).mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ providers: ['openai', 'claude'] })
+        json: () => Promise.resolve({ providers: ['openai', 'claude'] }),
       } as Response)
 
       const result = await client.getAvailableProviders()
@@ -86,7 +93,7 @@ describe('APIClient', () => {
       vi.mocked(global.fetch).mockResolvedValue({
         ok: false,
         status: 500,
-        json: () => Promise.resolve({ error: 'HTTP error: 500' })
+        json: () => Promise.resolve({ error: 'HTTP error: 500' }),
       } as Response)
 
       await expect(client.getAvailableProviders()).rejects.toThrow('HTTP error')
@@ -97,7 +104,7 @@ describe('APIClient', () => {
     it('should return default model for provider', async () => {
       vi.mocked(global.fetch).mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ defaultModel: 'gpt-4' })
+        json: () => Promise.resolve({ defaultModel: 'gpt-4' }),
       } as Response)
 
       const result = await client.getDefaultModel('openai')
@@ -109,10 +116,12 @@ describe('APIClient', () => {
       vi.mocked(global.fetch).mockResolvedValue({
         ok: false,
         status: 500,
-        json: () => Promise.resolve({ error: 'HTTP error: 500' })
+        json: () => Promise.resolve({ error: 'HTTP error: 500' }),
       } as Response)
 
-      await expect(client.getDefaultModel('openai')).rejects.toThrow('HTTP error')
+      await expect(client.getDefaultModel('openai')).rejects.toThrow(
+        'HTTP error'
+      )
     })
   })
 
@@ -120,7 +129,7 @@ describe('APIClient', () => {
     it('should return list of models', async () => {
       vi.mocked(global.fetch).mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ models: ['gpt-4', 'gpt-3.5'] })
+        json: () => Promise.resolve({ models: ['gpt-4', 'gpt-3.5'] }),
       } as Response)
 
       const result = await client.getSupportedModels('openai')
@@ -151,23 +160,26 @@ describe('APIClient', () => {
     it('should return valid result', async () => {
       vi.mocked(global.fetch).mockResolvedValue({
         ok: true,
-        json: () => Promise.resolve({ valid: true })
+        json: () => Promise.resolve({ valid: true }),
       } as Response)
 
       const result = await client.validateProvider('openai', {
         apiKey: 'key',
-        model: 'gpt-4'
+        model: 'gpt-4',
       })
 
       expect(result.valid).toBe(true)
     })
 
     it('should return error on failure', async () => {
-      vi.mocked(global.fetch).mockResolvedValue({ ok: false, status: 500 } as Response)
+      vi.mocked(global.fetch).mockResolvedValue({
+        ok: false,
+        status: 500,
+      } as Response)
 
       const result = await client.validateProvider('openai', {
         apiKey: 'key',
-        model: 'gpt-4'
+        model: 'gpt-4',
       })
 
       expect(result.valid).toBe(false)
@@ -195,7 +207,7 @@ describe('APIClient', () => {
         code: ErrorCode.RATE_LIMITED,
         message: 'Rate limited',
         retryable: true,
-        retryAfter: 30
+        retryAfter: 30,
       }
       const error = new APIClientError('Rate limited', apiError, 429)
 
@@ -205,7 +217,11 @@ describe('APIClient', () => {
     })
 
     it('should return retryable from apiError', () => {
-      const apiError = { code: ErrorCode.RATE_LIMITED, message: 'Rate limited', retryable: true }
+      const apiError = {
+        code: ErrorCode.RATE_LIMITED,
+        message: 'Rate limited',
+        retryable: true,
+      }
       const error = new APIClientError('Error', apiError)
       expect(error.retryable).toBe(true)
     })
@@ -216,7 +232,12 @@ describe('APIClient', () => {
     })
 
     it('should return retryAfter from apiError', () => {
-      const apiError = { code: ErrorCode.RATE_LIMITED, message: 'Rate limited', retryable: true, retryAfter: 60 }
+      const apiError = {
+        code: ErrorCode.RATE_LIMITED,
+        message: 'Rate limited',
+        retryable: true,
+        retryAfter: 60,
+      }
       const error = new APIClientError('Error', apiError)
       expect(error.retryAfter).toBe(60)
     })
@@ -227,7 +248,11 @@ describe('APIClient', () => {
     })
 
     it('should return code from apiError', () => {
-      const apiError = { code: ErrorCode.UNAUTHORIZED, message: 'Unauthorized', retryable: false }
+      const apiError = {
+        code: ErrorCode.UNAUTHORIZED,
+        message: 'Unauthorized',
+        retryable: false,
+      }
       const error = new APIClientError('Error', apiError)
       expect(error.code).toBe(ErrorCode.UNAUTHORIZED)
     })
@@ -243,9 +268,9 @@ describe('APIClient', () => {
       global.window = {
         api: {
           api: {
-            getPort: vi.fn().mockResolvedValue(3000)
-          }
-        }
+            getPort: vi.fn().mockResolvedValue(3000),
+          },
+        },
       } as any
 
       await initApiClient()
@@ -257,9 +282,9 @@ describe('APIClient', () => {
       global.window = {
         api: {
           api: {
-            getPort: vi.fn().mockResolvedValue(null)
-          }
-        }
+            getPort: vi.fn().mockResolvedValue(null),
+          },
+        },
       } as any
 
       await initApiClient()
@@ -270,9 +295,9 @@ describe('APIClient', () => {
       global.window = {
         api: {
           api: {
-            getPort: vi.fn().mockRejectedValue(new Error('Failed'))
-          }
-        }
+            getPort: vi.fn().mockRejectedValue(new Error('Failed')),
+          },
+        },
       } as any
 
       // Should not throw
@@ -292,25 +317,26 @@ describe('APIClient', () => {
     it('should stream chunks to callback', async () => {
       const chunks: any[] = []
       const mockReader = {
-        read: vi.fn()
+        read: vi
+          .fn()
           .mockResolvedValueOnce({
             done: false,
-            value: new TextEncoder().encode('{"content":"Hello"}\n')
+            value: new TextEncoder().encode('{"content":"Hello"}\n'),
           })
           .mockResolvedValueOnce({ done: true, value: undefined }),
-        releaseLock: vi.fn()
+        releaseLock: vi.fn(),
       }
 
       vi.mocked(global.fetch).mockResolvedValue({
         ok: true,
-        body: { getReader: () => mockReader }
+        body: { getReader: () => mockReader },
       } as any)
 
       await client.sendMessageStream(
         'openai',
         [{ role: 'user', content: 'Hi' }],
         { apiKey: 'key', model: 'gpt-4' },
-        (chunk) => chunks.push(chunk)
+        chunk => chunks.push(chunk)
       )
 
       expect(chunks).toHaveLength(1)
@@ -322,7 +348,7 @@ describe('APIClient', () => {
       vi.mocked(global.fetch).mockResolvedValue({
         ok: false,
         status: 500,
-        json: () => Promise.resolve({ error: 'Server error' })
+        json: () => Promise.resolve({ error: 'Server error' }),
       } as any)
 
       await expect(
@@ -338,7 +364,7 @@ describe('APIClient', () => {
     it('should throw error when no reader available', async () => {
       vi.mocked(global.fetch).mockResolvedValue({
         ok: true,
-        body: null
+        body: null,
       } as any)
 
       await expect(
@@ -353,18 +379,19 @@ describe('APIClient', () => {
 
     it('should handle error in stream', async () => {
       const mockReader = {
-        read: vi.fn()
+        read: vi
+          .fn()
           .mockResolvedValueOnce({
             done: false,
-            value: new TextEncoder().encode('{"error":"Stream error"}\n')
+            value: new TextEncoder().encode('{"error":"Stream error"}\n'),
           })
           .mockResolvedValueOnce({ done: true, value: undefined }),
-        releaseLock: vi.fn()
+        releaseLock: vi.fn(),
       }
 
       vi.mocked(global.fetch).mockResolvedValue({
         ok: true,
-        body: { getReader: () => mockReader }
+        body: { getReader: () => mockReader },
       } as any)
 
       await expect(

@@ -53,7 +53,7 @@ function runSchemaMigrations(sqlite: Database.Database) {
   try {
     // Check if thinking column exists in messages table
     const columns = sqlite.pragma('table_info(messages)') as { name: string }[]
-    const hasThinking = columns.some((col) => col.name === 'thinking')
+    const hasThinking = columns.some(col => col.name === 'thinking')
 
     if (!hasThinking) {
       console.log('📦 Adding thinking column to messages table...')
@@ -63,7 +63,7 @@ function runSchemaMigrations(sqlite: Database.Database) {
 
     // Create mcp_servers table if not exists
     const tables = sqlite.pragma('table_list') as { name: string }[]
-    const hasMcpServers = tables.some((t) => t.name === 'mcp_servers')
+    const hasMcpServers = tables.some(t => t.name === 'mcp_servers')
 
     if (!hasMcpServers) {
       console.log('📦 Creating mcp_servers table...')
@@ -82,7 +82,9 @@ function runSchemaMigrations(sqlite: Database.Database) {
     }
 
     // Create skills_directories table if not exists
-    const hasSkillsDirectories = tables.some((t) => t.name === 'skills_directories')
+    const hasSkillsDirectories = tables.some(
+      t => t.name === 'skills_directories'
+    )
 
     if (!hasSkillsDirectories) {
       console.log('📦 Creating skills_directories table...')
@@ -98,8 +100,10 @@ function runSchemaMigrations(sqlite: Database.Database) {
     }
 
     // Add workspace column to conversations table if not exists
-    const convColumns = sqlite.pragma('table_info(conversations)') as { name: string }[]
-    const hasWorkspace = convColumns.some((col) => col.name === 'workspace')
+    const convColumns = sqlite.pragma('table_info(conversations)') as {
+      name: string
+    }[]
+    const hasWorkspace = convColumns.some(col => col.name === 'workspace')
 
     if (!hasWorkspace) {
       console.log('📦 Adding workspace column to conversations table...')
@@ -108,7 +112,9 @@ function runSchemaMigrations(sqlite: Database.Database) {
     }
 
     // Add system_prompt column to conversations table if not exists
-    const hasSystemPrompt = convColumns.some((col) => col.name === 'system_prompt')
+    const hasSystemPrompt = convColumns.some(
+      col => col.name === 'system_prompt'
+    )
 
     if (!hasSystemPrompt) {
       console.log('📦 Adding system_prompt column to conversations table...')
@@ -117,8 +123,10 @@ function runSchemaMigrations(sqlite: Database.Database) {
     }
 
     // Add token stats columns to messages table if not exists
-    const msgColumns = sqlite.pragma('table_info(messages)') as { name: string }[]
-    const hasInputTokens = msgColumns.some((col) => col.name === 'input_tokens')
+    const msgColumns = sqlite.pragma('table_info(messages)') as {
+      name: string
+    }[]
+    const hasInputTokens = msgColumns.some(col => col.name === 'input_tokens')
 
     if (!hasInputTokens) {
       console.log('📦 Adding token stats columns to messages table...')
@@ -129,7 +137,7 @@ function runSchemaMigrations(sqlite: Database.Database) {
     }
 
     // Create prompt_presets table if not exists
-    const hasPromptPresets = tables.some((t) => t.name === 'prompt_presets')
+    const hasPromptPresets = tables.some(t => t.name === 'prompt_presets')
 
     if (!hasPromptPresets) {
       console.log('📦 Creating prompt_presets table...')
@@ -146,7 +154,7 @@ function runSchemaMigrations(sqlite: Database.Database) {
     }
 
     // Create memories table if not exists
-    const hasMemories = tables.some((t) => t.name === 'memories')
+    const hasMemories = tables.some(t => t.name === 'memories')
 
     if (!hasMemories) {
       console.log('📦 Creating memories table...')
@@ -168,12 +176,18 @@ function runSchemaMigrations(sqlite: Database.Database) {
     }
 
     // Add indexes to memories table (idempotent)
-    sqlite.exec(`CREATE INDEX IF NOT EXISTS idx_memories_type ON memories(type)`)
-    sqlite.exec(`CREATE INDEX IF NOT EXISTS idx_memories_conversation_id ON memories(conversation_id)`)
-    sqlite.exec(`CREATE INDEX IF NOT EXISTS idx_memories_updated_at ON memories(updated_at)`)
+    sqlite.exec(
+      `CREATE INDEX IF NOT EXISTS idx_memories_type ON memories(type)`
+    )
+    sqlite.exec(
+      `CREATE INDEX IF NOT EXISTS idx_memories_conversation_id ON memories(conversation_id)`
+    )
+    sqlite.exec(
+      `CREATE INDEX IF NOT EXISTS idx_memories_updated_at ON memories(updated_at)`
+    )
 
     // Create FTS5 virtual table and triggers for memories
-    const hasMemoriesFts = tables.some((t) => t.name === 'memories_fts')
+    const hasMemoriesFts = tables.some(t => t.name === 'memories_fts')
 
     if (!hasMemoriesFts) {
       console.log('📦 Creating memories FTS5 index and triggers...')
@@ -212,14 +226,22 @@ function runSchemaMigrations(sqlite: Database.Database) {
     }
 
     // Add last_accessed_at column to memories table if not exists (P2-16: decay)
-    const memColumns = sqlite.pragma('table_info(memories)') as { name: string }[]
-    const hasLastAccessed = memColumns.some((col) => col.name === 'last_accessed_at')
+    const memColumns = sqlite.pragma('table_info(memories)') as {
+      name: string
+    }[]
+    const hasLastAccessed = memColumns.some(
+      col => col.name === 'last_accessed_at'
+    )
 
     if (!hasLastAccessed) {
       console.log('📦 Adding last_accessed_at column to memories table...')
-      sqlite.exec('ALTER TABLE memories ADD COLUMN last_accessed_at INTEGER DEFAULT (unixepoch())')
+      sqlite.exec(
+        'ALTER TABLE memories ADD COLUMN last_accessed_at INTEGER DEFAULT (unixepoch())'
+      )
       // Backfill existing rows with updated_at value
-      sqlite.exec('UPDATE memories SET last_accessed_at = updated_at WHERE last_accessed_at IS NULL')
+      sqlite.exec(
+        'UPDATE memories SET last_accessed_at = updated_at WHERE last_accessed_at IS NULL'
+      )
       console.log('✅ Added last_accessed_at column')
     }
   } catch (error) {

@@ -1,5 +1,10 @@
 import { MCPClient } from './client'
-import type { MCPServerConfig, MCPTool, MCPServerState, MCPToolResult } from './types'
+import type {
+  MCPServerConfig,
+  MCPTool,
+  MCPServerState,
+  MCPToolResult,
+} from './types'
 import { createMCPToolName, parseMCPToolName } from './types'
 
 class MCPManager {
@@ -8,7 +13,7 @@ class MCPManager {
 
   // Get all server states
   getServerStates(): MCPServerState[] {
-    return Array.from(this.configs.values()).map((config) => {
+    return Array.from(this.configs.values()).map(config => {
       const client = this.clients.get(config.name)
       return {
         config,
@@ -34,9 +39,13 @@ class MCPManager {
   getToolDefinitions(): Array<{
     name: string
     description: string
-    input_schema: { type: 'object'; properties?: Record<string, unknown>; required?: string[] }
+    input_schema: {
+      type: 'object'
+      properties?: Record<string, unknown>
+      required?: string[]
+    }
   }> {
-    return this.getAllTools().map((tool) => ({
+    return this.getAllTools().map(tool => ({
       name: createMCPToolName(tool.serverName, tool.name),
       description: `[MCP:${tool.serverName}] ${tool.description || tool.name}`,
       input_schema: tool.inputSchema,
@@ -87,18 +96,20 @@ class MCPManager {
   // Connect to all enabled servers
   async connectAll(): Promise<void> {
     const promises = Array.from(this.configs.values())
-      .filter((config) => config.enabled)
-      .map((config) => this.connectServer(config.name).catch((err) => {
-        console.error(`[MCPManager] Failed to connect ${config.name}:`, err)
-      }))
+      .filter(config => config.enabled)
+      .map(config =>
+        this.connectServer(config.name).catch(err => {
+          console.error(`[MCPManager] Failed to connect ${config.name}:`, err)
+        })
+      )
 
     await Promise.all(promises)
   }
 
   // Disconnect from all servers
   async disconnectAll(): Promise<void> {
-    const promises = Array.from(this.clients.keys()).map((name) =>
-      this.disconnectServer(name).catch((err) => {
+    const promises = Array.from(this.clients.keys()).map(name =>
+      this.disconnectServer(name).catch(err => {
         console.error(`[MCPManager] Failed to disconnect ${name}:`, err)
       })
     )
@@ -112,7 +123,10 @@ class MCPManager {
   }
 
   // Call an MCP tool
-  async callTool(fullToolName: string, args: Record<string, unknown>): Promise<string> {
+  async callTool(
+    fullToolName: string,
+    args: Record<string, unknown>
+  ): Promise<string> {
     const parsed = parseMCPToolName(fullToolName)
     if (!parsed) {
       throw new Error(`Invalid MCP tool name: ${fullToolName}`)
@@ -132,15 +146,15 @@ class MCPManager {
     // Convert result to string
     if (result.isError) {
       const errorText = result.content
-        .filter((c) => c.type === 'text')
-        .map((c) => c.text)
+        .filter(c => c.type === 'text')
+        .map(c => c.text)
         .join('\n')
       throw new Error(errorText || 'MCP tool execution failed')
     }
 
     return result.content
-      .filter((c) => c.type === 'text')
-      .map((c) => c.text)
+      .filter(c => c.type === 'text')
+      .map(c => c.text)
       .join('\n')
   }
 }

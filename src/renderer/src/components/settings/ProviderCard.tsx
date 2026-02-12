@@ -34,7 +34,9 @@ export function ProviderCard({
     setIsToggling(true)
     try {
       await dbClient.providers.toggleEnabled(provider.id)
-      notify.success(`${provider.name} ${provider.enabled ? 'disabled' : 'enabled'}`)
+      notify.success(
+        `${provider.name} ${provider.enabled ? 'disabled' : 'enabled'}`
+      )
       onUpdate()
     } catch (error) {
       console.error('Failed to toggle provider:', error)
@@ -73,7 +75,9 @@ export function ProviderCard({
             <ProviderLogo type={provider.type} size="md" />
           </div>
           <div className="min-w-0">
-            <h3 className="font-semibold text-base capitalize truncate">{provider.name}</h3>
+            <h3 className="font-semibold text-base capitalize truncate">
+              {provider.name}
+            </h3>
             <p className="text-xs opacity-70 mt-0.5">{provider.type}</p>
           </div>
         </div>
@@ -96,10 +100,18 @@ export function ProviderCard({
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
-          <Button size="sm" variant="outline" onClick={() => onConfigure(provider)}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onConfigure(provider)}
+          >
             Configure
           </Button>
-          <Button size="sm" variant="secondary" onClick={() => onManageModels(provider)}>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => onManageModels(provider)}
+          >
             Models
           </Button>
           <Button

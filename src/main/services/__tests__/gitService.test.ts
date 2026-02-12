@@ -6,7 +6,7 @@ vi.mock('child_process', () => {
   const exec = vi.fn()
   return {
     exec,
-    default: { exec }
+    default: { exec },
   }
 })
 

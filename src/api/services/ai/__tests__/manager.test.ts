@@ -1,7 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { AIManager } from '../manager'
 import { AIProviderFactory } from '../factory'
-import type { AIMessage, AIConfig, AIStreamChunk } from '../../../../shared/types/ai'
+import type {
+  AIMessage,
+  AIConfig,
+  AIStreamChunk,
+} from '../../../../shared/types/ai'
 
 // Mock the factory
 vi.mock('../factory')
@@ -20,30 +24,35 @@ describe('AIManager', () => {
       supportedModels: ['model-1', 'model-2', 'model-3'],
       sendMessage: vi.fn(),
       validateConfig: vi.fn(),
-      getDefaultModel: vi.fn(() => 'model-1')
+      getDefaultModel: vi.fn(() => 'model-1'),
     }
 
     // Mock factory to return our mock provider
     vi.mocked(AIProviderFactory.getProvider).mockReturnValue(mockProvider)
     vi.mocked(AIProviderFactory.getAvailableProviders).mockReturnValue([
-      'claude', 'openai', 'gemini', 'deepseek'
+      'claude',
+      'openai',
+      'gemini',
+      'deepseek',
     ])
   })
 
   describe('sendMessage', () => {
-    const mockMessages: AIMessage[] = [
-      { role: 'user', content: 'Hello' }
-    ]
+    const mockMessages: AIMessage[] = [{ role: 'user', content: 'Hello' }]
     const mockConfig: AIConfig = {
       apiKey: 'test-key',
-      model: 'model-1'
+      model: 'model-1',
     }
 
     it('should send message through correct provider', async () => {
       mockProvider.validateConfig.mockReturnValue(true)
       mockProvider.sendMessage.mockResolvedValue('Response')
 
-      const result = await manager.sendMessage('openai', mockMessages, mockConfig)
+      const result = await manager.sendMessage(
+        'openai',
+        mockMessages,
+        mockConfig
+      )
 
       expect(AIProviderFactory.getProvider).toHaveBeenCalledWith('openai')
       expect(mockProvider.validateConfig).toHaveBeenCalledWith(mockConfig)
@@ -58,20 +67,27 @@ describe('AIManager', () => {
 
     it('should handle streaming responses with onChunk callback', async () => {
       mockProvider.validateConfig.mockReturnValue(true)
-      mockProvider.sendMessage.mockImplementation(async (msgs, cfg, onChunk) => {
-        if (onChunk) {
-          await onChunk({ content: 'Hello ', done: false })
-          await onChunk({ content: 'World', done: true })
+      mockProvider.sendMessage.mockImplementation(
+        async (msgs, cfg, onChunk) => {
+          if (onChunk) {
+            await onChunk({ content: 'Hello ', done: false })
+            await onChunk({ content: 'World', done: true })
+          }
+          return 'Hello World'
         }
-        return 'Hello World'
-      })
+      )
 
       const chunks: AIStreamChunk[] = []
       const onChunk = (chunk: AIStreamChunk) => {
         chunks.push(chunk)
       }
 
-      const result = await manager.sendMessage('openai', mockMessages, mockConfig, onChunk)
+      const result = await manager.sendMessage(
+        'openai',
+        mockMessages,
+        mockConfig,
+        onChunk
+      )
 
       expect(mockProvider.sendMessage).toHaveBeenCalledWith(
         mockMessages,
@@ -137,7 +153,9 @@ describe('AIManager', () => {
         throw new Error('Unknown provider type: invalid')
       })
 
-      expect(() => manager.getDefaultModel('invalid')).toThrow('Unknown provider type: invalid')
+      expect(() => manager.getDefaultModel('invalid')).toThrow(
+        'Unknown provider type: invalid'
+      )
     })
   })
 
@@ -162,7 +180,9 @@ describe('AIManager', () => {
         throw new Error('Unknown provider type: invalid')
       })
 
-      expect(() => manager.getSupportedModels('invalid')).toThrow('Unknown provider type: invalid')
+      expect(() => manager.getSupportedModels('invalid')).toThrow(
+        'Unknown provider type: invalid'
+      )
     })
   })
 

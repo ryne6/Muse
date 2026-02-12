@@ -20,7 +20,10 @@ interface SkillFrontmatter {
 }
 
 // Parse frontmatter from markdown content
-function parseFrontmatter(content: string): { frontmatter: SkillFrontmatter; body: string } {
+function parseFrontmatter(content: string): {
+  frontmatter: SkillFrontmatter
+  body: string
+} {
   const frontmatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n([\s\S]*)$/
   const match = content.match(frontmatterRegex)
 
@@ -38,7 +41,10 @@ function parseFrontmatter(content: string): { frontmatter: SkillFrontmatter; bod
     const colonIndex = line.indexOf(':')
     if (colonIndex > 0) {
       const key = line.slice(0, colonIndex).trim()
-      const value = line.slice(colonIndex + 1).trim().replace(/^["']|["']$/g, '')
+      const value = line
+        .slice(colonIndex + 1)
+        .trim()
+        .replace(/^["']|["']$/g, '')
       if (key === 'name') frontmatter.name = value
       if (key === 'description') frontmatter.description = value
     }
@@ -57,7 +63,11 @@ export class SkillsService {
   // Get enabled directories only
   static async getEnabled(): Promise<SkillsDirectory[]> {
     const db = getDatabase()
-    return db.select().from(skillsDirectories).where(eq(skillsDirectories.enabled, true)).all()
+    return db
+      .select()
+      .from(skillsDirectories)
+      .where(eq(skillsDirectories.enabled, true))
+      .all()
   }
 
   // Add a new directory
@@ -84,9 +94,14 @@ export class SkillsService {
   // Toggle directory enabled status
   static async toggleEnabled(id: string): Promise<void> {
     const db = getDatabase()
-    const dir = await db.select().from(skillsDirectories).where(eq(skillsDirectories.id, id)).get()
+    const dir = await db
+      .select()
+      .from(skillsDirectories)
+      .where(eq(skillsDirectories.id, id))
+      .get()
     if (dir) {
-      await db.update(skillsDirectories)
+      await db
+        .update(skillsDirectories)
         .set({ enabled: !dir.enabled })
         .where(eq(skillsDirectories.id, id))
     }

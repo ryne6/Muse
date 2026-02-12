@@ -10,7 +10,14 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
  */
 
 // Use vi.hoisted for mock setup
-const { mockClientConnect, mockListTools, mockCallTool, mockTransportClose, mockOpenExternal, mockExec } = vi.hoisted(() => ({
+const {
+  mockClientConnect,
+  mockListTools,
+  mockCallTool,
+  mockTransportClose,
+  mockOpenExternal,
+  mockExec,
+} = vi.hoisted(() => ({
   mockClientConnect: vi.fn().mockResolvedValue(undefined),
   mockListTools: vi.fn().mockResolvedValue({ tools: [] }),
   mockCallTool: vi.fn().mockResolvedValue({ content: [] }),
@@ -29,7 +36,7 @@ vi.mock('@modelcontextprotocol/sdk/client/index.js', () => ({
     connect = mockClientConnect
     listTools = mockListTools
     callTool = mockCallTool
-  }
+  },
 }))
 
 // Mock MCP SDK Transport with class
@@ -40,7 +47,7 @@ vi.mock('@modelcontextprotocol/sdk/client/stdio.js', () => ({
         if (event === 'data') {
           stderrCallback = callback
         }
-      })
+      }),
     }
     onerror: ((error: Error) => void) | null = null
     onclose: (() => void) | null = null
@@ -49,18 +56,18 @@ vi.mock('@modelcontextprotocol/sdk/client/stdio.js', () => ({
     constructor() {
       transportInstance = this
     }
-  }
+  },
 }))
 
 // Mock Electron
 vi.mock('electron', () => ({
-  shell: { openExternal: mockOpenExternal }
+  shell: { openExternal: mockOpenExternal },
 }))
 
 // Mock child_process
 vi.mock('child_process', () => ({
   exec: mockExec,
-  default: { exec: mockExec }
+  default: { exec: mockExec },
 }))
 
 import { MCPClient } from '../client'
@@ -149,9 +156,12 @@ describe('MCPClient', () => {
           {
             name: 'read_file',
             description: 'Read a file',
-            inputSchema: { properties: { path: { type: 'string' } }, required: ['path'] }
-          }
-        ]
+            inputSchema: {
+              properties: { path: { type: 'string' } },
+              required: ['path'],
+            },
+          },
+        ],
       })
 
       await client.connect()
@@ -168,38 +178,47 @@ describe('MCPClient', () => {
     it('should call tool and return result', async () => {
       mockCallTool.mockResolvedValueOnce({
         content: [{ type: 'text', text: 'file content' }],
-        isError: false
+        isError: false,
       })
 
       await client.connect()
       const result = await client.callTool('read_file', { path: '/test.txt' })
 
-      expect(mockCallTool).toHaveBeenCalledWith({ name: 'read_file', arguments: { path: '/test.txt' } })
+      expect(mockCallTool).toHaveBeenCalledWith({
+        name: 'read_file',
+        arguments: { path: '/test.txt' },
+      })
       expect(result.content).toHaveLength(1)
       expect(result.content[0]).toEqual({ type: 'text', text: 'file content' })
       expect(result.isError).toBe(false)
     })
 
     it('should throw error when callTool called without connection', async () => {
-      await expect(client.callTool('read_file', {})).rejects.toThrow('Not connected')
+      await expect(client.callTool('read_file', {})).rejects.toThrow(
+        'Not connected'
+      )
     })
 
     it('should handle image content type', async () => {
       mockCallTool.mockResolvedValueOnce({
         content: [{ type: 'image', data: 'base64data', mimeType: 'image/png' }],
-        isError: false
+        isError: false,
       })
 
       await client.connect()
       const result = await client.callTool('screenshot', {})
 
-      expect(result.content[0]).toEqual({ type: 'image', data: 'base64data', mimeType: 'image/png' })
+      expect(result.content[0]).toEqual({
+        type: 'image',
+        data: 'base64data',
+        mimeType: 'image/png',
+      })
     })
 
     it('should handle resource content type', async () => {
       mockCallTool.mockResolvedValueOnce({
         content: [{ type: 'resource' }],
-        isError: false
+        isError: false,
       })
 
       await client.connect()
@@ -219,7 +238,7 @@ describe('MCPClient', () => {
 
     it('should handle tool result without isError field', async () => {
       mockCallTool.mockResolvedValueOnce({
-        content: [{ type: 'text', text: 'result' }]
+        content: [{ type: 'text', text: 'result' }],
       })
 
       await client.connect()
@@ -267,9 +286,15 @@ describe('MCPClient', () => {
       await client.connect()
 
       // Simulate stderr output with OAuth URL
-      stderrCallback?.(Buffer.from('Please visit https://accounts.google.com/oauth/authorize?client_id=123'))
+      stderrCallback?.(
+        Buffer.from(
+          'Please visit https://accounts.google.com/oauth/authorize?client_id=123'
+        )
+      )
 
-      expect(mockOpenExternal).toHaveBeenCalledWith('https://accounts.google.com/oauth/authorize?client_id=123')
+      expect(mockOpenExternal).toHaveBeenCalledWith(
+        'https://accounts.google.com/oauth/authorize?client_id=123'
+      )
     })
 
     it('should open auth URL patterns', async () => {
@@ -283,7 +308,9 @@ describe('MCPClient', () => {
       await client.connect()
 
       stderrCallback?.(Buffer.from('Auth: https://open.feishu.cn/authorize'))
-      expect(mockOpenExternal).toHaveBeenCalledWith('https://open.feishu.cn/authorize')
+      expect(mockOpenExternal).toHaveBeenCalledWith(
+        'https://open.feishu.cn/authorize'
+      )
     })
 
     it('should not open non-auth URLs', async () => {

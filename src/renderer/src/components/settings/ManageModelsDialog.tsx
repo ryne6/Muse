@@ -96,7 +96,8 @@ export function ManageModelsDialog({
   }
 
   const handleDeleteModel = async (modelId: string, modelName: string) => {
-    if (!confirm(`Are you sure you want to delete model "${modelName}"?`)) return
+    if (!confirm(`Are you sure you want to delete model "${modelName}"?`))
+      return
 
     try {
       await dbClient.models.delete(modelId)
@@ -118,7 +119,7 @@ export function ManageModelsDialog({
       footer={null}
       width={672}
       styles={{
-        body: { maxHeight: '70vh', overflowY: 'auto' }
+        body: { maxHeight: '70vh', overflowY: 'auto' },
       }}
     >
       <p className="text-sm text-muted-foreground mb-4">
@@ -127,104 +128,112 @@ export function ManageModelsDialog({
 
       {/* Add New Model */}
       <div className="border rounded-lg p-4 bg-muted/30">
-          <h3 className="font-semibold text-sm mb-3">Add New Model</h3>
-          <div className="space-y-3">
-            <div>
-              <label className="text-xs font-medium text-muted-foreground">Model ID</label>
-              <input
-                type="text"
-                placeholder="e.g., gpt-4-turbo, gemini-pro"
-                value={newModel.modelId}
-                onChange={(e) => setNewModel({ ...newModel, modelId: e.target.value })}
-                className="w-full px-3 py-2 border rounded-md text-sm mt-1"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-medium text-muted-foreground">Display Name</label>
-              <input
-                type="text"
-                placeholder="e.g., GPT-4 Turbo, Gemini Pro"
-                value={newModel.name}
-                onChange={(e) => setNewModel({ ...newModel, name: e.target.value })}
-                className="w-full px-3 py-2 border rounded-md text-sm mt-1"
-              />
-            </div>
-            <Button
-              onClick={handleAddModel}
-              disabled={isAdding || !newModel.modelId || !newModel.name}
-              size="sm"
-              className="w-full whitespace-nowrap"
-            >
-              {isAdding ? (
-                <span className="flex items-center justify-center">
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin flex-shrink-0" />
-                  Adding...
-                </span>
-              ) : (
-                <span className="flex items-center justify-center">
-                  <Plus className="h-4 w-4 mr-2 flex-shrink-0" />
-                  Add Model
-                </span>
-              )}
-            </Button>
+        <h3 className="font-semibold text-sm mb-3">Add New Model</h3>
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">
+              Model ID
+            </label>
+            <input
+              type="text"
+              placeholder="e.g., gpt-4-turbo, gemini-pro"
+              value={newModel.modelId}
+              onChange={e =>
+                setNewModel({ ...newModel, modelId: e.target.value })
+              }
+              className="w-full px-3 py-2 border rounded-md text-sm mt-1"
+            />
           </div>
+          <div>
+            <label className="text-xs font-medium text-muted-foreground">
+              Display Name
+            </label>
+            <input
+              type="text"
+              placeholder="e.g., GPT-4 Turbo, Gemini Pro"
+              value={newModel.name}
+              onChange={e => setNewModel({ ...newModel, name: e.target.value })}
+              className="w-full px-3 py-2 border rounded-md text-sm mt-1"
+            />
+          </div>
+          <Button
+            onClick={handleAddModel}
+            disabled={isAdding || !newModel.modelId || !newModel.name}
+            size="sm"
+            className="w-full whitespace-nowrap"
+          >
+            {isAdding ? (
+              <span className="flex items-center justify-center">
+                <Loader2 className="h-4 w-4 mr-2 animate-spin flex-shrink-0" />
+                Adding...
+              </span>
+            ) : (
+              <span className="flex items-center justify-center">
+                <Plus className="h-4 w-4 mr-2 flex-shrink-0" />
+                Add Model
+              </span>
+            )}
+          </Button>
         </div>
+      </div>
 
-        {/* Models List */}
-        <div className="space-y-2 mt-4">
-          <h3 className="font-semibold text-sm">Available Models</h3>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : models.length === 0 ? (
-            <div className="text-center py-8 text-sm text-muted-foreground">
-              No models yet. Add one above.
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {models.map((model) => (
-                <div
-                  key={model.id}
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-sm font-medium">{model.name}</span>
-                      {model.isCustom && (
-                        <span className="text-xs bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded">
-                          Custom
-                        </span>
-                      )}
-                    </div>
-                    <span className="text-xs text-muted-foreground font-mono">
-                      {model.modelId}
-                    </span>
-                  </div>
+      {/* Models List */}
+      <div className="space-y-2 mt-4">
+        <h3 className="font-semibold text-sm">Available Models</h3>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : models.length === 0 ? (
+          <div className="text-center py-8 text-sm text-muted-foreground">
+            No models yet. Add one above.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {models.map(model => (
+              <div
+                key={model.id}
+                className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <Button
-                      onClick={() => handleToggleModel(model.id)}
-                      variant={model.enabled ? 'default' : 'outline'}
-                      size="sm"
-                    >
-                      {model.enabled ? '✓ Enabled' : 'Disabled'}
-                    </Button>
+                    <span className="font-mono text-sm font-medium">
+                      {model.name}
+                    </span>
                     {model.isCustom && (
-                      <Button
-                        onClick={() => handleDeleteModel(model.id, model.name)}
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <span className="text-xs bg-blue-500/10 text-blue-600 px-2 py-0.5 rounded">
+                        Custom
+                      </span>
                     )}
                   </div>
+                  <span className="text-xs text-muted-foreground font-mono">
+                    {model.modelId}
+                  </span>
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </Modal>
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => handleToggleModel(model.id)}
+                    variant={model.enabled ? 'default' : 'outline'}
+                    size="sm"
+                  >
+                    {model.enabled ? '✓ Enabled' : 'Disabled'}
+                  </Button>
+                  {model.isCustom && (
+                    <Button
+                      onClick={() => handleDeleteModel(model.id, model.name)}
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </Modal>
   )
 }

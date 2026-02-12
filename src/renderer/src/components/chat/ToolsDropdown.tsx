@@ -57,14 +57,32 @@ export function ToolsDropdown() {
   const connectedServers = mcpServers.filter(s => s.status === 'connected')
 
   // Text truncation style
-  const truncateStyle = { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' as const, display: 'block', maxWidth: 250 }
+  const truncateStyle = {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap' as const,
+    display: 'block',
+    maxWidth: 250,
+  }
 
   const menuItems: any[] = [
     // Built-in tools group
-    { key: 'builtin-header', label: <span style={truncateStyle}>Built-in Tools ({BUILTIN_TOOLS.length})</span>, disabled: true },
+    {
+      key: 'builtin-header',
+      label: (
+        <span style={truncateStyle}>
+          Built-in Tools ({BUILTIN_TOOLS.length})
+        </span>
+      ),
+      disabled: true,
+    },
     ...BUILTIN_TOOLS.map(tool => ({
       key: `builtin-${tool.name}`,
-      label: <span style={truncateStyle}>{tool.name} - {tool.description}</span>,
+      label: (
+        <span style={truncateStyle}>
+          {tool.name} - {tool.description}
+        </span>
+      ),
     })),
   ]
 
@@ -74,19 +92,33 @@ export function ToolsDropdown() {
     connectedServers.forEach(server => {
       menuItems.push({
         key: `mcp-header-${server.config.name}`,
-        label: <span style={truncateStyle}>MCP: {server.config.name} ({server.tools.length})</span>,
+        label: (
+          <span style={truncateStyle}>
+            MCP: {server.config.name} ({server.tools.length})
+          </span>
+        ),
         disabled: true,
       })
       server.tools.forEach(tool => {
         menuItems.push({
           key: `mcp-${server.config.name}-${tool.name}`,
-          label: <span style={truncateStyle}>{tool.description ? `${tool.name} - ${tool.description}` : tool.name}</span>,
+          label: (
+            <span style={truncateStyle}>
+              {tool.description
+                ? `${tool.name} - ${tool.description}`
+                : tool.name}
+            </span>
+          ),
         })
       })
     })
   } else {
     menuItems.push({ type: 'divider' })
-    menuItems.push({ key: 'no-mcp', label: <span style={truncateStyle}>No MCP servers connected</span>, disabled: true })
+    menuItems.push({
+      key: 'no-mcp',
+      label: <span style={truncateStyle}>No MCP servers connected</span>,
+      disabled: true,
+    })
   }
 
   return (

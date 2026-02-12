@@ -27,23 +27,25 @@ const mockConversationStore = vi.hoisted(() => {
       yesterday: [],
       lastWeek: [],
       lastMonth: [],
-      older: []
-    }))
+      older: [],
+    })),
   }
 })
 
 vi.mock('@/stores/conversationStore', () => ({
-  useConversationStore: () => mockConversationStore
+  useConversationStore: () => mockConversationStore,
 }))
 
 // Mock ConversationGroup component
 vi.mock('../ConversationGroup', () => ({
   ConversationGroup: ({ label, conversations }: any) => (
-    <div data-testid={`conversation-group-${label.toLowerCase().replace(/\s+/g, '-')}`}>
+    <div
+      data-testid={`conversation-group-${label.toLowerCase().replace(/\s+/g, '-')}`}
+    >
       <div>{label}</div>
       <div data-testid="group-count">{conversations.length} conversations</div>
     </div>
-  )
+  ),
 }))
 
 describe('ConversationList', () => {
@@ -57,7 +59,7 @@ describe('ConversationList', () => {
       yesterday: [],
       lastWeek: [],
       lastMonth: [],
-      older: []
+      older: [],
     })
   })
 
@@ -91,7 +93,9 @@ describe('ConversationList', () => {
 
       render(<ConversationList />)
 
-      expect(screen.queryByTestId(/^conversation-group-/)).not.toBeInTheDocument()
+      expect(
+        screen.queryByTestId(/^conversation-group-/)
+      ).not.toBeInTheDocument()
     })
   })
 
@@ -122,7 +126,7 @@ describe('ConversationList', () => {
         yesterday: [],
         lastWeek: [],
         lastMonth: [],
-        older: []
+        older: [],
       })
 
       render(<ConversationList />)
@@ -137,7 +141,7 @@ describe('ConversationList', () => {
         yesterday: [{ id: '1', title: 'Test' }] as any,
         lastWeek: [],
         lastMonth: [],
-        older: []
+        older: [],
       })
 
       render(<ConversationList />)
@@ -149,14 +153,14 @@ describe('ConversationList', () => {
       mockConversationStore.conversations = [
         { id: '1', title: 'Today' },
         { id: '2', title: 'Yesterday' },
-        { id: '3', title: 'Last week' }
+        { id: '3', title: 'Last week' },
       ] as any
       mockConversationStore.getConversationsByDate.mockReturnValue({
         today: [{ id: '1', title: 'Today' }] as any,
         yesterday: [{ id: '2', title: 'Yesterday' }] as any,
         lastWeek: [{ id: '3', title: 'Last week' }] as any,
         lastMonth: [],
-        older: []
+        older: [],
       })
 
       render(<ConversationList />)
@@ -173,7 +177,7 @@ describe('ConversationList', () => {
         yesterday: [],
         lastWeek: [],
         lastMonth: [],
-        older: []
+        older: [],
       })
 
       render(<ConversationList />)
@@ -188,7 +192,7 @@ describe('ConversationList', () => {
     it('should pass correct conversations to ConversationGroup', () => {
       const todayConversations = [
         { id: '1', title: 'Conv 1' },
-        { id: '2', title: 'Conv 2' }
+        { id: '2', title: 'Conv 2' },
       ] as any
 
       mockConversationStore.conversations = todayConversations
@@ -197,7 +201,7 @@ describe('ConversationList', () => {
         yesterday: [],
         lastWeek: [],
         lastMonth: [],
-        older: []
+        older: [],
       })
 
       render(<ConversationList />)
@@ -218,14 +222,14 @@ describe('ConversationList', () => {
         { id: '2' },
         { id: '3' },
         { id: '4' },
-        { id: '5' }
+        { id: '5' },
       ] as any
       mockConversationStore.getConversationsByDate.mockReturnValue({
         today: [{ id: '1' }] as any,
         yesterday: [{ id: '2' }] as any,
         lastWeek: [{ id: '3' }] as any,
         lastMonth: [{ id: '4' }] as any,
-        older: [{ id: '5' }] as any
+        older: [{ id: '5' }] as any,
       })
 
       render(<ConversationList />)

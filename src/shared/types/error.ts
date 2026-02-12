@@ -62,18 +62,25 @@ export const RETRYABLE_ERROR_CODES: ErrorCode[] = [
 // User-friendly error messages for each error code
 export const ERROR_MESSAGES: Record<ErrorCode, string> = {
   [ErrorCode.INVALID_REQUEST]: 'Invalid request. Please check your input.',
-  [ErrorCode.UNAUTHORIZED]: 'Invalid API key. Please check your provider configuration.',
-  [ErrorCode.FORBIDDEN]: 'Access forbidden. Your API key may not have the required permissions.',
+  [ErrorCode.UNAUTHORIZED]:
+    'Invalid API key. Please check your provider configuration.',
+  [ErrorCode.FORBIDDEN]:
+    'Access forbidden. Your API key may not have the required permissions.',
   [ErrorCode.NOT_FOUND]: 'Resource not found.',
-  [ErrorCode.RATE_LIMITED]: 'Rate limit exceeded. Please wait a moment and try again.',
+  [ErrorCode.RATE_LIMITED]:
+    'Rate limit exceeded. Please wait a moment and try again.',
   [ErrorCode.REQUEST_TIMEOUT]: 'Request timed out. Please try again.',
   [ErrorCode.PROVIDER_ERROR]: 'Provider service error. Please try again later.',
-  [ErrorCode.SERVICE_UNAVAILABLE]: 'Service temporarily unavailable. Please try again later.',
+  [ErrorCode.SERVICE_UNAVAILABLE]:
+    'Service temporarily unavailable. Please try again later.',
   [ErrorCode.NETWORK_ERROR]: 'Network error. Please check your connection.',
-  [ErrorCode.TIMEOUT]: 'Request timed out. Please check your network connection.',
+  [ErrorCode.TIMEOUT]:
+    'Request timed out. Please check your network connection.',
   [ErrorCode.INTERNAL_ERROR]: 'An internal error occurred. Please try again.',
-  [ErrorCode.VALIDATION_ERROR]: 'Validation failed. Please check your configuration.',
-  [ErrorCode.CONFIGURATION_ERROR]: 'Invalid configuration. Please check your settings.',
+  [ErrorCode.VALIDATION_ERROR]:
+    'Validation failed. Please check your configuration.',
+  [ErrorCode.CONFIGURATION_ERROR]:
+    'Invalid configuration. Please check your settings.',
 }
 
 // Helper to check if an error code is retryable

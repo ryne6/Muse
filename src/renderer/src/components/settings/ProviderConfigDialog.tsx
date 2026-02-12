@@ -97,99 +97,121 @@ export function ProviderConfigDialog({
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="text-sm font-medium mb-2 block" htmlFor="provider-name">
-              Name <span className="text-destructive">*</span>
-            </label>
+        <div>
+          <label
+            className="text-sm font-medium mb-2 block"
+            htmlFor="provider-name"
+          >
+            Name <span className="text-destructive">*</span>
+          </label>
+          <Input
+            id="provider-name"
+            type="text"
+            value={formData.name}
+            onChange={e => setFormData({ ...formData, name: e.target.value })}
+            placeholder="my-provider"
+            required
+          />
+        </div>
+
+        <div>
+          <label
+            className="text-sm font-medium mb-2 block"
+            htmlFor="provider-api-key"
+          >
+            API Key <span className="text-destructive">*</span>
+          </label>
+          <div className="relative">
             <Input
-              id="provider-name"
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="my-provider"
+              id="provider-api-key"
+              type={showApiKey ? 'text' : 'password'}
+              value={formData.apiKey}
+              onChange={e =>
+                setFormData({ ...formData, apiKey: e.target.value })
+              }
+              placeholder="sk-..."
+              className="pr-20 font-mono"
               required
             />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium mb-2 block" htmlFor="provider-api-key">
-              API Key <span className="text-destructive">*</span>
-            </label>
-            <div className="relative">
-              <Input
-                id="provider-api-key"
-                type={showApiKey ? 'text' : 'password'}
-                value={formData.apiKey}
-                onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
-                placeholder="sk-..."
-                className="pr-20 font-mono"
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowApiKey(!showApiKey)}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
-              >
-                {showApiKey ? 'Hide' : 'Show'}
-              </button>
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Your API key is encrypted and stored securely
-            </p>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium mb-2 block" htmlFor="provider-base-url">
-              Base URL
-            </label>
-            <Input
-              id="provider-base-url"
-              type="text"
-              value={formData.baseURL}
-              onChange={(e) => setFormData({ ...formData, baseURL: e.target.value })}
-              placeholder="https://api.example.com/v1"
-              className="font-mono"
-            />
-            <p className="text-xs text-muted-foreground mt-1">
-              Optional: Custom API endpoint
-            </p>
-          </div>
-
-          <div>
-            <label className="text-sm font-medium mb-2 block" htmlFor="provider-api-format">
-              API Format
-            </label>
-            <Select
-              id="provider-api-format"
-              value={formData.apiFormat}
-              onChange={(value) => setFormData({ ...formData, apiFormat: value })}
-              style={{ width: '100%' }}
-              options={[
-                { value: 'chat-completions', label: 'Chat Completions (/chat/completions)' },
-                { value: 'responses', label: 'Responses (/responses)' },
-                { value: 'anthropic-messages', label: 'Anthropic Messages (/v1/messages)' },
-              ]}
-            />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Checkbox
-              checked={formData.enabled}
-              onChange={(checked) => setFormData({ ...formData, enabled: checked })}
+            <button
+              type="button"
+              onClick={() => setShowApiKey(!showApiKey)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground"
             >
-              Enabled
-            </Checkbox>
+              {showApiKey ? 'Hide' : 'Show'}
+            </button>
           </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Your API key is encrypted and stored securely
+          </p>
+        </div>
 
-          <div className="flex justify-end gap-2 pt-4">
-            <Button htmlType="button" variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button htmlType="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
+        <div>
+          <label
+            className="text-sm font-medium mb-2 block"
+            htmlFor="provider-base-url"
+          >
+            Base URL
+          </label>
+          <Input
+            id="provider-base-url"
+            type="text"
+            value={formData.baseURL}
+            onChange={e =>
+              setFormData({ ...formData, baseURL: e.target.value })
+            }
+            placeholder="https://api.example.com/v1"
+            className="font-mono"
+          />
+          <p className="text-xs text-muted-foreground mt-1">
+            Optional: Custom API endpoint
+          </p>
+        </div>
+
+        <div>
+          <label
+            className="text-sm font-medium mb-2 block"
+            htmlFor="provider-api-format"
+          >
+            API Format
+          </label>
+          <Select
+            id="provider-api-format"
+            value={formData.apiFormat}
+            onChange={value => setFormData({ ...formData, apiFormat: value })}
+            style={{ width: '100%' }}
+            options={[
+              {
+                value: 'chat-completions',
+                label: 'Chat Completions (/chat/completions)',
+              },
+              { value: 'responses', label: 'Responses (/responses)' },
+              {
+                value: 'anthropic-messages',
+                label: 'Anthropic Messages (/v1/messages)',
+              },
+            ]}
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Checkbox
+            checked={formData.enabled}
+            onChange={checked => setFormData({ ...formData, enabled: checked })}
+          >
+            Enabled
+          </Checkbox>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-4">
+          <Button htmlType="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button htmlType="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
+      </form>
+    </Modal>
   )
 }

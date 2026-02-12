@@ -7,7 +7,9 @@ import crypto from 'crypto'
 const { providers } = schema
 
 // Simple encryption for API keys (in production, use proper key management)
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'muse-default-encryption-key-change-me-in-production'
+const ENCRYPTION_KEY =
+  process.env.ENCRYPTION_KEY ||
+  'muse-default-encryption-key-change-me-in-production'
 const ALGORITHM = 'aes-256-cbc'
 
 function encrypt(text: string): string {
@@ -37,7 +39,7 @@ export class ProviderService {
     const allProviders = await db.select().from(providers)
 
     // Decrypt API keys
-    return allProviders.map((provider) => ({
+    return allProviders.map(provider => ({
       ...provider,
       apiKey: decrypt(provider.apiKey),
     }))
@@ -51,7 +53,7 @@ export class ProviderService {
       .from(providers)
       .where(eq(providers.enabled, true))
 
-    return enabledProviders.map((provider) => ({
+    return enabledProviders.map(provider => ({
       ...provider,
       apiKey: decrypt(provider.apiKey),
     }))
@@ -60,7 +62,11 @@ export class ProviderService {
   // Get provider by ID
   static async getById(id: string) {
     const db = getDatabase()
-    const result = await db.select().from(providers).where(eq(providers.id, id)).limit(1)
+    const result = await db
+      .select()
+      .from(providers)
+      .where(eq(providers.id, id))
+      .limit(1)
 
     if (!result[0]) return null
 
@@ -73,7 +79,11 @@ export class ProviderService {
   // Get provider by name
   static async getByName(name: string) {
     const db = getDatabase()
-    const result = await db.select().from(providers).where(eq(providers.name, name)).limit(1)
+    const result = await db
+      .select()
+      .from(providers)
+      .where(eq(providers.name, name))
+      .limit(1)
 
     if (!result[0]) return null
 
@@ -108,7 +118,10 @@ export class ProviderService {
   }
 
   // Update provider
-  static async update(id: string, data: Partial<Omit<NewProvider, 'id' | 'createdAt'>>) {
+  static async update(
+    id: string,
+    data: Partial<Omit<NewProvider, 'id' | 'createdAt'>>
+  ) {
     const db = getDatabase()
 
     const updateData: any = { ...data }

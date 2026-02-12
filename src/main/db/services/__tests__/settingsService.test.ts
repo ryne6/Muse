@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { createTestDatabase, clearDatabase } from '../../../../../tests/setup/test-db'
+import {
+  createTestDatabase,
+  clearDatabase,
+} from '../../../../../tests/setup/test-db'
 import type { Database } from 'better-sqlite3'
 
 // Use vi.hoisted to ensure mock is set up before imports
@@ -7,16 +10,19 @@ const { getTestDb, setTestDb } = vi.hoisted(() => {
   let testDb: any = null
   return {
     getTestDb: () => testDb,
-    setTestDb: (db: any) => { testDb = db }
+    setTestDb: (db: any) => {
+      testDb = db
+    },
   }
 })
 
 // Mock the database module
 vi.mock('../../index', async () => {
-  const actualSchema = await vi.importActual<typeof import('../../schema')>('../../schema')
+  const actualSchema =
+    await vi.importActual<typeof import('../../schema')>('../../schema')
   return {
     getDatabase: () => getTestDb(),
-    schema: actualSchema
+    schema: actualSchema,
   }
 })
 

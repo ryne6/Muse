@@ -34,7 +34,8 @@ export function TemperatureControl() {
           <div>
             <h4 className="text-sm font-semibold mb-1">Temperature</h4>
             <p className="text-xs text-muted-foreground">
-              Controls randomness. Lower values are more focused, higher values are more creative.
+              Controls randomness. Lower values are more focused, higher values
+              are more creative.
             </p>
           </div>
 
@@ -46,12 +47,16 @@ export function TemperatureControl() {
               max="2"
               step="0.1"
               value={temperature}
-              onChange={(e) => handleTemperatureChange(parseFloat(e.target.value))}
+              onChange={e =>
+                handleTemperatureChange(parseFloat(e.target.value))
+              }
               className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
             />
             <div className="flex justify-between text-xs text-muted-foreground">
               <span>0</span>
-              <span className="font-semibold text-foreground">{temperature.toFixed(1)}</span>
+              <span className="font-semibold text-foreground">
+                {temperature.toFixed(1)}
+              </span>
               <span>2</span>
             </div>
           </div>
@@ -59,7 +64,7 @@ export function TemperatureControl() {
           {/* Presets */}
           <div className="space-y-1">
             <p className="text-xs font-medium mb-2">Presets</p>
-            {presets.map((preset) => (
+            {presets.map(preset => (
               <button
                 key={preset.value}
                 onClick={() => handleTemperatureChange(preset.value)}
@@ -68,7 +73,9 @@ export function TemperatureControl() {
                 }`}
               >
                 <div className="font-medium">{preset.label}</div>
-                <div className="text-muted-foreground">{preset.description}</div>
+                <div className="text-muted-foreground">
+                  {preset.description}
+                </div>
               </button>
             ))}
           </div>

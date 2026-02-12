@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { createMockMCPServer, createMockMCPToolResult } from '../../../../../tests/utils/mcp-helpers'
+import {
+  createMockMCPServer,
+  createMockMCPToolResult,
+} from '../../../../../tests/utils/mcp-helpers'
 
 /**
  * MCPManager 集成测试
@@ -32,15 +35,15 @@ vi.mock('../client', () => ({
           name: 'test_tool',
           description: 'Test tool',
           inputSchema: { type: 'object', properties: {}, required: [] },
-          serverName: config.name
-        }
+          serverName: config.name,
+        },
       ]
     }
 
     connect = mockConnect
     disconnect = mockDisconnect
     callTool = mockCallTool
-  }
+  },
 }))
 
 // Import after mocking
@@ -83,8 +86,14 @@ describe('MCPManager Integration', () => {
     })
 
     it('should skip disabled servers in connectAll', async () => {
-      const enabledServer = createMockMCPServer({ name: 'enabled', enabled: true })
-      const disabledServer = createMockMCPServer({ name: 'disabled', enabled: false })
+      const enabledServer = createMockMCPServer({
+        name: 'enabled',
+        enabled: true,
+      })
+      const disabledServer = createMockMCPServer({
+        name: 'disabled',
+        enabled: false,
+      })
 
       mcpManager.addServer(enabledServer)
       mcpManager.addServer(disabledServer)
@@ -170,7 +179,9 @@ describe('MCPManager Integration', () => {
       mcpManager.addServer(server)
       await mcpManager.connectServer('errorserver')
 
-      mockCallTool.mockResolvedValueOnce(createMockMCPToolResult('Tool failed', true))
+      mockCallTool.mockResolvedValueOnce(
+        createMockMCPToolResult('Tool failed', true)
+      )
 
       await expect(
         mcpManager.callTool('mcp__errorserver__test_tool', {})

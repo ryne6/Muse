@@ -11,7 +11,7 @@ export function getApiPort(): number | null {
 
 // Check if a port is available
 function isPortAvailable(port: number): Promise<boolean> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const server = createServer()
     server.once('error', () => resolve(false))
     server.once('listening', () => {
@@ -23,7 +23,10 @@ function isPortAvailable(port: number): Promise<boolean> {
 }
 
 // Find an available port starting from the given port
-async function findAvailablePort(startPort: number, maxAttempts = 10): Promise<number> {
+async function findAvailablePort(
+  startPort: number,
+  maxAttempts = 10
+): Promise<number> {
   for (let i = 0; i < maxAttempts; i++) {
     const port = startPort + i
     if (await isPortAvailable(port)) {
@@ -45,7 +48,7 @@ export async function startApiServer(port = 2323): Promise<number> {
       fetch: app.fetch,
       port: availablePort,
     },
-    async (info) => {
+    async info => {
       console.log(`✅ API server running at http://localhost:${info.port}`)
 
       // Initialize MCP servers after API server is ready
@@ -54,7 +57,8 @@ export async function startApiServer(port = 2323): Promise<number> {
         await initializeMCP()
 
         // Initialize MCP tools for AI providers
-        const { initMcpTools } = await import('../api/services/ai/tools/definitions')
+        const { initMcpTools } =
+          await import('../api/services/ai/tools/definitions')
         await initMcpTools()
       } catch (error) {
         console.error('❌ Failed to initialize MCP:', error)

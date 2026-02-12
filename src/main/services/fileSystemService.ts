@@ -115,7 +115,9 @@ export class FileSystemService {
         if (index >= 0) {
           replaced = 1
           updated =
-            content.slice(0, index) + newText + content.slice(index + oldText.length)
+            content.slice(0, index) +
+            newText +
+            content.slice(index + oldText.length)
         }
       }
 
@@ -184,8 +186,14 @@ export class FileSystemService {
   async executeCommand(command: string, cwd?: string): Promise<CommandResult> {
     try {
       // Security: Basic command blacklist
-      const dangerousCommands = ['rm -rf /', 'dd ', 'mkfs.', 'format ', ':(){:|:&};:']
-      if (dangerousCommands.some((cmd) => command.includes(cmd))) {
+      const dangerousCommands = [
+        'rm -rf /',
+        'dd ',
+        'mkfs.',
+        'format ',
+        ':(){:|:&};:',
+      ]
+      if (dangerousCommands.some(cmd => command.includes(cmd))) {
         throw new Error('Dangerous command blocked')
       }
 

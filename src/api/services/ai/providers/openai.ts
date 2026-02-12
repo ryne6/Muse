@@ -45,7 +45,7 @@ export class OpenAIProvider extends BaseAIProvider {
       return content
     }
 
-    return content.map((block) => {
+    return content.map(block => {
       if (block.type === 'text') {
         return { type: 'text', text: block.text }
       } else if (block.type === 'image') {
@@ -78,9 +78,20 @@ export class OpenAIProvider extends BaseAIProvider {
 
     try {
       if (onChunk) {
-        return await this.streamResponseWithTools(client, messages, config, onChunk, options)
+        return await this.streamResponseWithTools(
+          client,
+          messages,
+          config,
+          onChunk,
+          options
+        )
       } else {
-        return await this.simpleResponseWithTools(client, messages, config, options)
+        return await this.simpleResponseWithTools(
+          client,
+          messages,
+          config,
+          options
+        )
       }
     } catch (error) {
       this.logError(error)
@@ -99,10 +110,14 @@ export class OpenAIProvider extends BaseAIProvider {
     const toolExecutor = new ToolExecutor()
     let totalInputTokens = 0
     let totalOutputTokens = 0
-    const conversationMessages: OpenAI.ChatCompletionMessageParam[] = messages.map((m) => ({
-      role: m.role === 'system' ? 'system' : m.role,
-      content: this.convertContent(m.content),
-    } as OpenAI.ChatCompletionMessageParam))
+    const conversationMessages: OpenAI.ChatCompletionMessageParam[] =
+      messages.map(
+        m =>
+          ({
+            role: m.role === 'system' ? 'system' : m.role,
+            content: this.convertContent(m.content),
+          }) as OpenAI.ChatCompletionMessageParam
+      )
 
     while (true) {
       const isReasoning = this.isReasoningModel(config.model)
@@ -158,7 +173,8 @@ export class OpenAIProvider extends BaseAIProvider {
             if (toolCall.function?.arguments) {
               const existingToolCall = toolCalls[index]
               if (existingToolCall && existingToolCall.type === 'function') {
-                existingToolCall.function.arguments += toolCall.function.arguments
+                existingToolCall.function.arguments +=
+                  toolCall.function.arguments
               }
             }
           }
@@ -216,7 +232,11 @@ export class OpenAIProvider extends BaseAIProvider {
       }
     }
 
-    onChunk({ content: '', done: true, usage: { inputTokens: totalInputTokens, outputTokens: totalOutputTokens } })
+    onChunk({
+      content: '',
+      done: true,
+      usage: { inputTokens: totalInputTokens, outputTokens: totalOutputTokens },
+    })
     return fullContent
   }
 
@@ -227,10 +247,14 @@ export class OpenAIProvider extends BaseAIProvider {
     options?: AIRequestOptions
   ): Promise<string> {
     const toolExecutor = new ToolExecutor()
-    const conversationMessages: OpenAI.ChatCompletionMessageParam[] = messages.map((m) => ({
-      role: m.role === 'system' ? 'system' : m.role,
-      content: this.convertContent(m.content),
-    } as OpenAI.ChatCompletionMessageParam))
+    const conversationMessages: OpenAI.ChatCompletionMessageParam[] =
+      messages.map(
+        m =>
+          ({
+            role: m.role === 'system' ? 'system' : m.role,
+            content: this.convertContent(m.content),
+          }) as OpenAI.ChatCompletionMessageParam
+      )
 
     let finalText = ''
 
@@ -294,7 +318,7 @@ export class OpenAIProvider extends BaseAIProvider {
   }
 
   private convertTools(tools: any[]): OpenAI.ChatCompletionTool[] {
-    return tools.map((tool) => ({
+    return tools.map(tool => ({
       type: 'function' as const,
       function: {
         name: tool.name,

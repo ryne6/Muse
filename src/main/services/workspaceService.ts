@@ -37,9 +37,10 @@ export class WorkspaceService {
   /**
    * 清理对话关联的工作区目录
    */
-  static cleanupWorkspace(
-    workspacePath: string
-  ): { deleted: boolean; reason: string } {
+  static cleanupWorkspace(workspacePath: string): {
+    deleted: boolean
+    reason: string
+  } {
     if (!this.isManagedWorkspace(workspacePath)) {
       return { deleted: false, reason: 'not_managed' }
     }

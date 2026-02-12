@@ -1,5 +1,10 @@
 import { BaseAIProvider } from './base'
-import type { AIMessage, AIConfig, AIStreamChunk, MessageContent } from '../../../../shared/types/ai'
+import type {
+  AIMessage,
+  AIConfig,
+  AIStreamChunk,
+  MessageContent,
+} from '../../../../shared/types/ai'
 
 interface GeminiPart {
   text?: string
@@ -56,7 +61,7 @@ export class GeminiProvider extends BaseAIProvider {
       return [{ text: content }]
     }
 
-    return content.map((block) => {
+    return content.map(block => {
       if (block.type === 'text') {
         return { text: block.text }
       } else if (block.type === 'image') {
@@ -82,13 +87,27 @@ export class GeminiProvider extends BaseAIProvider {
 
     const apiKey = config.apiKey
     const model = config.model || this.getDefaultModel()
-    const baseURL = config.baseURL || 'https://generativelanguage.googleapis.com/v1beta'
+    const baseURL =
+      config.baseURL || 'https://generativelanguage.googleapis.com/v1beta'
 
     try {
       if (onChunk) {
-        return await this.streamResponse(messages, config, baseURL, apiKey, model, onChunk)
+        return await this.streamResponse(
+          messages,
+          config,
+          baseURL,
+          apiKey,
+          model,
+          onChunk
+        )
       } else {
-        return await this.simpleResponse(messages, config, baseURL, apiKey, model)
+        return await this.simpleResponse(
+          messages,
+          config,
+          baseURL,
+          apiKey,
+          model
+        )
       }
     } catch (error) {
       this.logError(error)
@@ -104,7 +123,7 @@ export class GeminiProvider extends BaseAIProvider {
     model: string,
     onChunk: (chunk: AIStreamChunk) => void
   ): Promise<string> {
-    const geminiMessages: GeminiMessage[] = messages.map((msg) => ({
+    const geminiMessages: GeminiMessage[] = messages.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: this.convertContent(msg.content),
     }))
@@ -114,7 +133,7 @@ export class GeminiProvider extends BaseAIProvider {
 
     const requestBody = {
       contents: [
-        ...history.map((msg) => ({
+        ...history.map(msg => ({
           role: msg.role,
           parts: msg.parts,
         })),
@@ -219,13 +238,13 @@ export class GeminiProvider extends BaseAIProvider {
     apiKey: string,
     model: string
   ): Promise<string> {
-    const geminiMessages: GeminiMessage[] = messages.map((msg) => ({
+    const geminiMessages: GeminiMessage[] = messages.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: this.convertContent(msg.content),
     }))
 
     const requestBody = {
-      contents: geminiMessages.map((msg) => ({
+      contents: geminiMessages.map(msg => ({
         role: msg.role,
         parts: msg.parts,
       })),

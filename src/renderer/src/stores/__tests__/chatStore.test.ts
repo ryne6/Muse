@@ -3,7 +3,7 @@ import { useChatStore } from '../chatStore'
 
 // Mock uuid
 vi.mock('uuid', () => ({
-  v4: vi.fn(() => 'mock-uuid-123')
+  v4: vi.fn(() => 'mock-uuid-123'),
 }))
 
 // Use vi.hoisted to define mock before vi.mock hoisting
@@ -30,16 +30,16 @@ const { mockSendMessageStream, MockAPIClientError } = vi.hoisted(() => {
 
   return {
     mockSendMessageStream: vi.fn(),
-    MockAPIClientError
+    MockAPIClientError,
   }
 })
 
 // Mock apiClient with APIClientError
 vi.mock('../../services/apiClient', () => ({
   apiClient: {
-    sendMessageStream: (...args: any[]) => mockSendMessageStream(...args)
+    sendMessageStream: (...args: any[]) => mockSendMessageStream(...args),
   },
-  APIClientError: MockAPIClientError
+  APIClientError: MockAPIClientError,
 }))
 
 // Mock conversationStore
@@ -55,9 +55,9 @@ vi.mock('../conversationStore', () => ({
       addMessage: mockAddMessage,
       updateConversation: mockUpdateConversation,
       renameConversation: mockRenameConversation,
-      getEffectiveWorkspace: () => '/test/workspace'
-    })
-  }
+      getEffectiveWorkspace: () => '/test/workspace',
+    }),
+  },
 }))
 
 const mockGetCurrentProvider = vi.fn()
@@ -74,21 +74,26 @@ vi.mock('../settingsStore', () => ({
       setToolAllowAll: mockSetToolAllowAll,
       temperature: 1,
       thinkingEnabled: false,
-    })
-  }
+    }),
+  },
 }))
 
 vi.mock('../workspaceStore', () => ({
   useWorkspaceStore: {
-    getState: () => ({ workspacePath: '/test/workspace' })
-  }
+    getState: () => ({ workspacePath: '/test/workspace' }),
+  },
 }))
 
 describe('ChatStore', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Reset store state
-    useChatStore.setState({ isLoading: false, error: null, lastError: null, retryable: false })
+    useChatStore.setState({
+      isLoading: false,
+      error: null,
+      lastError: null,
+      retryable: false,
+    })
   })
 
   describe('initial state', () => {
@@ -105,27 +110,24 @@ describe('ChatStore', () => {
     it('should set loading state when sending message', async () => {
       // Track loading state changes
       const loadingStates: boolean[] = []
-      const unsubscribe = useChatStore.subscribe((state) => {
+      const unsubscribe = useChatStore.subscribe(state => {
         loadingStates.push(state.isLoading)
       })
 
       const mockConversation = {
         id: 'conv-1',
-        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
       }
       mockGetCurrentConversation.mockReturnValue(mockConversation)
 
       // Use a delayed mock to ensure we can observe loading state
-      mockSendMessageStream.mockImplementation(() =>
-        new Promise(resolve => setTimeout(resolve, 10))
+      mockSendMessageStream.mockImplementation(
+        () => new Promise(resolve => setTimeout(resolve, 10))
       )
 
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello',
-        'openai',
-        mockConfig
-      )
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       unsubscribe()
 
@@ -137,17 +139,14 @@ describe('ChatStore', () => {
     it('should add user message to conversation', async () => {
       mockGetCurrentConversation.mockReturnValue(null)
 
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello world',
-        'openai',
-        mockConfig
-      )
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello world', 'openai', mockConfig)
 
       expect(mockAddMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           role: 'user',
-          content: 'Hello world'
+          content: 'Hello world',
         })
       )
     })
@@ -155,12 +154,9 @@ describe('ChatStore', () => {
     it('should set error when no conversation found', async () => {
       mockGetCurrentConversation.mockReturnValue(null)
 
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello',
-        'openai',
-        mockConfig
-      )
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       expect(useChatStore.getState().error).toBe('No conversation found')
       expect(useChatStore.getState().isLoading).toBe(false)
@@ -169,19 +165,14 @@ describe('ChatStore', () => {
     it('should call apiClient.sendMessageStream with correct params', async () => {
       const mockConversation = {
         id: 'conv-1',
-        messages: [
-          { id: '1', role: 'user', content: 'Hello' }
-        ]
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
       }
       mockGetCurrentConversation.mockReturnValue(mockConversation)
       mockSendMessageStream.mockResolvedValue(undefined)
 
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello',
-        'openai',
-        mockConfig
-      )
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       expect(mockSendMessageStream).toHaveBeenCalledWith(
         'openai',
@@ -196,24 +187,21 @@ describe('ChatStore', () => {
     it('should add assistant placeholder message', async () => {
       const mockConversation = {
         id: 'conv-1',
-        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
       }
       mockGetCurrentConversation.mockReturnValue(mockConversation)
       mockSendMessageStream.mockResolvedValue(undefined)
 
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello',
-        'openai',
-        mockConfig
-      )
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       // Should add both user message and assistant placeholder
       expect(mockAddMessage).toHaveBeenCalledTimes(2)
       expect(mockAddMessage).toHaveBeenLastCalledWith(
         expect.objectContaining({
           role: 'assistant',
-          content: ''
+          content: '',
         })
       )
     })
@@ -222,8 +210,8 @@ describe('ChatStore', () => {
       global.window = global.window || ({} as any)
       global.window.api = {
         attachments: {
-          getBase64: vi.fn().mockResolvedValue('base64-data')
-        }
+          getBase64: vi.fn().mockResolvedValue('base64-data'),
+        },
       } as any
 
       const mockConversation = {
@@ -243,22 +231,19 @@ describe('ChatStore', () => {
                 size: 123,
                 width: null,
                 height: null,
-                createdAt: new Date()
-              }
-            ]
-          }
-        ]
+                createdAt: new Date(),
+              },
+            ],
+          },
+        ],
       }
 
       mockGetCurrentConversation.mockReturnValue(mockConversation)
       mockSendMessageStream.mockResolvedValue(undefined)
 
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Next',
-        'openai',
-        mockConfig
-      )
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Next', 'openai', mockConfig)
 
       const aiMessages = mockSendMessageStream.mock.calls[0][1]
       // aiMessages[0] is system message, aiMessages[1] is first history message
@@ -269,8 +254,8 @@ describe('ChatStore', () => {
           expect.objectContaining({
             type: 'image',
             mimeType: 'image/png',
-            data: 'base64-data'
-          })
+            data: 'base64-data',
+          }),
         ])
       )
     })
@@ -280,7 +265,7 @@ describe('ChatStore', () => {
     const mockConfig = { apiKey: 'test-key', model: 'gpt-4' }
     const mockConversation = {
       id: 'conv-1',
-      messages: [{ id: '1', role: 'user', content: 'Hello' }]
+      messages: [{ id: '1', role: 'user', content: 'Hello' }],
     }
 
     beforeEach(() => {
@@ -291,16 +276,15 @@ describe('ChatStore', () => {
       const apiError = {
         code: 'UNAUTHORIZED',
         message: 'Invalid API key. Please check your provider configuration.',
-        retryable: false
+        retryable: false,
       }
-      mockSendMessageStream.mockRejectedValue(new MockAPIClientError('Unauthorized', apiError, 401))
-
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello',
-        'openai',
-        mockConfig
+      mockSendMessageStream.mockRejectedValue(
+        new MockAPIClientError('Unauthorized', apiError, 401)
       )
+
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       expect(useChatStore.getState().error).toBe(
         'Invalid API key. Please check your provider configuration.'
@@ -311,16 +295,15 @@ describe('ChatStore', () => {
       const apiError = {
         code: 'RATE_LIMITED',
         message: 'Rate limit exceeded. Please wait a moment and try again.',
-        retryable: true
+        retryable: true,
       }
-      mockSendMessageStream.mockRejectedValue(new MockAPIClientError('Rate limited', apiError, 429))
-
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello',
-        'openai',
-        mockConfig
+      mockSendMessageStream.mockRejectedValue(
+        new MockAPIClientError('Rate limited', apiError, 429)
       )
+
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       expect(useChatStore.getState().error).toBe(
         'Rate limit exceeded. Please wait a moment and try again.'
@@ -332,16 +315,15 @@ describe('ChatStore', () => {
       const apiError = {
         code: 'PROVIDER_ERROR',
         message: 'Provider service error. Please try again later.',
-        retryable: false
+        retryable: false,
       }
-      mockSendMessageStream.mockRejectedValue(new MockAPIClientError('Server error', apiError, 500))
-
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello',
-        'openai',
-        mockConfig
+      mockSendMessageStream.mockRejectedValue(
+        new MockAPIClientError('Server error', apiError, 500)
       )
+
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       expect(useChatStore.getState().error).toBe(
         'Provider service error. Please try again later.'
@@ -351,17 +333,17 @@ describe('ChatStore', () => {
     it('should handle connection error', async () => {
       const apiError = {
         code: 'NETWORK_ERROR',
-        message: 'Cannot connect to API server. Please ensure the server is running.',
-        retryable: true
+        message:
+          'Cannot connect to API server. Please ensure the server is running.',
+        retryable: true,
       }
-      mockSendMessageStream.mockRejectedValue(new MockAPIClientError('fetch failed', apiError))
-
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello',
-        'openai',
-        mockConfig
+      mockSendMessageStream.mockRejectedValue(
+        new MockAPIClientError('fetch failed', apiError)
       )
+
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       expect(useChatStore.getState().error).toBe(
         'Cannot connect to API server. Please ensure the server is running.'
@@ -372,16 +354,15 @@ describe('ChatStore', () => {
       const apiError = {
         code: 'TIMEOUT',
         message: 'Request timeout. Please check your network connection.',
-        retryable: true
+        retryable: true,
       }
-      mockSendMessageStream.mockRejectedValue(new MockAPIClientError('Timeout', apiError, 504))
-
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello',
-        'openai',
-        mockConfig
+      mockSendMessageStream.mockRejectedValue(
+        new MockAPIClientError('Timeout', apiError, 504)
       )
+
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       expect(useChatStore.getState().error).toBe(
         'Request timeout. Please check your network connection.'
@@ -392,16 +373,15 @@ describe('ChatStore', () => {
       const apiError = {
         code: 'INTERNAL_ERROR',
         message: 'Test error',
-        retryable: false
+        retryable: false,
       }
-      mockSendMessageStream.mockRejectedValue(new MockAPIClientError('Test error', apiError))
-
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello',
-        'openai',
-        mockConfig
+      mockSendMessageStream.mockRejectedValue(
+        new MockAPIClientError('Test error', apiError)
       )
+
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       expect(mockUpdateConversation).toHaveBeenCalled()
     })
@@ -410,16 +390,15 @@ describe('ChatStore', () => {
       const apiError = {
         code: 'RATE_LIMITED',
         message: 'Rate limit exceeded',
-        retryable: true
+        retryable: true,
       }
-      mockSendMessageStream.mockRejectedValue(new MockAPIClientError('Rate limited', apiError, 429))
-
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello',
-        'openai',
-        mockConfig
+      mockSendMessageStream.mockRejectedValue(
+        new MockAPIClientError('Rate limited', apiError, 429)
       )
+
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       expect(useChatStore.getState().lastError).toEqual(apiError)
     })
@@ -450,7 +429,7 @@ describe('ChatStore', () => {
     it('should send allow-once approval message', async () => {
       const mockConversation = {
         id: 'conv-1',
-        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
       }
       mockGetCurrentConversation.mockReturnValue(mockConversation)
       mockGetCurrentProvider.mockReturnValue(mockProvider)
@@ -475,7 +454,9 @@ describe('ChatStore', () => {
 
       await useChatStore.getState().approveToolCall('conv-1', 'Bash', 'once')
 
-      expect(useChatStore.getState().error).toBe('No provider or model selected')
+      expect(useChatStore.getState().error).toBe(
+        'No provider or model selected'
+      )
       expect(mockSendMessageStream).not.toHaveBeenCalled()
     })
 
@@ -485,7 +466,9 @@ describe('ChatStore', () => {
 
       await useChatStore.getState().approveToolCall('conv-1', 'Bash', 'once')
 
-      expect(useChatStore.getState().error).toBe('No provider or model selected')
+      expect(useChatStore.getState().error).toBe(
+        'No provider or model selected'
+      )
       expect(mockSendMessageStream).not.toHaveBeenCalled()
     })
 
@@ -503,7 +486,7 @@ describe('ChatStore', () => {
     it('should call setToolAllowAll when allowAll is true', async () => {
       const mockConversation = {
         id: 'conv-1',
-        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
       }
       mockGetCurrentConversation.mockReturnValue(mockConversation)
       mockGetCurrentProvider.mockReturnValue(mockProvider)
@@ -520,7 +503,10 @@ describe('ChatStore', () => {
     it('should abort when controller exists', () => {
       const mockAbort = vi.fn()
       const mockController = { abort: mockAbort } as unknown as AbortController
-      useChatStore.setState({ isLoading: true, abortController: mockController })
+      useChatStore.setState({
+        isLoading: true,
+        abortController: mockController,
+      })
 
       useChatStore.getState().abortMessage()
 
@@ -544,7 +530,7 @@ describe('ChatStore', () => {
       useChatStore.setState({
         error: 'Some error',
         lastError: { code: 'TEST', message: 'Test error', retryable: true },
-        retryable: true
+        retryable: true,
       })
 
       useChatStore.getState().clearError()
@@ -561,7 +547,7 @@ describe('ChatStore', () => {
     it('should ignore AbortError and not set error state', async () => {
       const mockConversation = {
         id: 'conv-1',
-        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
       }
       mockGetCurrentConversation.mockReturnValue(mockConversation)
 
@@ -569,12 +555,9 @@ describe('ChatStore', () => {
       abortError.name = 'AbortError'
       mockSendMessageStream.mockRejectedValue(abortError)
 
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello',
-        'openai',
-        mockConfig
-      )
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       expect(useChatStore.getState().error).toBeNull()
     })
@@ -586,18 +569,15 @@ describe('ChatStore', () => {
     it('should handle regular Error and set lastError to null', async () => {
       const mockConversation = {
         id: 'conv-1',
-        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
       }
       mockGetCurrentConversation.mockReturnValue(mockConversation)
 
       mockSendMessageStream.mockRejectedValue(new Error('Some error'))
 
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello',
-        'openai',
-        mockConfig
-      )
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       // Error message may be transformed by getErrorMessage()
       expect(useChatStore.getState().error).toBeTruthy()
@@ -611,7 +591,7 @@ describe('ChatStore', () => {
     it('should update message content via streaming callback', async () => {
       const mockConversation = {
         id: 'conv-1',
-        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
       }
       mockGetCurrentConversation.mockReturnValue(mockConversation)
 
@@ -626,12 +606,9 @@ describe('ChatStore', () => {
         }
       )
 
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello',
-        'openai',
-        mockConfig
-      )
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       expect(streamCallback).not.toBeNull()
       expect(mockUpdateConversation).toHaveBeenCalled()
@@ -640,7 +617,7 @@ describe('ChatStore', () => {
     it('should handle thinking content in streaming', async () => {
       const mockConversation = {
         id: 'conv-1',
-        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
       }
       mockGetCurrentConversation.mockReturnValue(mockConversation)
 
@@ -650,12 +627,9 @@ describe('ChatStore', () => {
         }
       )
 
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello',
-        'openai',
-        mockConfig
-      )
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       expect(mockUpdateConversation).toHaveBeenCalled()
     })
@@ -663,7 +637,7 @@ describe('ChatStore', () => {
     it('should handle tool call in streaming', async () => {
       const mockConversation = {
         id: 'conv-1',
-        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
       }
       mockGetCurrentConversation.mockReturnValue(mockConversation)
 
@@ -673,18 +647,15 @@ describe('ChatStore', () => {
             toolCall: {
               id: 'tc-1',
               name: 'read_file',
-              input: { path: '/test.txt' }
-            }
+              input: { path: '/test.txt' },
+            },
           })
         }
       )
 
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello',
-        'openai',
-        mockConfig
-      )
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       expect(mockUpdateConversation).toHaveBeenCalled()
     })
@@ -692,7 +663,7 @@ describe('ChatStore', () => {
     it('should handle tool result in streaming', async () => {
       const mockConversation = {
         id: 'conv-1',
-        messages: [{ id: '1', role: 'user', content: 'Hello' }]
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
       }
       mockGetCurrentConversation.mockReturnValue(mockConversation)
 
@@ -701,18 +672,15 @@ describe('ChatStore', () => {
           callback({
             toolResult: {
               toolCallId: 'tc-1',
-              content: 'File content here'
-            }
+              content: 'File content here',
+            },
           })
         }
       )
 
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello',
-        'openai',
-        mockConfig
-      )
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello', 'openai', mockConfig)
 
       expect(mockUpdateConversation).toHaveBeenCalled()
     })
@@ -724,17 +692,14 @@ describe('ChatStore', () => {
     it('should update title on first user message', async () => {
       const mockConversation = {
         id: 'conv-1',
-        messages: [{ id: '1', role: 'user', content: 'Hello world' }]
+        messages: [{ id: '1', role: 'user', content: 'Hello world' }],
       }
       mockGetCurrentConversation.mockReturnValue(mockConversation)
       mockSendMessageStream.mockResolvedValue(undefined)
 
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Hello world',
-        'openai',
-        mockConfig
-      )
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Hello world', 'openai', mockConfig)
 
       expect(mockRenameConversation).toHaveBeenCalledWith(
         'conv-1',
@@ -746,17 +711,14 @@ describe('ChatStore', () => {
       const longMessage = 'A'.repeat(60)
       const mockConversation = {
         id: 'conv-1',
-        messages: [{ id: '1', role: 'user', content: longMessage }]
+        messages: [{ id: '1', role: 'user', content: longMessage }],
       }
       mockGetCurrentConversation.mockReturnValue(mockConversation)
       mockSendMessageStream.mockResolvedValue(undefined)
 
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        longMessage,
-        'openai',
-        mockConfig
-      )
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', longMessage, 'openai', mockConfig)
 
       expect(mockRenameConversation).toHaveBeenCalledWith(
         'conv-1',
@@ -770,18 +732,15 @@ describe('ChatStore', () => {
         messages: [
           { id: '1', role: 'user', content: 'First' },
           { id: '2', role: 'assistant', content: 'Response' },
-          { id: '3', role: 'user', content: 'Second' }
-        ]
+          { id: '3', role: 'user', content: 'Second' },
+        ],
       }
       mockGetCurrentConversation.mockReturnValue(mockConversation)
       mockSendMessageStream.mockResolvedValue(undefined)
 
-      await useChatStore.getState().sendMessage(
-        'conv-1',
-        'Third message',
-        'openai',
-        mockConfig
-      )
+      await useChatStore
+        .getState()
+        .sendMessage('conv-1', 'Third message', 'openai', mockConfig)
 
       expect(mockRenameConversation).not.toHaveBeenCalled()
     })

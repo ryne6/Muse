@@ -21,7 +21,7 @@ const mockToast = vi.hoisted(() => ({
 }))
 
 vi.mock('@lobehub/ui', () => ({
-  toast: mockToast
+  toast: mockToast,
 }))
 
 import { notify } from '../notify'

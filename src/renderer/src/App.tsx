@@ -8,7 +8,9 @@ import { useSettingsStore } from './stores/settingsStore'
 import { dbClient } from './services/dbClient'
 
 function App() {
-  const loadConversations = useConversationStore((state) => state.loadConversations)
+  const loadConversations = useConversationStore(
+    state => state.loadConversations
+  )
   const [themeMode, setThemeMode] = useState<'light' | 'dark' | 'auto'>('auto')
 
   useEffect(() => {
@@ -29,7 +31,7 @@ function App() {
     })
 
     // Load theme preference
-    dbClient.settings.get('theme').then((theme) => {
+    dbClient.settings.get('theme').then(theme => {
       if (theme) setThemeMode(theme as 'light' | 'dark' | 'auto')
     })
   }, [loadConversations])
@@ -47,7 +49,7 @@ function App() {
       const conv = convStore.getCurrentConversation()
       if (!conv) return
 
-      const userMsgCount = conv.messages.filter((m) => m.role === 'user').length
+      const userMsgCount = conv.messages.filter(m => m.role === 'user').length
       if (userMsgCount < 5) return
 
       const settings = useSettingsStore.getState()
@@ -56,9 +58,12 @@ function App() {
       if (!pid || !mid) return
 
       const recentMessages = conv.messages
-        .filter((m) => m.role === 'user' || m.role === 'assistant')
+        .filter(m => m.role === 'user' || m.role === 'assistant')
         .slice(-10)
-        .map((m) => ({ role: m.role, content: typeof m.content === 'string' ? m.content : '' }))
+        .map(m => ({
+          role: m.role,
+          content: typeof m.content === 'string' ? m.content : '',
+        }))
 
       // Fire-and-forget via IPC (main process stays alive briefly after renderer closes)
       window.api.memory.extract({
@@ -81,7 +86,10 @@ function App() {
     }
     window.addEventListener('theme-changed', handleThemeChange as EventListener)
     return () => {
-      window.removeEventListener('theme-changed', handleThemeChange as EventListener)
+      window.removeEventListener(
+        'theme-changed',
+        handleThemeChange as EventListener
+      )
     }
   }, [])
 

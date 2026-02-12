@@ -33,26 +33,31 @@ const api: IpcApi = {
       ipcRenderer.invoke('workspace:createDefault', { conversationId }),
     cleanup: (workspacePath: string) =>
       ipcRenderer.invoke('workspace:cleanup', { workspacePath }),
-    cleanupOrphans: () =>
-      ipcRenderer.invoke('workspace:cleanupOrphans'),
+    cleanupOrphans: () => ipcRenderer.invoke('workspace:cleanupOrphans'),
     forceDelete: (path: string) =>
       ipcRenderer.invoke('workspace:forceDelete', { path }),
   },
   ipc: {
-    invoke: (channel: string, ...args: any[]) => ipcRenderer.invoke(channel, ...args),
+    invoke: (channel: string, ...args: any[]) =>
+      ipcRenderer.invoke(channel, ...args),
   },
   search: {
-    query: (query) => ipcRenderer.invoke('db:search', { query }),
+    query: query => ipcRenderer.invoke('db:search', { query }),
     rebuildIndex: () => ipcRenderer.invoke('db:search:rebuild'),
   },
   attachments: {
-    create: (data) => ipcRenderer.invoke('db:attachments:create', data),
-    getByMessageId: (messageId) => ipcRenderer.invoke('db:attachments:getByMessageId', { messageId }),
-    getPreviewsByMessageId: (messageId) => ipcRenderer.invoke('db:attachments:getPreviewsByMessageId', { messageId }),
-    getById: (id) => ipcRenderer.invoke('db:attachments:getById', { id }),
-    getBase64: (id) => ipcRenderer.invoke('db:attachments:getBase64', { id }),
-    updateNote: (id, note) => ipcRenderer.invoke('db:attachments:updateNote', { id, note }),
-    delete: (id) => ipcRenderer.invoke('db:attachments:delete', { id }),
+    create: data => ipcRenderer.invoke('db:attachments:create', data),
+    getByMessageId: messageId =>
+      ipcRenderer.invoke('db:attachments:getByMessageId', { messageId }),
+    getPreviewsByMessageId: messageId =>
+      ipcRenderer.invoke('db:attachments:getPreviewsByMessageId', {
+        messageId,
+      }),
+    getById: id => ipcRenderer.invoke('db:attachments:getById', { id }),
+    getBase64: id => ipcRenderer.invoke('db:attachments:getBase64', { id }),
+    updateNote: (id, note) =>
+      ipcRenderer.invoke('db:attachments:updateNote', { id, note }),
+    delete: id => ipcRenderer.invoke('db:attachments:delete', { id }),
   },
   mcp: {
     getServerStates: () => ipcRenderer.invoke('mcp:getServerStates'),
@@ -62,39 +67,68 @@ const api: IpcApi = {
   },
   skills: {
     getDirectories: () => ipcRenderer.invoke('db:skills:getDirectories'),
-    addDirectory: (path: string) => ipcRenderer.invoke('db:skills:addDirectory', { path }),
-    removeDirectory: (id: string) => ipcRenderer.invoke('db:skills:removeDirectory', { id }),
-    toggleDirectory: (id: string) => ipcRenderer.invoke('db:skills:toggleDirectory', { id }),
+    addDirectory: (path: string) =>
+      ipcRenderer.invoke('db:skills:addDirectory', { path }),
+    removeDirectory: (id: string) =>
+      ipcRenderer.invoke('db:skills:removeDirectory', { id }),
+    toggleDirectory: (id: string) =>
+      ipcRenderer.invoke('db:skills:toggleDirectory', { id }),
     getAll: () => ipcRenderer.invoke('db:skills:getAll'),
-    getContent: (path: string) => ipcRenderer.invoke('db:skills:getContent', { path }),
-    getCount: (path: string) => ipcRenderer.invoke('db:skills:getCount', { path }),
+    getContent: (path: string) =>
+      ipcRenderer.invoke('db:skills:getContent', { path }),
+    getCount: (path: string) =>
+      ipcRenderer.invoke('db:skills:getCount', { path }),
   },
   promptPresets: {
     getAll: () => ipcRenderer.invoke('db:promptPresets:getAll'),
-    getById: (id: string) => ipcRenderer.invoke('db:promptPresets:getById', { id }),
-    create: (data: { name: string; content: string }) => ipcRenderer.invoke('db:promptPresets:create', data),
-    update: (id: string, data: { name?: string; content?: string }) => ipcRenderer.invoke('db:promptPresets:update', { id, data }),
-    delete: (id: string) => ipcRenderer.invoke('db:promptPresets:delete', { id }),
+    getById: (id: string) =>
+      ipcRenderer.invoke('db:promptPresets:getById', { id }),
+    create: (data: { name: string; content: string }) =>
+      ipcRenderer.invoke('db:promptPresets:create', data),
+    update: (id: string, data: { name?: string; content?: string }) =>
+      ipcRenderer.invoke('db:promptPresets:update', { id, data }),
+    delete: (id: string) =>
+      ipcRenderer.invoke('db:promptPresets:delete', { id }),
   },
   permissions: {
     load: (workspacePath?: string) =>
       ipcRenderer.invoke('permissions:load', { workspacePath }),
     addRule: (rule: any, source: string, workspacePath?: string) =>
-      ipcRenderer.invoke('permissions:addRule', { rule, source, workspacePath }),
+      ipcRenderer.invoke('permissions:addRule', {
+        rule,
+        source,
+        workspacePath,
+      }),
     removeRule: (ruleId: string, source: string, workspacePath?: string) =>
-      ipcRenderer.invoke('permissions:removeRule', { ruleId, source, workspacePath }),
+      ipcRenderer.invoke('permissions:removeRule', {
+        ruleId,
+        source,
+        workspacePath,
+      }),
   },
   memory: {
     getAll: () => ipcRenderer.invoke('memory:getAll'),
-    getByType: (type: string) => ipcRenderer.invoke('memory:getByType', { type }),
+    getByType: (type: string) =>
+      ipcRenderer.invoke('memory:getByType', { type }),
     create: (data: any) => ipcRenderer.invoke('memory:create', data),
-    update: (id: string, data: any) => ipcRenderer.invoke('memory:update', { id, data }),
+    update: (id: string, data: any) =>
+      ipcRenderer.invoke('memory:update', { id, data }),
     delete: (id: string) => ipcRenderer.invoke('memory:delete', { id }),
     search: (query: string) => ipcRenderer.invoke('memory:search', { query }),
     getRelevant: (workspacePath: string | null, userMessage: string) =>
       ipcRenderer.invoke('memory:getRelevant', { workspacePath, userMessage }),
-    remember: (content: string, type?: string, workspacePath?: string, category?: string) =>
-      ipcRenderer.invoke('memory:remember', { content, type, workspacePath, category }),
+    remember: (
+      content: string,
+      type?: string,
+      workspacePath?: string,
+      category?: string
+    ) =>
+      ipcRenderer.invoke('memory:remember', {
+        content,
+        type,
+        workspacePath,
+        category,
+      }),
     forget: (keyword: string, workspacePath?: string) =>
       ipcRenderer.invoke('memory:forget', { keyword, workspacePath }),
     getByConversationId: (conversationId: string) =>
@@ -110,8 +144,10 @@ const api: IpcApi = {
       conversationId?: string
     }) => ipcRenderer.invoke('memory:extract', data),
     export: () => ipcRenderer.invoke('memory:export'),
-    import: (memories: any[]) => ipcRenderer.invoke('memory:import', { memories }),
-    deleteByType: (type: string) => ipcRenderer.invoke('memory:deleteByType', { type }),
+    import: (memories: any[]) =>
+      ipcRenderer.invoke('memory:import', { memories }),
+    deleteByType: (type: string) =>
+      ipcRenderer.invoke('memory:deleteByType', { type }),
   },
   updater: {
     check: () => ipcRenderer.invoke('updater:check'),
@@ -126,4 +162,3 @@ const api: IpcApi = {
 }
 
 contextBridge.exposeInMainWorld('api', api)
-

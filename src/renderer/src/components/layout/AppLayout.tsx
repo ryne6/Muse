@@ -50,7 +50,8 @@ export function AppLayout() {
   }, [])
 
   // During drag: use live width to determine text visibility
-  const dragShowText = liveWidth !== null ? liveWidth >= SIDEBAR_TEXT_THRESHOLD : null
+  const dragShowText =
+    liveWidth !== null ? liveWidth >= SIDEBAR_TEXT_THRESHOLD : null
   // Final showText: drag takes priority, then delayed expand state
   const showText = dragShowText ?? expandShowText
 
@@ -69,7 +70,10 @@ export function AppLayout() {
     clearTimeout(expandTimerRef.current)
     if (expand) {
       // Expanding: delay showing text so width animation has time to grow
-      expandTimerRef.current = setTimeout(() => setExpandShowText(true), EXPAND_TEXT_DELAY)
+      expandTimerRef.current = setTimeout(
+        () => setExpandShowText(true),
+        EXPAND_TEXT_DELAY
+      )
     } else {
       // Collapsing: hide text immediately so it disappears before width shrinks
       setExpandShowText(false)

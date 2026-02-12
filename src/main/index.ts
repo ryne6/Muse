@@ -27,7 +27,12 @@ const permissionFileService = new PermissionFileService()
 
 // Memory input validation helpers
 const VALID_MEMORY_TYPES = ['user', 'project', 'conversation'] as const
-const VALID_MEMORY_CATEGORIES = ['preference', 'knowledge', 'decision', 'pattern'] as const
+const VALID_MEMORY_CATEGORIES = [
+  'preference',
+  'knowledge',
+  'decision',
+  'pattern',
+] as const
 const MAX_CONTENT_LENGTH = 10000
 const MAX_QUERY_LENGTH = 500
 
@@ -41,22 +46,37 @@ function validateMemoryInput(
         return `Invalid type: must be one of ${VALID_MEMORY_TYPES.join(', ')}`
       }
     } else if (field === 'category') {
-      if (!data.category || !VALID_MEMORY_CATEGORIES.includes(data.category as any)) {
+      if (
+        !data.category ||
+        !VALID_MEMORY_CATEGORIES.includes(data.category as any)
+      ) {
         return `Invalid category: must be one of ${VALID_MEMORY_CATEGORIES.join(', ')}`
       }
     } else if (field === 'content') {
-      if (!data.content || typeof data.content !== 'string' || data.content.trim().length === 0) {
+      if (
+        !data.content ||
+        typeof data.content !== 'string' ||
+        data.content.trim().length === 0
+      ) {
         return 'content must be a non-empty string'
       }
       if ((data.content as string).length > MAX_CONTENT_LENGTH) {
         return `content exceeds max length of ${MAX_CONTENT_LENGTH}`
       }
     } else if (field === 'id') {
-      if (!data.id || typeof data.id !== 'string' || (data.id as string).trim().length === 0) {
+      if (
+        !data.id ||
+        typeof data.id !== 'string' ||
+        (data.id as string).trim().length === 0
+      ) {
         return 'id must be a non-empty string'
       }
     } else if (field === 'query') {
-      if (!data.query || typeof data.query !== 'string' || (data.query as string).trim().length === 0) {
+      if (
+        !data.query ||
+        typeof data.query !== 'string' ||
+        (data.query as string).trim().length === 0
+      ) {
         return 'query must be a non-empty string'
       }
       if ((data.query as string).length > MAX_QUERY_LENGTH) {
@@ -79,10 +99,10 @@ function createWindow(): BrowserWindow {
       preload: join(__dirname, '../preload/index.js'),
       nodeIntegration: false,
       contextIsolation: true,
-      sandbox: true
+      sandbox: true,
     },
     titleBarStyle: 'hiddenInset',
-    title: 'Muse'
+    title: 'Muse',
   })
 
   // Load the renderer
@@ -214,7 +234,7 @@ function registerIpcHandlers() {
 
   ipcMain.handle('workspace:cleanupOrphans', async () => {
     const conversations = await ConversationService.getAll()
-    const activeIds = conversations.map((c) => c.id)
+    const activeIds = conversations.map(c => c.id)
     const orphans = WorkspaceService.getOrphanedWorkspaces(activeIds)
 
     // 自动删除空目录
@@ -265,26 +285,38 @@ function registerIpcHandlers() {
     return await ConversationService.update(id, data)
   })
 
-  ipcMain.handle('db:conversations:updateWorkspace', async (_, { id, workspace }) => {
-    return await ConversationService.updateWorkspace(id, workspace)
-  })
+  ipcMain.handle(
+    'db:conversations:updateWorkspace',
+    async (_, { id, workspace }) => {
+      return await ConversationService.updateWorkspace(id, workspace)
+    }
+  )
 
-  ipcMain.handle('db:conversations:updateSystemPrompt', async (_, { id, systemPrompt }) => {
-    return await ConversationService.updateSystemPrompt(id, systemPrompt)
-  })
+  ipcMain.handle(
+    'db:conversations:updateSystemPrompt',
+    async (_, { id, systemPrompt }) => {
+      return await ConversationService.updateSystemPrompt(id, systemPrompt)
+    }
+  )
 
   ipcMain.handle('db:conversations:delete', async (_, { id }) => {
     return await ConversationService.delete(id)
   })
 
   // Database - Messages
-  ipcMain.handle('db:messages:getByConversationId', async (_, { conversationId }) => {
-    return await MessageService.getByConversationId(conversationId)
-  })
+  ipcMain.handle(
+    'db:messages:getByConversationId',
+    async (_, { conversationId }) => {
+      return await MessageService.getByConversationId(conversationId)
+    }
+  )
 
-  ipcMain.handle('db:messages:getAllWithTools', async (_, { conversationId }) => {
-    return await MessageService.getAllWithTools(conversationId)
-  })
+  ipcMain.handle(
+    'db:messages:getAllWithTools',
+    async (_, { conversationId }) => {
+      return await MessageService.getAllWithTools(conversationId)
+    }
+  )
 
   ipcMain.handle('db:messages:create', async (_, data) => {
     return await MessageService.create(data)
@@ -298,9 +330,12 @@ function registerIpcHandlers() {
     return await MessageService.addToolCall(messageId, data)
   })
 
-  ipcMain.handle('db:messages:addToolResult', async (_, { toolCallId, data }) => {
-    return await MessageService.addToolResult(toolCallId, data)
-  })
+  ipcMain.handle(
+    'db:messages:addToolResult',
+    async (_, { toolCallId, data }) => {
+      return await MessageService.addToolResult(toolCallId, data)
+    }
+  )
 
   // Database - Providers
   ipcMain.handle('db:providers:getAll', async () => {
@@ -458,7 +493,8 @@ function registerIpcHandlers() {
           const { connectMcpServer } = await import('../api/services/mcp/init')
           await connectMcpServer(result)
         } else {
-          const { disconnectMcpServer } = await import('../api/services/mcp/init')
+          const { disconnectMcpServer } =
+            await import('../api/services/mcp/init')
           await disconnectMcpServer(result.name)
         }
       } catch (error) {
@@ -492,9 +528,12 @@ function registerIpcHandlers() {
     return await AttachmentService.getByMessageId(messageId)
   })
 
-  ipcMain.handle('db:attachments:getPreviewsByMessageId', async (_, { messageId }) => {
-    return await AttachmentService.getPreviewsByMessageId(messageId)
-  })
+  ipcMain.handle(
+    'db:attachments:getPreviewsByMessageId',
+    async (_, { messageId }) => {
+      return await AttachmentService.getPreviewsByMessageId(messageId)
+    }
+  )
 
   ipcMain.handle('db:attachments:getById', async (_, { id }) => {
     return await AttachmentService.getById(id)
@@ -582,15 +621,21 @@ function registerIpcHandlers() {
     return permissionFileService.loadRules(workspacePath)
   })
 
-  ipcMain.handle('permissions:addRule', async (_event, { rule, source, workspacePath }) => {
-    permissionFileService.addRule(rule, source, workspacePath)
-    return { success: true }
-  })
+  ipcMain.handle(
+    'permissions:addRule',
+    async (_event, { rule, source, workspacePath }) => {
+      permissionFileService.addRule(rule, source, workspacePath)
+      return { success: true }
+    }
+  )
 
-  ipcMain.handle('permissions:removeRule', async (_event, { ruleId, source, workspacePath }) => {
-    permissionFileService.removeRule(ruleId, source, workspacePath)
-    return { success: true }
-  })
+  ipcMain.handle(
+    'permissions:removeRule',
+    async (_event, { ruleId, source, workspacePath }) => {
+      permissionFileService.removeRule(ruleId, source, workspacePath)
+      return { success: true }
+    }
+  )
 
   // Memory
   ipcMain.handle('memory:getAll', async () => {
@@ -681,12 +726,18 @@ function registerIpcHandlers() {
   // Memory extraction pipeline (P1)
   ipcMain.handle(
     'memory:extract',
-    async (_, { messages, providerId, modelId, workspacePath, conversationId }) => {
+    async (
+      _,
+      { messages, providerId, modelId, workspacePath, conversationId }
+    ) => {
       try {
         // C1 fix: Resolve provider credentials from DB — never accept apiKey from renderer
         const provider = await ProviderService.getById(providerId)
         if (!provider || !provider.apiKey) {
-          console.warn('memory:extract — provider not found or missing apiKey:', providerId)
+          console.warn(
+            'memory:extract — provider not found or missing apiKey:',
+            providerId
+          )
           return { extracted: 0, saved: 0 }
         }
         const model = await ModelService.getById(modelId)
@@ -708,12 +759,18 @@ function registerIpcHandlers() {
         // TODO(C2): MemoryExtractor lives in api/ layer but is used by main process.
         // In Electron, both run in the same Node.js process so this is safe at runtime.
         // Future: move extraction logic to main/services or route via HTTP API.
-        const { MemoryExtractor } = await import('../api/services/memory/extractor')
+        const { MemoryExtractor } =
+          await import('../api/services/memory/extractor')
         const EXTRACTION_TIMEOUT = 30000 // 30 seconds
         const extractWithTimeout = Promise.race([
           MemoryExtractor.extract(messages, provider.type, config),
-          new Promise<import('../api/services/memory/extractor').ExtractedMemory[]>((_, reject) =>
-            setTimeout(() => reject(new Error('Memory extraction timed out')), EXTRACTION_TIMEOUT)
+          new Promise<
+            import('../api/services/memory/extractor').ExtractedMemory[]
+          >((_, reject) =>
+            setTimeout(
+              () => reject(new Error('Memory extraction timed out')),
+              EXTRACTION_TIMEOUT
+            )
           ),
         ])
         const extracted = await extractWithTimeout
@@ -762,60 +819,76 @@ function registerIpcHandlers() {
     }
   )
 
-  ipcMain.handle('memory:getRelevant', async (_, { workspacePath, userMessage }) => {
-    try {
-      return await MemoryManager.getRelevantMemories(workspacePath, userMessage)
-    } catch (error) {
-      console.error('memory:getRelevant failed:', error)
-      return ''
-    }
-  })
-
-  ipcMain.handle('memory:remember', async (_, { content, type, category, workspacePath }) => {
-    const err = validateMemoryInput({ content }, ['content'])
-    if (err) throw new Error(err)
-    try {
-      const resolvedType = type || 'user'
-      const resolvedCategory = category || 'knowledge'
-
-      // Reuse MemoryFileService.resolveFilePath to avoid duplicating path logic (I11)
-      const targetFilePath = MemoryFileService.resolveFilePath(
-        resolvedType,
-        resolvedCategory,
-        workspacePath || undefined
-      )
-
-      // Write to SQLite (with filePath for precise /forget targeting)
-      const memory = await MemoryService.create({
-        type: resolvedType,
-        category: resolvedCategory,
-        content,
-        source: 'manual',
-        filePath: targetFilePath,
-      })
-
-      // Write to .md file
-      if (targetFilePath) {
-        const frontmatter = { type: resolvedType, source: 'manual' }
-        MemoryFileService.ensureDirectory(join(targetFilePath, '..'))
-        await MemoryFileService.appendToFile(targetFilePath, content, frontmatter)
+  ipcMain.handle(
+    'memory:getRelevant',
+    async (_, { workspacePath, userMessage }) => {
+      try {
+        return await MemoryManager.getRelevantMemories(
+          workspacePath,
+          userMessage
+        )
+      } catch (error) {
+        console.error('memory:getRelevant failed:', error)
+        return ''
       }
-
-      return memory
-    } catch (error) {
-      console.error('memory:remember failed:', error)
-      throw error
     }
-  })
+  )
 
-  ipcMain.handle('memory:getByConversationId', async (_, { conversationId }) => {
-    try {
-      return await MemoryService.getByConversationId(conversationId)
-    } catch (error) {
-      console.error('memory:getByConversationId failed:', error)
-      return []
+  ipcMain.handle(
+    'memory:remember',
+    async (_, { content, type, category, workspacePath }) => {
+      const err = validateMemoryInput({ content }, ['content'])
+      if (err) throw new Error(err)
+      try {
+        const resolvedType = type || 'user'
+        const resolvedCategory = category || 'knowledge'
+
+        // Reuse MemoryFileService.resolveFilePath to avoid duplicating path logic (I11)
+        const targetFilePath = MemoryFileService.resolveFilePath(
+          resolvedType,
+          resolvedCategory,
+          workspacePath || undefined
+        )
+
+        // Write to SQLite (with filePath for precise /forget targeting)
+        const memory = await MemoryService.create({
+          type: resolvedType,
+          category: resolvedCategory,
+          content,
+          source: 'manual',
+          filePath: targetFilePath,
+        })
+
+        // Write to .md file
+        if (targetFilePath) {
+          const frontmatter = { type: resolvedType, source: 'manual' }
+          MemoryFileService.ensureDirectory(join(targetFilePath, '..'))
+          await MemoryFileService.appendToFile(
+            targetFilePath,
+            content,
+            frontmatter
+          )
+        }
+
+        return memory
+      } catch (error) {
+        console.error('memory:remember failed:', error)
+        throw error
+      }
     }
-  })
+  )
+
+  ipcMain.handle(
+    'memory:getByConversationId',
+    async (_, { conversationId }) => {
+      try {
+        return await MemoryService.getByConversationId(conversationId)
+      } catch (error) {
+        console.error('memory:getByConversationId failed:', error)
+        return []
+      }
+    }
+  )
 
   ipcMain.handle('memory:forget', async (_, { keyword, workspacePath }) => {
     const err = validateMemoryInput({ query: keyword }, ['query'])
@@ -840,10 +913,15 @@ function registerIpcHandlers() {
             await MemoryFileService.removeFromFile(file.filePath, match.content)
           }
           if (workspacePath) {
-            const projectDir = MemoryFileService.getProjectMemoryDir(workspacePath)
-            const projectFiles = await MemoryFileService.readAllMemoryFiles(projectDir)
+            const projectDir =
+              MemoryFileService.getProjectMemoryDir(workspacePath)
+            const projectFiles =
+              await MemoryFileService.readAllMemoryFiles(projectDir)
             for (const file of projectFiles) {
-              await MemoryFileService.removeFromFile(file.filePath, match.content)
+              await MemoryFileService.removeFromFile(
+                file.filePath,
+                match.content
+              )
             }
           }
         }
@@ -877,7 +955,12 @@ function registerIpcHandlers() {
 
       // C2: Server-side validation constants
       const VALID_TYPES = ['user', 'project', 'conversation']
-      const VALID_CATEGORIES = ['preference', 'knowledge', 'decision', 'pattern']
+      const VALID_CATEGORIES = [
+        'preference',
+        'knowledge',
+        'decision',
+        'pattern',
+      ]
       const MAX_CONTENT_LENGTH = 10000
       const MAX_IMPORT_ITEMS = 500
 
@@ -886,10 +969,14 @@ function registerIpcHandlers() {
       let skipped = 0
       for (const item of safeItems) {
         if (
-          !item.content || typeof item.content !== 'string' ||
-          !item.type || !VALID_TYPES.includes(item.type) ||
-          !item.category || !VALID_CATEGORIES.includes(item.category) ||
-          !item.source || typeof item.source !== 'string'
+          !item.content ||
+          typeof item.content !== 'string' ||
+          !item.type ||
+          !VALID_TYPES.includes(item.type) ||
+          !item.category ||
+          !VALID_CATEGORIES.includes(item.category) ||
+          !item.source ||
+          typeof item.source !== 'string'
         ) {
           skipped++
           continue
@@ -897,7 +984,7 @@ function registerIpcHandlers() {
         // Cap content length
         const content = item.content.slice(0, MAX_CONTENT_LENGTH)
         // Validate tags is string if present
-        const tags = (typeof item.tags === 'string') ? item.tags : undefined
+        const tags = typeof item.tags === 'string' ? item.tags : undefined
 
         const { isNew } = await MemoryService.upsertMemory({
           type: item.type,

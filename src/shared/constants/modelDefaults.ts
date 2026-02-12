@@ -22,9 +22,7 @@ export const MODEL_CONTEXT_DEFAULTS: Array<{
   { pattern: /^moonshot-v1-128k$/, contextLength: 128_000 },
 ]
 
-export function getDefaultContextLength(
-  modelId: string
-): number | null {
+export function getDefaultContextLength(modelId: string): number | null {
   for (const entry of MODEL_CONTEXT_DEFAULTS) {
     if (entry.pattern instanceof RegExp) {
       if (entry.pattern.test(modelId)) return entry.contextLength

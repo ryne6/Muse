@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { createTestDatabase, clearDatabase } from '../../../../../tests/setup/test-db'
+import {
+  createTestDatabase,
+  clearDatabase,
+} from '../../../../../tests/setup/test-db'
 import type { Database } from 'better-sqlite3'
 
 /**
@@ -19,13 +22,14 @@ const { getTestDb, setTestDb } = vi.hoisted(() => {
     getTestDb: () => testDb,
     setTestDb: (db: any) => {
       testDb = db
-    }
+    },
   }
 })
 
 // Mock the database module with hoisted functions
 vi.mock('../../index', async () => {
-  const actualSchema = await vi.importActual<typeof import('../../schema')>('../../schema')
+  const actualSchema =
+    await vi.importActual<typeof import('../../schema')>('../../schema')
   return {
     getDatabase: () => {
       const db = getTestDb()
@@ -34,14 +38,14 @@ vi.mock('../../index', async () => {
       }
       return db
     },
-    schema: actualSchema
+    schema: actualSchema,
   }
 })
 
 // Mock generateId with counter to ensure unique IDs
 let idCounter = 0
 vi.mock('../../utils/idGenerator', () => ({
-  generateId: vi.fn(() => `test-attachment-id-${Date.now()}-${idCounter++}`)
+  generateId: vi.fn(() => `test-attachment-id-${Date.now()}-${idCounter++}`),
 }))
 
 // Import AttachmentService after mocking
@@ -76,15 +80,12 @@ describe('AttachmentService', () => {
   function createSampleImageData(): Buffer {
     // Simple 1x1 PNG image
     return Buffer.from([
-      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a,
-      0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
-      0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-      0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53,
-      0xde, 0x00, 0x00, 0x00, 0x0c, 0x49, 0x44, 0x41,
-      0x54, 0x08, 0xd7, 0x63, 0xf8, 0xff, 0xff, 0x3f,
-      0x00, 0x05, 0xfe, 0x02, 0xfe, 0xdc, 0xcc, 0x59,
-      0xe7, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e,
-      0x44, 0xae, 0x42, 0x60, 0x82
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
+      0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+      0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xde, 0x00, 0x00, 0x00,
+      0x0c, 0x49, 0x44, 0x41, 0x54, 0x08, 0xd7, 0x63, 0xf8, 0xff, 0xff, 0x3f,
+      0x00, 0x05, 0xfe, 0x02, 0xfe, 0xdc, 0xcc, 0x59, 0xe7, 0x00, 0x00, 0x00,
+      0x00, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82,
     ])
   }
 
@@ -114,7 +115,7 @@ describe('AttachmentService', () => {
         note: 'Test image note',
         size: imageData.length,
         width: 100,
-        height: 100
+        height: 100,
       })
 
       expect(created).toBeDefined()
@@ -136,7 +137,7 @@ describe('AttachmentService', () => {
         filename: 'minimal.png',
         mimeType: 'image/png',
         data: imageData,
-        size: imageData.length
+        size: imageData.length,
       })
 
       expect(created).toBeDefined()
@@ -156,7 +157,7 @@ describe('AttachmentService', () => {
         filename: 'test.png',
         mimeType: 'image/png',
         data: imageData,
-        size: imageData.length
+        size: imageData.length,
       })
 
       const retrieved = await AttachmentService.getById(created.id)
@@ -182,7 +183,7 @@ describe('AttachmentService', () => {
         filename: 'image1.png',
         mimeType: 'image/png',
         data: imageData,
-        size: imageData.length
+        size: imageData.length,
       })
 
       await AttachmentService.create({
@@ -190,7 +191,7 @@ describe('AttachmentService', () => {
         filename: 'image2.png',
         mimeType: 'image/png',
         data: imageData,
-        size: imageData.length
+        size: imageData.length,
       })
 
       const attachments = await AttachmentService.getByMessageId(testMessageId)
@@ -201,7 +202,8 @@ describe('AttachmentService', () => {
     })
 
     it('should return empty array for message with no attachments', async () => {
-      const attachments = await AttachmentService.getByMessageId('no-attachments-msg')
+      const attachments =
+        await AttachmentService.getByMessageId('no-attachments-msg')
       expect(attachments).toHaveLength(0)
     })
   })
@@ -218,10 +220,11 @@ describe('AttachmentService', () => {
         note: 'Preview note',
         size: imageData.length,
         width: 200,
-        height: 150
+        height: 150,
       })
 
-      const previews = await AttachmentService.getPreviewsByMessageId(testMessageId)
+      const previews =
+        await AttachmentService.getPreviewsByMessageId(testMessageId)
 
       expect(previews).toHaveLength(1)
       expect(previews[0].filename).toBe('preview-test.png')
@@ -242,7 +245,7 @@ describe('AttachmentService', () => {
         filename: 'note-test.png',
         mimeType: 'image/png',
         data: imageData,
-        size: imageData.length
+        size: imageData.length,
       })
 
       await AttachmentService.updateNote(created.id, 'Updated note')
@@ -260,7 +263,7 @@ describe('AttachmentService', () => {
         mimeType: 'image/png',
         data: imageData,
         note: 'Initial note',
-        size: imageData.length
+        size: imageData.length,
       })
 
       await AttachmentService.updateNote(created.id, null)
@@ -279,7 +282,7 @@ describe('AttachmentService', () => {
         filename: 'to-delete.png',
         mimeType: 'image/png',
         data: imageData,
-        size: imageData.length
+        size: imageData.length,
       })
 
       await AttachmentService.delete(created.id)
@@ -296,7 +299,7 @@ describe('AttachmentService', () => {
         filename: 'delete1.png',
         mimeType: 'image/png',
         data: imageData,
-        size: imageData.length
+        size: imageData.length,
       })
 
       await AttachmentService.create({
@@ -304,7 +307,7 @@ describe('AttachmentService', () => {
         filename: 'delete2.png',
         mimeType: 'image/png',
         data: imageData,
-        size: imageData.length
+        size: imageData.length,
       })
 
       await AttachmentService.deleteByMessageId(testMessageId)
@@ -323,7 +326,7 @@ describe('AttachmentService', () => {
         filename: 'base64-test.png',
         mimeType: 'image/png',
         data: imageData,
-        size: imageData.length
+        size: imageData.length,
       })
 
       const base64 = await AttachmentService.getBase64(created.id)
@@ -347,7 +350,7 @@ describe('AttachmentService', () => {
         filename: 'cascade-test.png',
         mimeType: 'image/png',
         data: imageData,
-        size: imageData.length
+        size: imageData.length,
       })
 
       // Verify attachment exists

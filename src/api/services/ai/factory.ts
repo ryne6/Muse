@@ -6,7 +6,10 @@ import { DeepSeekProvider } from './providers/deepseek'
 import { GenericProvider } from './providers/generic'
 
 export class AIProviderFactory {
-  private static providers: Map<string, AIProvider> = new Map<string, AIProvider>([
+  private static providers: Map<string, AIProvider> = new Map<
+    string,
+    AIProvider
+  >([
     ['claude', new ClaudeProvider()],
     ['openai', new OpenAIProvider()],
     ['gemini', new GeminiProvider()],
@@ -32,7 +35,9 @@ export class AIProviderFactory {
     return Array.from(this.providers.keys())
   }
 
-  static getProviderInfo(type: string): { name: string; models: string[] } | null {
+  static getProviderInfo(
+    type: string
+  ): { name: string; models: string[] } | null {
     const provider = this.providers.get(type)
     if (!provider) return null
 

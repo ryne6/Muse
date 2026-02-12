@@ -15,7 +15,9 @@ describe('workspaceStore', () => {
     global.window.api = mockWindowApi as any
 
     mockWindowApi.workspace.get.mockResolvedValue({ path: '/test/workspace' })
-    mockWindowApi.workspace.select.mockResolvedValue({ path: '/test/workspace' })
+    mockWindowApi.workspace.select.mockResolvedValue({
+      path: '/test/workspace',
+    })
     mockWindowApi.workspace.set.mockResolvedValue({ success: true })
 
     useWorkspaceStore.setState({ workspacePath: null })
@@ -57,15 +59,21 @@ describe('workspaceStore', () => {
     })
 
     it('should not throw on loadWorkspace', async () => {
-      await expect(useWorkspaceStore.getState().loadWorkspace()).resolves.not.toThrow()
+      await expect(
+        useWorkspaceStore.getState().loadWorkspace()
+      ).resolves.not.toThrow()
     })
 
     it('should not throw on selectWorkspace', async () => {
-      await expect(useWorkspaceStore.getState().selectWorkspace()).resolves.not.toThrow()
+      await expect(
+        useWorkspaceStore.getState().selectWorkspace()
+      ).resolves.not.toThrow()
     })
 
     it('should not throw on clearWorkspace', async () => {
-      await expect(useWorkspaceStore.getState().clearWorkspace()).resolves.not.toThrow()
+      await expect(
+        useWorkspaceStore.getState().clearWorkspace()
+      ).resolves.not.toThrow()
     })
   })
 })

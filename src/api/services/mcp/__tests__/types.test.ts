@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import {
-  parseMCPToolName,
-  createMCPToolName,
-  MCP_TOOL_PREFIX
-} from '../types'
+import { parseMCPToolName, createMCPToolName, MCP_TOOL_PREFIX } from '../types'
 
 /**
  * MCP Types 工具函数测试

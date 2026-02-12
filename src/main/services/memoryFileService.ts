@@ -20,11 +20,16 @@ export class MemoryFileService {
   /**
    * Acquire a per-file lock to serialize write operations and prevent race conditions.
    */
-  static async withFileLock<T>(filePath: string, fn: () => Promise<T>): Promise<T> {
+  static async withFileLock<T>(
+    filePath: string,
+    fn: () => Promise<T>
+  ): Promise<T> {
     const key = resolve(filePath)
     const prev = this.writeLocks.get(key) || Promise.resolve()
     let releaseFn: () => void
-    const next = new Promise<void>((r) => { releaseFn = r })
+    const next = new Promise<void>(r => {
+      releaseFn = r
+    })
     this.writeLocks.set(key, next)
     await prev
     try {
@@ -99,7 +104,11 @@ export class MemoryFileService {
       const entry = this.formatEntry(content, frontmatter)
 
       if (existing.length > 0) {
-        await fs.writeFile(filePath, existing.trimEnd() + '\n\n' + entry + '\n', 'utf-8')
+        await fs.writeFile(
+          filePath,
+          existing.trimEnd() + '\n\n' + entry + '\n',
+          'utf-8'
+        )
       } else {
         // New file: add a title based on filename
         const title = basename(filePath, '.md')
@@ -125,7 +134,11 @@ export class MemoryFileService {
     // conversation type memories don't get written to files
     if (memory.type === 'conversation') return ''
 
-    const filePath = this.resolveFilePath(memory.type, memory.category, workspacePath)
+    const filePath = this.resolveFilePath(
+      memory.type,
+      memory.category,
+      workspacePath
+    )
     if (!filePath) return ''
 
     const frontmatter: MemoryFrontmatter = {
@@ -179,7 +192,10 @@ export class MemoryFileService {
   /**
    * Remove content from a memory markdown file
    */
-  static async removeFromFile(filePath: string, content: string): Promise<boolean> {
+  static async removeFromFile(
+    filePath: string,
+    content: string
+  ): Promise<boolean> {
     this.assertPathSafe(filePath)
     return this.withFileLock(filePath, async () => {
       try {
@@ -200,7 +216,8 @@ export class MemoryFileService {
           if (lines[i].trim() === firstLine.trim()) {
             // Check if all content lines match
             const allMatch = contentLines.every(
-              (cl, j) => i + j < lines.length && lines[i + j].trim() === cl.trim()
+              (cl, j) =>
+                i + j < lines.length && lines[i + j].trim() === cl.trim()
             )
             if (allMatch) {
               endIdx = i + contentLines.length - 1
@@ -231,14 +248,20 @@ export class MemoryFileService {
           // Fallback: simple replace (single occurrence only)
           const idx = existing.indexOf(content)
           if (idx === -1) return false
-          const updated = (existing.slice(0, idx) + existing.slice(idx + content.length))
-            .replace(/\n{3,}/g, '\n\n').trim()
+          const updated = (
+            existing.slice(0, idx) + existing.slice(idx + content.length)
+          )
+            .replace(/\n{3,}/g, '\n\n')
+            .trim()
           await fs.writeFile(filePath, updated + '\n', 'utf-8')
           return true
         }
 
         lines.splice(startIdx, endIdx - startIdx + 1)
-        const updated = lines.join('\n').replace(/\n{3,}/g, '\n\n').trim()
+        const updated = lines
+          .join('\n')
+          .replace(/\n{3,}/g, '\n\n')
+          .trim()
         await fs.writeFile(filePath, updated + '\n', 'utf-8')
         return true
       } catch {
@@ -252,7 +275,12 @@ export class MemoryFileService {
    */
   static async readMemoryFile(
     filePath: string
-  ): Promise<{ filePath: string; filename: string; frontmatter: MemoryFrontmatter; content: string } | null> {
+  ): Promise<{
+    filePath: string
+    filename: string
+    frontmatter: MemoryFrontmatter
+    content: string
+  } | null> {
     try {
       this.assertPathSafe(filePath)
       if (!existsSync(filePath)) return null
@@ -274,12 +302,24 @@ export class MemoryFileService {
    */
   static async readAllMemoryFiles(
     dirPath: string
-  ): Promise<Array<{ filePath: string; filename: string; frontmatter: MemoryFrontmatter; content: string }>> {
+  ): Promise<
+    Array<{
+      filePath: string
+      filename: string
+      frontmatter: MemoryFrontmatter
+      content: string
+    }>
+  > {
     if (!existsSync(dirPath)) return []
 
     try {
       const entries = await fs.readdir(dirPath, { withFileTypes: true })
-      const results: Array<{ filePath: string; filename: string; frontmatter: MemoryFrontmatter; content: string }> = []
+      const results: Array<{
+        filePath: string
+        filename: string
+        frontmatter: MemoryFrontmatter
+        content: string
+      }> = []
 
       for (const entry of entries) {
         if (!entry.isFile() || !entry.name.endsWith('.md')) continue
@@ -329,8 +369,8 @@ export class MemoryFileService {
           frontmatter.tags = value
             .replace(/[\[\]]/g, '')
             .split(',')
-            .map((t) => t.trim())
-            .filter((t) => t.length > 0)
+            .map(t => t.trim())
+            .filter(t => t.length > 0)
           break
       }
     }
@@ -341,7 +381,10 @@ export class MemoryFileService {
   /**
    * Format a memory entry with optional frontmatter
    */
-  private static formatEntry(content: string, frontmatter?: MemoryFrontmatter): string {
+  private static formatEntry(
+    content: string,
+    frontmatter?: MemoryFrontmatter
+  ): string {
     if (!frontmatter) return content
 
     const lines: string[] = ['---']
@@ -350,7 +393,9 @@ export class MemoryFileService {
       lines.push(`tags: [${frontmatter.tags.join(', ')}]`)
     }
     if (frontmatter.source) lines.push(`source: ${frontmatter.source}`)
-    lines.push(`updatedAt: ${frontmatter.updatedAt || new Date().toISOString()}`)
+    lines.push(
+      `updatedAt: ${frontmatter.updatedAt || new Date().toISOString()}`
+    )
     lines.push('---')
     lines.push(content)
 

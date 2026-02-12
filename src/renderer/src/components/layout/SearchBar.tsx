@@ -46,17 +46,20 @@ export function SearchBar() {
   }, [isOpen])
 
   // Debounced search
-  const handleQueryChange = useCallback((value: string) => {
-    setQuery(value)
+  const handleQueryChange = useCallback(
+    (value: string) => {
+      setQuery(value)
 
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current)
-    }
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current)
+      }
 
-    debounceRef.current = setTimeout(() => {
-      search()
-    }, 300)
-  }, [setQuery, search])
+      debounceRef.current = setTimeout(() => {
+        search()
+      }, 300)
+    },
+    [setQuery, search]
+  )
 
   if (!isOpen) {
     return (
@@ -77,7 +80,7 @@ export function SearchBar() {
       <Input
         ref={inputRef}
         value={query}
-        onChange={(e) => handleQueryChange(e.target.value)}
+        onChange={e => handleQueryChange(e.target.value)}
         placeholder="搜索对话..."
         className="pl-9 pr-9 bg-white border-[hsl(var(--border))]"
       />

@@ -181,7 +181,9 @@ export const memories = sqliteTable('memories', {
   content: text('content').notNull(),
   tags: text('tags'), // JSON array string
   source: text('source').notNull(), // 'auto' | 'manual'
-  conversationId: text('conversation_id').references(() => conversations.id, { onDelete: 'set null' }),
+  conversationId: text('conversation_id').references(() => conversations.id, {
+    onDelete: 'set null',
+  }),
   filePath: text('file_path'),
   createdAt: integer('created_at', { mode: 'timestamp' })
     .notNull()
@@ -189,8 +191,9 @@ export const memories = sqliteTable('memories', {
   updatedAt: integer('updated_at', { mode: 'timestamp' })
     .notNull()
     .default(sql`(unixepoch())`),
-  lastAccessedAt: integer('last_accessed_at', { mode: 'timestamp' })
-    .default(sql`(unixepoch())`),
+  lastAccessedAt: integer('last_accessed_at', { mode: 'timestamp' }).default(
+    sql`(unixepoch())`
+  ),
 })
 
 export type Memory = typeof memories.$inferSelect

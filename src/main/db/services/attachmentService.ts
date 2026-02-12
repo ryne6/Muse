@@ -9,7 +9,9 @@ export class AttachmentService {
   /**
    * Create a new attachment
    */
-  static async create(data: Omit<NewAttachment, 'id' | 'createdAt'> & { id?: string }) {
+  static async create(
+    data: Omit<NewAttachment, 'id' | 'createdAt'> & { id?: string }
+  ) {
     const db = getDatabase()
 
     const newAttachment: NewAttachment = {
@@ -80,10 +82,7 @@ export class AttachmentService {
    */
   static async updateNote(id: string, note: string | null) {
     const db = getDatabase()
-    await db
-      .update(attachments)
-      .set({ note })
-      .where(eq(attachments.id, id))
+    await db.update(attachments).set({ note }).where(eq(attachments.id, id))
   }
 
   /**

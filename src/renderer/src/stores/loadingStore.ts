@@ -8,14 +8,14 @@ interface LoadingStore {
   clearLocal: (key: string) => void
 }
 
-export const useLoadingStore = create<LoadingStore>((set) => ({
+export const useLoadingStore = create<LoadingStore>(set => ({
   global: false,
   local: {},
-  setGlobal: (value) => set({ global: value }),
+  setGlobal: value => set({ global: value }),
   setLocal: (key, value) =>
-    set((state) => ({ local: { ...state.local, [key]: value } })),
-  clearLocal: (key) =>
-    set((state) => {
+    set(state => ({ local: { ...state.local, [key]: value } })),
+  clearLocal: key =>
+    set(state => {
       const next = { ...state.local }
       delete next[key]
       return { local: next }

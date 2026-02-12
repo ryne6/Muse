@@ -3,15 +3,15 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 // Use vi.hoisted to define mock before vi.mock hoisting
 const mockDbClient = vi.hoisted(() => ({
   providers: {
-    getAll: vi.fn()
+    getAll: vi.fn(),
   },
   models: {
-    getAll: vi.fn()
-  }
+    getAll: vi.fn(),
+  },
 }))
 
 vi.mock('../../services/dbClient', () => ({
-  dbClient: mockDbClient
+  dbClient: mockDbClient,
 }))
 
 import { useSettingsStore } from '../settingsStore'
@@ -19,13 +19,19 @@ import { useSettingsStore } from '../settingsStore'
 describe('SettingsStore', () => {
   const mockProviders = [
     { id: 'p1', name: 'OpenAI', type: 'openai', enabled: true, apiKey: 'key1' },
-    { id: 'p2', name: 'Claude', type: 'claude', enabled: false, apiKey: 'key2' }
+    {
+      id: 'p2',
+      name: 'Claude',
+      type: 'claude',
+      enabled: false,
+      apiKey: 'key2',
+    },
   ]
 
   const mockModels = [
     { id: 'm1', name: 'GPT-4', providerId: 'p1', enabled: true },
     { id: 'm2', name: 'GPT-3.5', providerId: 'p1', enabled: true },
-    { id: 'm3', name: 'Claude-3', providerId: 'p2', enabled: true }
+    { id: 'm3', name: 'Claude-3', providerId: 'p2', enabled: true },
   ]
 
   beforeEach(() => {
@@ -37,7 +43,7 @@ describe('SettingsStore', () => {
       currentModelId: null,
       temperature: 1,
       providers: [],
-      models: []
+      models: [],
     })
   })
 
@@ -58,16 +64,17 @@ describe('SettingsStore', () => {
         state: {
           currentProviderId: 'p1',
           currentModelId: 'm1',
-          temperature: 0.42
+          temperature: 0.42,
         },
-        version: 0
+        version: 0,
       }
 
       localStorage.setItem('muse-settings-v2', JSON.stringify(legacyState))
       localStorage.removeItem('muse-settings')
 
       vi.resetModules()
-      const { useSettingsStore: migratedStore } = await import('../settingsStore')
+      const { useSettingsStore: migratedStore } =
+        await import('../settingsStore')
 
       expect(migratedStore.getState().currentProviderId).toBe('p1')
       expect(migratedStore.getState().currentModelId).toBe('m1')
@@ -125,7 +132,7 @@ describe('SettingsStore', () => {
     beforeEach(() => {
       useSettingsStore.setState({
         providers: mockProviders,
-        models: mockModels
+        models: mockModels,
       })
     })
 
@@ -148,7 +155,7 @@ describe('SettingsStore', () => {
     beforeEach(() => {
       useSettingsStore.setState({
         providers: mockProviders,
-        models: mockModels
+        models: mockModels,
       })
     })
 
@@ -181,7 +188,9 @@ describe('SettingsStore', () => {
 
       useSettingsStore.getState().setToolAllowAll('/repo', true)
 
-      const permissions = useSettingsStore.getState().getToolPermissions('/repo')
+      const permissions = useSettingsStore
+        .getState()
+        .getToolPermissions('/repo')
       expect(permissions.allowAll).toBe(true)
     })
   })
@@ -190,7 +199,7 @@ describe('SettingsStore', () => {
     it('should return current provider', () => {
       useSettingsStore.setState({
         providers: mockProviders,
-        currentProviderId: 'p1'
+        currentProviderId: 'p1',
       })
 
       const result = useSettingsStore.getState().getCurrentProvider()
@@ -209,7 +218,7 @@ describe('SettingsStore', () => {
     it('should return current model', () => {
       useSettingsStore.setState({
         models: mockModels,
-        currentModelId: 'm1'
+        currentModelId: 'm1',
       })
 
       const result = useSettingsStore.getState().getCurrentModel()
@@ -249,7 +258,7 @@ describe('SettingsStore', () => {
     it('should return only enabled models from enabled providers', () => {
       useSettingsStore.setState({
         providers: mockProviders,
-        models: mockModels
+        models: mockModels,
       })
 
       const result = useSettingsStore.getState().getEnabledModels()
@@ -276,16 +285,22 @@ describe('SettingsStore', () => {
     })
 
     it('should set global system prompt', () => {
-      useSettingsStore.getState().setGlobalSystemPrompt('You are a helpful assistant.')
+      useSettingsStore
+        .getState()
+        .setGlobalSystemPrompt('You are a helpful assistant.')
 
-      expect(useSettingsStore.getState().globalSystemPrompt).toBe('You are a helpful assistant.')
+      expect(useSettingsStore.getState().globalSystemPrompt).toBe(
+        'You are a helpful assistant.'
+      )
     })
 
     it('should update existing global system prompt', () => {
       useSettingsStore.getState().setGlobalSystemPrompt('First prompt')
       useSettingsStore.getState().setGlobalSystemPrompt('Second prompt')
 
-      expect(useSettingsStore.getState().globalSystemPrompt).toBe('Second prompt')
+      expect(useSettingsStore.getState().globalSystemPrompt).toBe(
+        'Second prompt'
+      )
     })
 
     it('should clear global system prompt when set to empty string', () => {

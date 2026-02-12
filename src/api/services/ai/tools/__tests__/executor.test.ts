@@ -17,7 +17,7 @@ describe('ToolExecutor', () => {
   describe('execute', () => {
     it('should return permission request for dangerous tool when not allowed', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { output: 'ok' }
+        data: { output: 'ok' },
       })
 
       const result = await executor.execute(
@@ -32,7 +32,7 @@ describe('ToolExecutor', () => {
 
     it('should allow dangerous tool when allowOnceTools includes name', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { output: 'ok' }
+        data: { output: 'ok' },
       })
 
       await executor.execute(
@@ -46,7 +46,7 @@ describe('ToolExecutor', () => {
 
     it('should route to readFile for Read tool', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { content: 'file content' }
+        data: { content: 'file content' },
       })
 
       const result = await executor.execute('Read', { path: '/test/file.txt' })
@@ -60,14 +60,14 @@ describe('ToolExecutor', () => {
 
     it('should route to writeFile for Write tool', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { success: true }
+        data: { success: true },
       })
 
       const result = await executor.execute(
         'Write',
         {
           path: '/test/file.txt',
-          content: 'new content'
+          content: 'new content',
         },
         { toolPermissions: { allowAll: true } }
       )
@@ -84,9 +84,9 @@ describe('ToolExecutor', () => {
         data: {
           files: [
             { name: 'file1.txt', isDirectory: false, size: 1024 },
-            { name: 'dir1', isDirectory: true, size: 0 }
-          ]
-        }
+            { name: 'dir1', isDirectory: true, size: 0 },
+          ],
+        },
       })
 
       const result = await executor.execute('LS', { path: '/test' })
@@ -100,14 +100,14 @@ describe('ToolExecutor', () => {
 
     it('should route to executeCommand for Bash tool', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { output: 'command output', error: '' }
+        data: { output: 'command output', error: '' },
       })
 
       const result = await executor.execute(
         'Bash',
         {
           command: 'npm test',
-          cwd: '/test'
+          cwd: '/test',
         },
         { toolPermissions: { allowAll: true } }
       )
@@ -121,7 +121,7 @@ describe('ToolExecutor', () => {
 
     it('should route to editFile for Edit tool', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { replaced: 2 }
+        data: { replaced: 2 },
       })
 
       const result = await executor.execute(
@@ -130,14 +130,19 @@ describe('ToolExecutor', () => {
           path: '/test/file.txt',
           old_text: 'old',
           new_text: 'new',
-          replace_all: true
+          replace_all: true,
         },
         { toolPermissions: { allowAll: true } }
       )
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/fs:editFile',
-        { path: '/test/file.txt', oldText: 'old', newText: 'new', replaceAll: true }
+        {
+          path: '/test/file.txt',
+          oldText: 'old',
+          newText: 'new',
+          replaceAll: true,
+        }
       )
       expect(result).toContain('Replaced 2 occurrence')
     })
@@ -146,9 +151,14 @@ describe('ToolExecutor', () => {
       const result = await executor.execute('TodoWrite', {
         todos: [
           { id: '1', title: 'Do thing', status: 'todo' },
-          { id: '2', title: 'In progress', status: 'in_progress', notes: 'Working on it' },
-          { id: '3', title: 'Done', status: 'done' }
-        ]
+          {
+            id: '2',
+            title: 'In progress',
+            status: 'in_progress',
+            notes: 'Working on it',
+          },
+          { id: '3', title: 'Done', status: 'done' },
+        ],
       })
 
       expect(result).toContain('- [ ] Do thing')
@@ -159,10 +169,13 @@ describe('ToolExecutor', () => {
 
     it('should route to fs:glob for Glob tool', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { files: ['/test/a.ts', '/test/b.ts'] }
+        data: { files: ['/test/a.ts', '/test/b.ts'] },
       })
 
-      const result = await executor.execute('Glob', { pattern: '**/*.ts', path: '/test' })
+      const result = await executor.execute('Glob', {
+        pattern: '**/*.ts',
+        path: '/test',
+      })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/fs:glob',
@@ -174,21 +187,32 @@ describe('ToolExecutor', () => {
 
     it('should route to fs:grep for Grep tool', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { results: [{ file: '/test/a.ts', line: 12, content: 'const a = 1' }] }
+        data: {
+          results: [{ file: '/test/a.ts', line: 12, content: 'const a = 1' }],
+        },
       })
 
-      const result = await executor.execute('Grep', { pattern: 'const', path: '/test' })
+      const result = await executor.execute('Grep', {
+        pattern: 'const',
+        path: '/test',
+      })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/fs:grep',
-        { pattern: 'const', path: '/test', glob: undefined, ignoreCase: undefined, maxResults: undefined }
+        {
+          pattern: 'const',
+          path: '/test',
+          glob: undefined,
+          ignoreCase: undefined,
+          maxResults: undefined,
+        }
       )
       expect(result).toContain('/test/a.ts:12 const a = 1')
     })
 
     it('should route to git:status for GitStatus tool', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { output: 'On branch main' }
+        data: { output: 'On branch main' },
       })
 
       const result = await executor.execute('GitStatus', { path: '/repo' })
@@ -202,10 +226,12 @@ describe('ToolExecutor', () => {
 
     it('should route to web:fetch for WebFetch tool', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { content: 'Example content' }
+        data: { content: 'Example content' },
       })
 
-      const result = await executor.execute('WebFetch', { url: 'https://example.com' })
+      const result = await executor.execute('WebFetch', {
+        url: 'https://example.com',
+      })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/web:fetch',
@@ -216,14 +242,23 @@ describe('ToolExecutor', () => {
 
     it('should route to web:search for WebSearch tool', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { results: [{ title: 'Result', url: 'https://example.com', snippet: 'Snippet' }] }
+        data: {
+          results: [
+            { title: 'Result', url: 'https://example.com', snippet: 'Snippet' },
+          ],
+        },
       })
 
       const result = await executor.execute('WebSearch', { query: 'test' })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/web:search',
-        { query: 'test', limit: undefined, recencyDays: undefined, domains: undefined }
+        {
+          query: 'test',
+          limit: undefined,
+          recencyDays: undefined,
+          domains: undefined,
+        }
       )
       expect(result).toContain('1. Result')
       expect(result).toContain('https://example.com')
@@ -237,16 +272,22 @@ describe('ToolExecutor', () => {
     })
 
     it('should return error for unknown tool when allowAll is true', async () => {
-      const result = await executor.execute('unknown_tool', {}, { toolPermissions: { allowAll: true } })
+      const result = await executor.execute(
+        'unknown_tool',
+        {},
+        { toolPermissions: { allowAll: true } }
+      )
       expect(result).toContain('Error: Unknown tool: unknown_tool')
     })
 
     it('should handle readFile errors gracefully', async () => {
       vi.mocked(axios.post).mockRejectedValue({
-        response: { data: { error: 'File not found' } }
+        response: { data: { error: 'File not found' } },
       })
 
-      const result = await executor.execute('Read', { path: '/nonexistent.txt' })
+      const result = await executor.execute('Read', {
+        path: '/nonexistent.txt',
+      })
       expect(result).toContain('Error: Failed to read file')
     })
   })
@@ -254,7 +295,7 @@ describe('ToolExecutor', () => {
   describe('Read', () => {
     it('should read file content successfully', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { content: 'const x = 1;' }
+        data: { content: 'const x = 1;' },
       })
 
       const result = await executor.execute('Read', { path: '/src/index.ts' })
@@ -271,7 +312,7 @@ describe('ToolExecutor', () => {
 
     it('should handle API errors with response data', async () => {
       vi.mocked(axios.post).mockRejectedValue({
-        response: { data: { error: 'Permission denied' } }
+        response: { data: { error: 'Permission denied' } },
       })
 
       const result = await executor.execute('Read', { path: '/etc/passwd' })
@@ -282,7 +323,7 @@ describe('ToolExecutor', () => {
   describe('Write', () => {
     it('should write file content successfully', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { success: true }
+        data: { success: true },
       })
 
       const content = 'Hello, World!'
@@ -290,25 +331,27 @@ describe('ToolExecutor', () => {
         'Write',
         {
           path: '/test/output.txt',
-          content
+          content,
         },
         { toolPermissions: { allowAll: true } }
       )
 
-      expect(result).toContain(`Successfully wrote ${content.length} characters`)
+      expect(result).toContain(
+        `Successfully wrote ${content.length} characters`
+      )
       expect(result).toContain('/test/output.txt')
     })
 
     it('should handle write failure', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { success: false }
+        data: { success: false },
       })
 
       const result = await executor.execute(
         'Write',
         {
           path: '/readonly/file.txt',
-          content: 'test'
+          content: 'test',
         },
         { toolPermissions: { allowAll: true } }
       )
@@ -323,7 +366,7 @@ describe('ToolExecutor', () => {
         'Write',
         {
           path: '/test.txt',
-          content: 'test'
+          content: 'test',
         },
         { toolPermissions: { allowAll: true } }
       )
@@ -339,9 +382,9 @@ describe('ToolExecutor', () => {
           files: [
             { name: 'file1.txt', isDirectory: false, size: 500 },
             { name: 'file2.js', isDirectory: false, size: 2048 },
-            { name: 'subdir', isDirectory: true, size: 0 }
-          ]
-        }
+            { name: 'subdir', isDirectory: true, size: 0 },
+          ],
+        },
       })
 
       const result = await executor.execute('LS', { path: '/project' })
@@ -355,7 +398,7 @@ describe('ToolExecutor', () => {
 
     it('should handle empty directory', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { files: [] }
+        data: { files: [] },
       })
 
       const result = await executor.execute('LS', { path: '/empty' })
@@ -365,7 +408,7 @@ describe('ToolExecutor', () => {
 
     it('should pass pattern parameter', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { files: [{ name: 'test.ts', isDirectory: false, size: 100 }] }
+        data: { files: [{ name: 'test.ts', isDirectory: false, size: 100 }] },
       })
 
       await executor.execute('LS', { path: '/src', pattern: '*.ts' })
@@ -382,9 +425,9 @@ describe('ToolExecutor', () => {
           files: [
             { name: 'small.txt', isDirectory: false, size: 100 },
             { name: 'medium.txt', isDirectory: false, size: 1024 * 10 },
-            { name: 'large.txt', isDirectory: false, size: 1024 * 1024 * 2 }
-          ]
-        }
+            { name: 'large.txt', isDirectory: false, size: 1024 * 1024 * 2 },
+          ],
+        },
       })
 
       const result = await executor.execute('LS', { path: '/test' })
@@ -400,15 +443,15 @@ describe('ToolExecutor', () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: {
           output: 'Test passed',
-          error: ''
-        }
+          error: '',
+        },
       })
 
       const result = await executor.execute(
         'Bash',
         {
           command: 'npm test',
-          cwd: '/project'
+          cwd: '/project',
         },
         { toolPermissions: { allowAll: true } }
       )
@@ -421,14 +464,14 @@ describe('ToolExecutor', () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: {
           output: '',
-          error: 'Warning: deprecated package'
-        }
+          error: 'Warning: deprecated package',
+        },
       })
 
       const result = await executor.execute(
         'Bash',
         {
-          command: 'npm install'
+          command: 'npm install',
         },
         { toolPermissions: { allowAll: true } }
       )
@@ -439,10 +482,14 @@ describe('ToolExecutor', () => {
 
     it('should handle command without cwd', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { output: 'output', error: '' }
+        data: { output: 'output', error: '' },
       })
 
-      await executor.execute('Bash', { command: 'pwd' }, { toolPermissions: { allowAll: true } })
+      await executor.execute(
+        'Bash',
+        { command: 'pwd' },
+        { toolPermissions: { allowAll: true } }
+      )
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/exec:command',
@@ -452,13 +499,13 @@ describe('ToolExecutor', () => {
 
     it('should handle command execution failure', async () => {
       vi.mocked(axios.post).mockRejectedValue({
-        response: { data: { error: 'Command not found' } }
+        response: { data: { error: 'Command not found' } },
       })
 
       const result = await executor.execute(
         'Bash',
         {
-          command: 'unknown_command'
+          command: 'unknown_command',
         },
         { toolPermissions: { allowAll: true } }
       )

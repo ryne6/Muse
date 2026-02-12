@@ -1,6 +1,9 @@
 import { useRef } from 'react'
 import { Link } from 'lucide-react'
-import { SUPPORTED_IMAGE_TYPES, MAX_ATTACHMENT_SIZE } from '@shared/types/attachment'
+import {
+  SUPPORTED_IMAGE_TYPES,
+  MAX_ATTACHMENT_SIZE,
+} from '@shared/types/attachment'
 import { notify } from '@/utils/notify'
 
 interface ImageUploadButtonProps {
@@ -8,7 +11,10 @@ interface ImageUploadButtonProps {
   disabled?: boolean
 }
 
-export function ImageUploadButton({ onImagesSelected, disabled }: ImageUploadButtonProps) {
+export function ImageUploadButton({
+  onImagesSelected,
+  disabled,
+}: ImageUploadButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleClick = () => {

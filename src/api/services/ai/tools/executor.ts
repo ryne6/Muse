@@ -4,7 +4,8 @@ import type { PermissionRule, HooksConfig } from '@shared/types/toolPermissions'
 import { PermissionEngine } from '@shared/permissions/engine'
 
 // Lazy-loaded MCP manager to avoid SDK side effects at import time
-let mcpManagerInstance: typeof import('../../mcp/manager').mcpManager | null = null
+let mcpManagerInstance: typeof import('../../mcp/manager').mcpManager | null =
+  null
 
 async function getMcpManager() {
   if (!mcpManagerInstance) {
@@ -39,7 +40,11 @@ const TODO_STATUS_MARKERS: Record<string, string> = {
 }
 
 export class ToolExecutor {
-  async execute(toolName: string, input: any, options: ToolExecutionOptions = {}): Promise<string> {
+  async execute(
+    toolName: string,
+    input: any,
+    options: ToolExecutionOptions = {}
+  ): Promise<string> {
     const decision = permissionEngine.evaluate(toolName, input, {
       allowAll: options.toolPermissions?.allowAll ?? false,
       allowOnceTools: options.allowOnceTools,
@@ -156,10 +161,14 @@ export class ToolExecutor {
 
   private async readFile(path: string): Promise<string> {
     try {
-      const response = await axios.post(`${IPC_BRIDGE_BASE}/ipc/fs:readFile`, { path })
+      const response = await axios.post(`${IPC_BRIDGE_BASE}/ipc/fs:readFile`, {
+        path,
+      })
       return response.data.content
     } catch (error: any) {
-      throw new Error(`Failed to read file: ${error.response?.data?.error || error.message}`)
+      throw new Error(
+        `Failed to read file: ${error.response?.data?.error || error.message}`
+      )
     }
   }
 
@@ -176,7 +185,9 @@ export class ToolExecutor {
         throw new Error('Write operation returned false')
       }
     } catch (error: any) {
-      throw new Error(`Failed to write file: ${error.response?.data?.error || error.message}`)
+      throw new Error(
+        `Failed to write file: ${error.response?.data?.error || error.message}`
+      )
     }
   }
 
@@ -197,7 +208,9 @@ export class ToolExecutor {
       const replaced = response.data.replaced
       return `Replaced ${replaced} occurrence${replaced === 1 ? '' : 's'} in ${path}`
     } catch (error: any) {
-      throw new Error(`Failed to edit file: ${error.response?.data?.error || error.message}`)
+      throw new Error(
+        `Failed to edit file: ${error.response?.data?.error || error.message}`
+      )
     }
   }
 
@@ -215,9 +228,10 @@ export class ToolExecutor {
 
       const title = todo.title ?? ''
       const mainLine = `- [${marker}] ${title}`
-      const notes = typeof todo.notes === 'string' && todo.notes.trim().length > 0
-        ? `\n  - ${todo.notes.trim()}`
-        : ''
+      const notes =
+        typeof todo.notes === 'string' && todo.notes.trim().length > 0
+          ? `\n  - ${todo.notes.trim()}`
+          : ''
       return `${mainLine}${notes}`
     })
 
@@ -236,7 +250,9 @@ export class ToolExecutor {
       }
       return files.join('\n')
     } catch (error: any) {
-      throw new Error(`Failed to glob files: ${error.response?.data?.error || error.message}`)
+      throw new Error(
+        `Failed to glob files: ${error.response?.data?.error || error.message}`
+      )
     }
   }
 
@@ -257,13 +273,21 @@ export class ToolExecutor {
         .map((result: any) => `${result.file}:${result.line} ${result.content}`)
         .join('\n')
     } catch (error: any) {
-      throw new Error(`Failed to grep files: ${error.response?.data?.error || error.message}`)
+      throw new Error(
+        `Failed to grep files: ${error.response?.data?.error || error.message}`
+      )
     }
   }
 
-  private async gitCommand(channel: string, payload: Record<string, any>): Promise<string> {
+  private async gitCommand(
+    channel: string,
+    payload: Record<string, any>
+  ): Promise<string> {
     try {
-      const response = await axios.post(`${IPC_BRIDGE_BASE}/ipc/${channel}`, payload)
+      const response = await axios.post(
+        `${IPC_BRIDGE_BASE}/ipc/${channel}`,
+        payload
+      )
       const output = response.data.output ?? ''
       const error = response.data.error
       if (error) {
@@ -271,7 +295,9 @@ export class ToolExecutor {
       }
       return output
     } catch (error: any) {
-      throw new Error(`Failed to run git command: ${error.response?.data?.error || error.message}`)
+      throw new Error(
+        `Failed to run git command: ${error.response?.data?.error || error.message}`
+      )
     }
   }
 
@@ -283,7 +309,9 @@ export class ToolExecutor {
       })
       return response.data.content
     } catch (error: any) {
-      throw new Error(`Failed to fetch URL: ${error.response?.data?.error || error.message}`)
+      throw new Error(
+        `Failed to fetch URL: ${error.response?.data?.error || error.message}`
+      )
     }
   }
 
@@ -308,7 +336,9 @@ export class ToolExecutor {
         })
         .join('\n')
     } catch (error: any) {
-      throw new Error(`Failed to search web: ${error.response?.data?.error || error.message}`)
+      throw new Error(
+        `Failed to search web: ${error.response?.data?.error || error.message}`
+      )
     }
   }
 
@@ -334,7 +364,9 @@ export class ToolExecutor {
 
       return `Contents of ${path}:\n${fileList}`
     } catch (error: any) {
-      throw new Error(`Failed to list files: ${error.response?.data?.error || error.message}`)
+      throw new Error(
+        `Failed to list files: ${error.response?.data?.error || error.message}`
+      )
     }
   }
 
@@ -358,7 +390,9 @@ export class ToolExecutor {
 
       return output
     } catch (error: any) {
-      throw new Error(`Failed to execute command: ${error.response?.data?.error || error.message}`)
+      throw new Error(
+        `Failed to execute command: ${error.response?.data?.error || error.message}`
+      )
     }
   }
 

@@ -66,7 +66,12 @@ export function Settings({ showText = true }: SettingsComponentProps) {
 
   return (
     <>
-      <div className={cn('border-t', isCollapsed ? 'p-2 flex justify-center' : 'p-4')}>
+      <div
+        className={cn(
+          'border-t',
+          isCollapsed ? 'p-2 flex justify-center' : 'p-4'
+        )}
+      >
         <Button
           variant="ghost"
           className={cn(
@@ -86,117 +91,121 @@ export function Settings({ showText = true }: SettingsComponentProps) {
         footer={null}
         width={1200}
         styles={{
-          body: { padding: 0, height: '70vh', display: 'flex', overflow: 'hidden' }
+          body: {
+            padding: 0,
+            height: '70vh',
+            display: 'flex',
+            overflow: 'hidden',
+          },
         }}
       >
+        {/* Content */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Sidebar */}
+          <div className="w-64 border-r p-4 space-y-1">
+            <button
+              onClick={() => setActiveTab('providers')}
+              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'providers'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-accent hover:text-accent-foreground'
+              }`}
+            >
+              <div className="font-medium">Providers</div>
+              <div className="text-xs opacity-70">
+                AI provider configurations
+              </div>
+            </button>
 
-          {/* Content */}
-          <div className="flex-1 flex overflow-hidden">
-            {/* Sidebar */}
-            <div className="w-64 border-r p-4 space-y-1">
-              <button
-                onClick={() => setActiveTab('providers')}
-                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                  activeTab === 'providers'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-accent hover:text-accent-foreground'
-                }`}
-              >
-                <div className="font-medium">Providers</div>
-                <div className="text-xs opacity-70">AI provider configurations</div>
-              </button>
+            <button
+              onClick={() => setActiveTab('mcp')}
+              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'mcp'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-accent hover:text-accent-foreground'
+              }`}
+            >
+              <div className="font-medium">MCP Servers</div>
+              <div className="text-xs opacity-70">External tool servers</div>
+            </button>
 
-              <button
-                onClick={() => setActiveTab('mcp')}
-                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                  activeTab === 'mcp'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-accent hover:text-accent-foreground'
-                }`}
-              >
-                <div className="font-medium">MCP Servers</div>
-                <div className="text-xs opacity-70">External tool servers</div>
-              </button>
+            <button
+              onClick={() => setActiveTab('skills')}
+              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'skills'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-accent hover:text-accent-foreground'
+              }`}
+            >
+              <div className="font-medium">Skills</div>
+              <div className="text-xs opacity-70">AI skill directories</div>
+            </button>
 
-              <button
-                onClick={() => setActiveTab('skills')}
-                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                  activeTab === 'skills'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-accent hover:text-accent-foreground'
-                }`}
-              >
-                <div className="font-medium">Skills</div>
-                <div className="text-xs opacity-70">AI skill directories</div>
-              </button>
+            <button
+              onClick={() => setActiveTab('prompts')}
+              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'prompts'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-accent hover:text-accent-foreground'
+              }`}
+            >
+              <div className="font-medium">Prompts</div>
+              <div className="text-xs opacity-70">System prompt presets</div>
+            </button>
 
-              <button
-                onClick={() => setActiveTab('prompts')}
-                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                  activeTab === 'prompts'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-accent hover:text-accent-foreground'
-                }`}
-              >
-                <div className="font-medium">Prompts</div>
-                <div className="text-xs opacity-70">System prompt presets</div>
-              </button>
+            <button
+              onClick={() => setActiveTab('memory')}
+              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'memory'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-accent hover:text-accent-foreground'
+              }`}
+            >
+              <div className="font-medium">Memory</div>
+              <div className="text-xs opacity-70">
+                Preferences and knowledge
+              </div>
+            </button>
 
-              <button
-                onClick={() => setActiveTab('memory')}
-                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                  activeTab === 'memory'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-accent hover:text-accent-foreground'
-                }`}
-              >
-                <div className="font-medium">Memory</div>
-                <div className="text-xs opacity-70">Preferences and knowledge</div>
-              </button>
-
-              <button
-                onClick={() => setActiveTab('general')}
-                className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
-                  activeTab === 'general' ? 'bg-primary text-primary-foreground' : 'hover:bg-accent hover:text-accent-foreground'
-                }`}
-              >
-                <div className="font-medium">General</div>
-                <div className="text-xs opacity-70">App preferences</div>
-              </button>
-            </div>
-
-            {/* Main Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              {activeTab === 'providers' && (
-                <ProviderList onConfigureProvider={handleConfigureProvider} />
-              )}
-
-              {activeTab === 'mcp' && (
-                <MCPSettings />
-              )}
-
-              {activeTab === 'skills' && (
-                <SkillsSettings />
-              )}
-
-              {activeTab === 'prompts' && (
-                <PromptsSettings />
-              )}
-
-              {activeTab === 'memory' && (
-                <MemorySettings />
-              )}
-
-              {activeTab === 'general' && (
-                <div>
-                  <h2 className="text-2xl font-semibold mb-4">General Settings</h2>
-                  <p className="text-[hsl(var(--text-muted))]">
-                    More settings coming soon.
-                  </p>
-                </div>
-              )}
-            </div>
+            <button
+              onClick={() => setActiveTab('general')}
+              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'general'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-accent hover:text-accent-foreground'
+              }`}
+            >
+              <div className="font-medium">General</div>
+              <div className="text-xs opacity-70">App preferences</div>
+            </button>
           </div>
+
+          {/* Main Content */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {activeTab === 'providers' && (
+              <ProviderList onConfigureProvider={handleConfigureProvider} />
+            )}
+
+            {activeTab === 'mcp' && <MCPSettings />}
+
+            {activeTab === 'skills' && <SkillsSettings />}
+
+            {activeTab === 'prompts' && <PromptsSettings />}
+
+            {activeTab === 'memory' && <MemorySettings />}
+
+            {activeTab === 'general' && (
+              <div>
+                <h2 className="text-2xl font-semibold mb-4">
+                  General Settings
+                </h2>
+                <p className="text-[hsl(var(--text-muted))]">
+                  More settings coming soon.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       </Modal>
 
       {/* Provider Config Dialog */}

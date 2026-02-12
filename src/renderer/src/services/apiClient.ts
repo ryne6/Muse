@@ -1,4 +1,9 @@
-import type { AIMessage, AIConfig, AIStreamChunk, AIRequestOptions } from '@shared/types/ai'
+import type {
+  AIMessage,
+  AIConfig,
+  AIStreamChunk,
+  AIRequestOptions,
+} from '@shared/types/ai'
 import type { APIError } from '@shared/types/error'
 import { ErrorCode } from '@shared/types/error'
 
@@ -66,7 +71,7 @@ export class APIClientError extends Error {
  * Sleep for specified milliseconds
  */
 function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 /**
@@ -224,7 +229,9 @@ export class APIClient {
         for (const line of lines) {
           if (line.trim()) {
             try {
-              const chunk = JSON.parse(line) as AIStreamChunk | { error: APIError | string }
+              const chunk = JSON.parse(line) as
+                | AIStreamChunk
+                | { error: APIError | string }
               if ('error' in chunk) {
                 // Handle structured error response
                 const errorData = chunk.error
@@ -240,7 +247,9 @@ export class APIClient {
               }
               // Re-throw parse errors as APIClientError
               throw new APIClientError(
-                error instanceof Error ? error.message : 'Failed to parse response'
+                error instanceof Error
+                  ? error.message
+                  : 'Failed to parse response'
               )
             }
           }
@@ -260,24 +269,21 @@ export class APIClient {
     config: AIConfig,
     options?: AIRequestOptions
   ): Promise<string> {
-    const response = await this.fetchWithRetry(
-      `${API_BASE_URL}/chat`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          provider,
-          messages,
-          config,
-          toolPermissions: options?.toolPermissions,
-          allowOnceTools: options?.allowOnceTools,
-          permissionRules: options?.permissionRules,
-          sessionApprovedTools: options?.sessionApprovedTools,
-        }),
-      }
-    )
+    const response = await this.fetchWithRetry(`${API_BASE_URL}/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        provider,
+        messages,
+        config,
+        toolPermissions: options?.toolPermissions,
+        allowOnceTools: options?.allowOnceTools,
+        permissionRules: options?.permissionRules,
+        sessionApprovedTools: options?.sessionApprovedTools,
+      }),
+    })
 
     const data = await response.json()
     return data.content
@@ -360,7 +366,10 @@ export class APIClient {
       }
       return {
         valid: false,
-        error: error instanceof Error ? error.message : 'Failed to validate provider',
+        error:
+          error instanceof Error
+            ? error.message
+            : 'Failed to validate provider',
       }
     }
   }

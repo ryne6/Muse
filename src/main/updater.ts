@@ -2,7 +2,13 @@ import { autoUpdater } from 'electron-updater'
 import { BrowserWindow, ipcMain } from 'electron'
 
 export interface UpdateStatus {
-  status: 'checking' | 'available' | 'not-available' | 'downloading' | 'downloaded' | 'error'
+  status:
+    | 'checking'
+    | 'available'
+    | 'not-available'
+    | 'downloading'
+    | 'downloaded'
+    | 'error'
   version?: string
   progress?: number
   error?: string
@@ -28,7 +34,7 @@ export function initUpdater(window: BrowserWindow) {
     sendStatusToWindow({ status: 'checking' })
   })
 
-  autoUpdater.on('update-available', (info) => {
+  autoUpdater.on('update-available', info => {
     sendStatusToWindow({ status: 'available', version: info.version })
   })
 
@@ -36,18 +42,18 @@ export function initUpdater(window: BrowserWindow) {
     sendStatusToWindow({ status: 'not-available' })
   })
 
-  autoUpdater.on('download-progress', (progress) => {
+  autoUpdater.on('download-progress', progress => {
     sendStatusToWindow({
       status: 'downloading',
       progress: Math.round(progress.percent),
     })
   })
 
-  autoUpdater.on('update-downloaded', (info) => {
+  autoUpdater.on('update-downloaded', info => {
     sendStatusToWindow({ status: 'downloaded', version: info.version })
   })
 
-  autoUpdater.on('error', (err) => {
+  autoUpdater.on('error', err => {
     sendStatusToWindow({ status: 'error', error: err.message })
   })
 

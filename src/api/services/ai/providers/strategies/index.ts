@@ -15,7 +15,11 @@ export interface StreamChunkResult {
 export interface ProviderStrategy {
   getEndpoint: (config: AIConfig) => string
   buildHeaders: (config: AIConfig) => Record<string, string>
-  buildBody: (messages: AIMessage[], config: AIConfig, options: StrategyOptions) => any
+  buildBody: (
+    messages: AIMessage[],
+    config: AIConfig,
+    options: StrategyOptions
+  ) => any
   parseStreamChunk: (parsed: any) => StreamChunkResult | undefined
   parseResponse: (result: any) => string
 }

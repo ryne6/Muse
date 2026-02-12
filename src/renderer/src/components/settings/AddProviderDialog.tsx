@@ -22,7 +22,11 @@ const PROVIDER_TEMPLATES = [
     name: 'Claude',
     type: 'claude',
     baseURL: 'https://api.anthropic.com',
-    models: ['claude-sonnet-4-20250514', 'claude-3-5-sonnet-20241022', 'claude-3-haiku-20240307'],
+    models: [
+      'claude-sonnet-4-20250514',
+      'claude-3-5-sonnet-20241022',
+      'claude-3-haiku-20240307',
+    ],
     apiFormat: 'anthropic-messages',
   },
   {
@@ -58,7 +62,7 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
   } | null>(null)
 
   const handleTemplateSelect = (templateName: string) => {
-    const template = PROVIDER_TEMPLATES.find((t) => t.name === templateName)
+    const template = PROVIDER_TEMPLATES.find(t => t.name === templateName)
     if (template) {
       setSelectedTemplate(templateName)
       setFormData({
@@ -83,7 +87,7 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
 
     try {
       // Get template for default model
-      const template = PROVIDER_TEMPLATES.find((t) => t.type === formData.type)
+      const template = PROVIDER_TEMPLATES.find(t => t.type === formData.type)
       const defaultModel = template?.models[0] || 'test-model'
 
       const result = await apiClient.validateProvider(formData.type, {
@@ -131,10 +135,10 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
       })
 
       // Create default models
-      const template = PROVIDER_TEMPLATES.find((t) => t.type === formData.type)
+      const template = PROVIDER_TEMPLATES.find(t => t.type === formData.type)
       if (template && template.models.length > 0) {
         await dbClient.models.createMany(
-          template.models.map((modelId) => ({
+          template.models.map(modelId => ({
             providerId: provider.id,
             modelId,
             name: modelId,
@@ -149,7 +153,13 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
       await loadData()
       triggerRefresh()
       setOpen(false)
-      setFormData({ name: '', type: '', apiKey: '', baseURL: '', apiFormat: 'chat-completions' })
+      setFormData({
+        name: '',
+        type: '',
+        apiKey: '',
+        baseURL: '',
+        apiFormat: 'chat-completions',
+      })
       setSelectedTemplate('')
       onProviderAdded()
     } catch (error) {
@@ -174,7 +184,7 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
         footer={null}
         width={672}
         styles={{
-          body: { maxHeight: '70vh', overflowY: 'auto' }
+          body: { maxHeight: '70vh', overflowY: 'auto' },
         }}
       >
         <p className="text-sm text-muted-foreground mb-4">
@@ -184,9 +194,11 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Provider Templates */}
           <div>
-            <label className="text-sm font-medium mb-2 block">Choose Provider</label>
+            <label className="text-sm font-medium mb-2 block">
+              Choose Provider
+            </label>
             <div className="grid grid-cols-2 gap-3">
-              {PROVIDER_TEMPLATES.map((template) => (
+              {PROVIDER_TEMPLATES.map(template => (
                 <button
                   key={template.name}
                   type="button"
@@ -198,7 +210,9 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
                   }`}
                 >
                   <div className="font-semibold">{template.name}</div>
-                  <div className="text-xs text-muted-foreground mt-1">{template.type}</div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {template.type}
+                  </div>
                 </button>
               ))}
             </div>
@@ -214,7 +228,9 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
                 <input
                   type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={e =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   placeholder="my-provider"
                   className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-ring"
                   required
@@ -232,7 +248,7 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
                   <input
                     type="password"
                     value={formData.apiKey}
-                    onChange={(e) => {
+                    onChange={e => {
                       setFormData({ ...formData, apiKey: e.target.value })
                       setValidationResult(null)
                     }}
@@ -268,7 +284,9 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
                   </Button>
                 </div>
                 {validationResult?.error && (
-                  <p className="text-xs text-destructive mt-1">{validationResult.error}</p>
+                  <p className="text-xs text-destructive mt-1">
+                    {validationResult.error}
+                  </p>
                 )}
                 {!validationResult?.error && (
                   <p className="text-xs text-muted-foreground mt-1">
@@ -278,11 +296,15 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Base URL</label>
+                <label className="text-sm font-medium mb-2 block">
+                  Base URL
+                </label>
                 <input
                   type="text"
                   value={formData.baseURL}
-                  onChange={(e) => setFormData({ ...formData, baseURL: e.target.value })}
+                  onChange={e =>
+                    setFormData({ ...formData, baseURL: e.target.value })
+                  }
                   placeholder="https://api.example.com/v1"
                   className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-ring font-mono text-sm"
                 />
@@ -292,15 +314,23 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">API Format</label>
+                <label className="text-sm font-medium mb-2 block">
+                  API Format
+                </label>
                 <select
                   value={formData.apiFormat}
-                  onChange={(e) => setFormData({ ...formData, apiFormat: e.target.value })}
+                  onChange={e =>
+                    setFormData({ ...formData, apiFormat: e.target.value })
+                  }
                   className="w-full px-3 py-2 rounded-md border bg-background focus:outline-none focus:ring-2 focus:ring-ring text-sm"
                 >
-                  <option value="chat-completions">Chat Completions (/chat/completions)</option>
+                  <option value="chat-completions">
+                    Chat Completions (/chat/completions)
+                  </option>
                   <option value="responses">Responses (/responses)</option>
-                  <option value="anthropic-messages">Anthropic Messages (/v1/messages)</option>
+                  <option value="anthropic-messages">
+                    Anthropic Messages (/v1/messages)
+                  </option>
                 </select>
                 <p className="text-xs text-muted-foreground mt-1">
                   API endpoint format used by this provider
@@ -308,7 +338,11 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
               </div>
 
               <div className="flex justify-end gap-2 pt-4">
-                <Button htmlType="button" variant="outline" onClick={() => setOpen(false)}>
+                <Button
+                  htmlType="button"
+                  variant="outline"
+                  onClick={() => setOpen(false)}
+                >
                   Cancel
                 </Button>
                 <Button htmlType="submit" disabled={isSubmitting}>

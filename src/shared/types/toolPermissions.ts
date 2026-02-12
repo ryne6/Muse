@@ -11,7 +11,7 @@ export const DANGEROUS_TOOLS = [
 ] as const
 
 /** @deprecated 使用 ToolRiskLevel 替代 */
-export type DangerousToolName = typeof DANGEROUS_TOOLS[number]
+export type DangerousToolName = (typeof DANGEROUS_TOOLS)[number]
 
 // ============ 保留（不变） ============
 

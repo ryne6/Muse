@@ -40,11 +40,11 @@ export function ContextIndicator({
   }
 
   return (
-    <span className={`text-xs px-2 py-1 ${
-      isWarning
-        ? 'text-orange-500'
-        : 'text-[hsl(var(--text-muted))]'
-    }`}>
+    <span
+      className={`text-xs px-2 py-1 ${
+        isWarning ? 'text-orange-500' : 'text-[hsl(var(--text-muted))]'
+      }`}
+    >
       {usedDisplay} / {totalDisplay}
     </span>
   )

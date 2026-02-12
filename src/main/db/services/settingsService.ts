@@ -12,7 +12,7 @@ export class SettingsService {
 
     // Convert to key-value object
     const settingsObject: Record<string, any> = {}
-    allSettings.forEach((setting) => {
+    allSettings.forEach(setting => {
       settingsObject[setting.key] = setting.value
     })
 
@@ -22,7 +22,11 @@ export class SettingsService {
   // Get setting by key
   static async get(key: string) {
     const db = getDatabase()
-    const result = await db.select().from(settings).where(eq(settings.key, key)).limit(1)
+    const result = await db
+      .select()
+      .from(settings)
+      .where(eq(settings.key, key))
+      .limit(1)
 
     if (!result[0]) return null
 
@@ -39,13 +43,10 @@ export class SettingsService {
     }
 
     // Use INSERT OR REPLACE for upsert
-    await db
-      .insert(settings)
-      .values(newSetting)
-      .onConflictDoUpdate({
-        target: settings.key,
-        set: { value },
-      })
+    await db.insert(settings).values(newSetting).onConflictDoUpdate({
+      target: settings.key,
+      set: { value },
+    })
 
     return this.get(key)
   }
@@ -58,10 +59,12 @@ export class SettingsService {
 
   // Set multiple settings
   static async setMany(settingsObject: Record<string, any>) {
-    const settingsArray: NewSetting[] = Object.entries(settingsObject).map(([key, value]) => ({
-      key,
-      value,
-    }))
+    const settingsArray: NewSetting[] = Object.entries(settingsObject).map(
+      ([key, value]) => ({
+        key,
+        value,
+      })
+    )
 
     for (const setting of settingsArray) {
       await this.set(setting.key, setting.value)

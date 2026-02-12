@@ -13,7 +13,8 @@ export const fileSystemTools = [
         },
         cwd: {
           type: 'string',
-          description: 'Optional working directory for the command (defaults to workspace root)',
+          description:
+            'Optional working directory for the command (defaults to workspace root)',
         },
       },
       required: ['command'],
@@ -92,7 +93,8 @@ export const fileSystemTools = [
       properties: {
         path: {
           type: 'string',
-          description: 'The absolute path of the directory to list (e.g., /Users/username/project/src)',
+          description:
+            'The absolute path of the directory to list (e.g., /Users/username/project/src)',
         },
         pattern: {
           type: 'string',
@@ -116,14 +118,23 @@ export const fileSystemTools = [
           items: {
             type: 'object',
             properties: {
-              id: { type: 'string', description: 'Unique identifier for the todo item' },
-              title: { type: 'string', description: 'Short description of the task' },
+              id: {
+                type: 'string',
+                description: 'Unique identifier for the todo item',
+              },
+              title: {
+                type: 'string',
+                description: 'Short description of the task',
+              },
               status: {
                 type: 'string',
                 description: 'Current status of the task',
                 enum: ['todo', 'in_progress', 'done'],
               },
-              notes: { type: 'string', description: 'Optional additional details' },
+              notes: {
+                type: 'string',
+                description: 'Optional additional details',
+              },
             },
             required: ['id', 'title', 'status'],
           },
@@ -160,7 +171,10 @@ export const fileSystemTools = [
         path: { type: 'string', description: 'Search directory' },
         glob: { type: 'string', description: 'File filter (e.g., "*.ts")' },
         ignoreCase: { type: 'boolean', description: 'Case insensitive' },
-        maxResults: { type: 'number', description: 'Maximum number of matches' },
+        maxResults: {
+          type: 'number',
+          description: 'Maximum number of matches',
+        },
       },
       required: ['pattern'],
     },
@@ -207,7 +221,11 @@ export const fileSystemTools = [
       properties: {
         path: { type: 'string', description: 'Repository path' },
         message: { type: 'string', description: 'Commit message' },
-        files: { type: 'array', items: { type: 'string' }, description: 'Files to stage' },
+        files: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Files to stage',
+        },
       },
       required: ['message'],
     },
@@ -219,7 +237,10 @@ export const fileSystemTools = [
       type: 'object' as const,
       properties: {
         path: { type: 'string', description: 'Repository path' },
-        remote: { type: 'string', description: 'Remote name (default: origin)' },
+        remote: {
+          type: 'string',
+          description: 'Remote name (default: origin)',
+        },
         branch: { type: 'string', description: 'Branch name' },
       },
       required: [],
@@ -233,7 +254,10 @@ export const fileSystemTools = [
       properties: {
         path: { type: 'string', description: 'Repository path' },
         branch: { type: 'string', description: 'Branch name' },
-        create: { type: 'boolean', description: 'Create the branch if it does not exist' },
+        create: {
+          type: 'boolean',
+          description: 'Create the branch if it does not exist',
+        },
       },
       required: ['branch'],
     },
@@ -258,8 +282,15 @@ export const fileSystemTools = [
       properties: {
         query: { type: 'string', description: 'Search query' },
         limit: { type: 'number', description: 'Max number of results' },
-        recencyDays: { type: 'number', description: 'Filter by recency (days)' },
-        domains: { type: 'array', items: { type: 'string' }, description: 'Domain allowlist' },
+        recencyDays: {
+          type: 'number',
+          description: 'Filter by recency (days)',
+        },
+        domains: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Domain allowlist',
+        },
       },
       required: ['query'],
     },
@@ -267,7 +298,8 @@ export const fileSystemTools = [
 ]
 
 // Lazy-loaded MCP manager to avoid SDK side effects at import time
-let mcpManagerInstance: typeof import('../../mcp/manager').mcpManager | null = null
+let mcpManagerInstance: typeof import('../../mcp/manager').mcpManager | null =
+  null
 
 async function getMcpManager() {
   if (!mcpManagerInstance) {

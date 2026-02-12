@@ -9,12 +9,12 @@ vi.mock('fs', () => {
     writeFile: vi.fn(),
     readdir: vi.fn(),
     access: vi.fn(),
-    mkdir: vi.fn()
+    mkdir: vi.fn(),
   }
 
   return {
     promises,
-    default: { promises }
+    default: { promises },
   }
 })
 
@@ -23,12 +23,12 @@ vi.mock('child_process', () => {
   const exec = vi.fn()
   return {
     exec,
-    default: { exec }
+    default: { exec },
   }
 })
 
 vi.mock('fast-glob', () => ({
-  default: vi.fn()
+  default: vi.fn(),
 }))
 
 import { promises as fs } from 'fs'
@@ -57,15 +57,17 @@ describe('FileSystemService', () => {
     it('should reject files larger than 10MB', async () => {
       vi.mocked(fs.stat).mockResolvedValue({ size: 11 * 1024 * 1024 } as any)
 
-      await expect(service.readFile('/large/file.txt'))
-        .rejects.toThrow('File too large')
+      await expect(service.readFile('/large/file.txt')).rejects.toThrow(
+        'File too large'
+      )
     })
 
     it('should handle read errors', async () => {
       vi.mocked(fs.stat).mockRejectedValue(new Error('File not found'))
 
-      await expect(service.readFile('/missing.txt'))
-        .rejects.toThrow('Failed to read file')
+      await expect(service.readFile('/missing.txt')).rejects.toThrow(
+        'Failed to read file'
+      )
     })
   })
 
@@ -76,14 +78,19 @@ describe('FileSystemService', () => {
       const result = await service.writeFile('/test/file.txt', 'content')
 
       expect(result).toBe(true)
-      expect(fs.writeFile).toHaveBeenCalledWith('/test/file.txt', 'content', 'utf-8')
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        '/test/file.txt',
+        'content',
+        'utf-8'
+      )
     })
 
     it('should handle write errors', async () => {
       vi.mocked(fs.writeFile).mockRejectedValue(new Error('Permission denied'))
 
-      await expect(service.writeFile('/readonly/file.txt', 'content'))
-        .rejects.toThrow('Failed to write file')
+      await expect(
+        service.writeFile('/readonly/file.txt', 'content')
+      ).rejects.toThrow('Failed to write file')
     })
   })
 
@@ -98,7 +105,10 @@ describe('FileSystemService', () => {
     })
 
     it('should limit results to 500 files', async () => {
-      const manyFiles = Array.from({ length: 600 }, (_, i) => `/base/file-${i}.ts`)
+      const manyFiles = Array.from(
+        { length: 600 },
+        (_, i) => `/base/file-${i}.ts`
+      )
       vi.mocked(fg).mockResolvedValue(manyFiles)
 
       const result = await service.glob('**/*.ts', '/base')
@@ -115,7 +125,11 @@ describe('FileSystemService', () => {
       const result = await service.grep('const', '/base', { glob: '**/*.ts' })
 
       expect(result).toHaveLength(2)
-      expect(result[0]).toEqual({ file: '/base/a.ts', line: 1, content: 'const a = 1' })
+      expect(result[0]).toEqual({
+        file: '/base/a.ts',
+        line: 1,
+        content: 'const a = 1',
+      })
     })
   })
   describe('editFile', () => {
@@ -127,7 +141,11 @@ describe('FileSystemService', () => {
       const result = await service.editFile('/test/file.txt', 'hello', 'hi')
 
       expect(result).toBe(1)
-      expect(fs.writeFile).toHaveBeenCalledWith('/test/file.txt', 'hi world hello', 'utf-8')
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        '/test/file.txt',
+        'hi world hello',
+        'utf-8'
+      )
     })
 
     it('should replace all occurrences when replaceAll is true', async () => {
@@ -135,18 +153,28 @@ describe('FileSystemService', () => {
       vi.mocked(fs.readFile).mockResolvedValue('hello world hello')
       vi.mocked(fs.writeFile).mockResolvedValue(undefined)
 
-      const result = await service.editFile('/test/file.txt', 'hello', 'hi', true)
+      const result = await service.editFile(
+        '/test/file.txt',
+        'hello',
+        'hi',
+        true
+      )
 
       expect(result).toBe(2)
-      expect(fs.writeFile).toHaveBeenCalledWith('/test/file.txt', 'hi world hi', 'utf-8')
+      expect(fs.writeFile).toHaveBeenCalledWith(
+        '/test/file.txt',
+        'hi world hi',
+        'utf-8'
+      )
     })
 
     it('should throw when text is not found', async () => {
       vi.mocked(fs.stat).mockResolvedValue({ size: 100 } as any)
       vi.mocked(fs.readFile).mockResolvedValue('no match here')
 
-      await expect(service.editFile('/test/file.txt', 'missing', 'new'))
-        .rejects.toThrow('Text not found')
+      await expect(
+        service.editFile('/test/file.txt', 'missing', 'new')
+      ).rejects.toThrow('Text not found')
     })
   })
 
@@ -154,7 +182,7 @@ describe('FileSystemService', () => {
     it('should list files in directory', async () => {
       vi.mocked(fs.readdir).mockResolvedValue([
         { name: 'file.ts', isDirectory: () => false },
-        { name: 'folder', isDirectory: () => true }
+        { name: 'folder', isDirectory: () => true },
       ] as any)
       vi.mocked(fs.stat).mockResolvedValue({ size: 100, mtimeMs: 1000 } as any)
 
@@ -167,7 +195,7 @@ describe('FileSystemService', () => {
     it('should skip hidden files', async () => {
       vi.mocked(fs.readdir).mockResolvedValue([
         { name: '.hidden', isDirectory: () => false },
-        { name: 'visible.ts', isDirectory: () => false }
+        { name: 'visible.ts', isDirectory: () => false },
       ] as any)
       vi.mocked(fs.stat).mockResolvedValue({ size: 100, mtimeMs: 1000 } as any)
 
@@ -180,7 +208,7 @@ describe('FileSystemService', () => {
     it('should skip node_modules', async () => {
       vi.mocked(fs.readdir).mockResolvedValue([
         { name: 'node_modules', isDirectory: () => true },
-        { name: 'src', isDirectory: () => true }
+        { name: 'src', isDirectory: () => true },
       ] as any)
       vi.mocked(fs.stat).mockResolvedValue({ size: 0, mtimeMs: 1000 } as any)
 
@@ -193,7 +221,7 @@ describe('FileSystemService', () => {
     it('should filter by pattern', async () => {
       vi.mocked(fs.readdir).mockResolvedValue([
         { name: 'file.ts', isDirectory: () => false },
-        { name: 'file.js', isDirectory: () => false }
+        { name: 'file.js', isDirectory: () => false },
       ] as any)
       vi.mocked(fs.stat).mockResolvedValue({ size: 100, mtimeMs: 1000 } as any)
 

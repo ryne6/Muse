@@ -5,7 +5,7 @@ export interface Provider {
   id: string
   name: string
   type: string
-  apiKey: string  // Decrypted when retrieved from DB
+  apiKey: string // Decrypted when retrieved from DB
   baseURL: string | null
   apiFormat?: string
   enabled: boolean
@@ -20,6 +20,7 @@ export interface Model {
   description: string | null
   enabled: boolean
   createdAt: Date
+  contextLength?: number
 }
 
 export interface Conversation {
@@ -43,19 +44,19 @@ export interface ToolCall {
   id: string
   messageId: string
   name: string
-  arguments: string  // JSON string
+  arguments: string // JSON string
   timestamp: number
 }
 
 export interface ToolResult {
   id: string
   toolCallId: string
-  result: string  // JSON string
+  result: string // JSON string
   timestamp: number
 }
 
 export interface Setting {
   key: string
-  value: string  // JSON string
+  value: string // JSON string
   updatedAt: Date
 }

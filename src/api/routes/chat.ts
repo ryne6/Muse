@@ -19,7 +19,9 @@ const aiManager = new AIManager()
 /**
  * Helper to create error response from any error
  */
-function createErrorResponse(error: unknown): { error: ReturnType<AIError['toAPIError']> } {
+function createErrorResponse(error: unknown): {
+  error: ReturnType<AIError['toAPIError']>
+} {
   const aiError = AIError.fromUnknown(error)
   return { error: aiError.toAPIError() }
 }
@@ -41,19 +43,29 @@ interface ValidateRequest {
 }
 
 // 发送消息（流式）
-app.post('/chat/stream', async (c) => {
+app.post('/chat/stream', async c => {
   try {
     const body = await c.req.json<ChatRequest>()
-    const { provider, messages, config, toolPermissions, allowOnceTools,
-            permissionRules, sessionApprovedTools } = body
+    const {
+      provider,
+      messages,
+      config,
+      toolPermissions,
+      allowOnceTools,
+      permissionRules,
+      sessionApprovedTools,
+    } = body
 
     // Validate required fields
     if (!provider || !messages || !config) {
-      const error = new AIError(ErrorCode.INVALID_REQUEST, 'Missing required fields: provider, messages, config')
+      const error = new AIError(
+        ErrorCode.INVALID_REQUEST,
+        'Missing required fields: provider, messages, config'
+      )
       return c.json(createErrorResponse(error), error.httpStatus)
     }
 
-    return stream(c, async (stream) => {
+    return stream(c, async stream => {
       try {
         await aiManager.sendMessage(
           provider,
@@ -62,11 +74,18 @@ app.post('/chat/stream', async (c) => {
           async (chunk: AIStreamChunk) => {
             await stream.write(JSON.stringify(chunk) + '\n')
           },
-          { toolPermissions, allowOnceTools, permissionRules, sessionApprovedTools }
+          {
+            toolPermissions,
+            allowOnceTools,
+            permissionRules,
+            sessionApprovedTools,
+          }
         )
       } catch (error) {
         const aiError = AIError.fromUnknown(error)
-        await stream.write(JSON.stringify({ error: aiError.toAPIError() }) + '\n')
+        await stream.write(
+          JSON.stringify({ error: aiError.toAPIError() }) + '\n'
+        )
       }
     })
   } catch (error) {
@@ -76,24 +95,40 @@ app.post('/chat/stream', async (c) => {
 })
 
 // 发送消息（非流式）
-app.post('/chat', async (c) => {
+app.post('/chat', async c => {
   try {
     const body = await c.req.json<ChatRequest>()
-    const { provider, messages, config, toolPermissions, allowOnceTools,
-            permissionRules, sessionApprovedTools } = body
-
-    // Validate required fields
-    if (!provider || !messages || !config) {
-      const error = new AIError(ErrorCode.INVALID_REQUEST, 'Missing required fields: provider, messages, config')
-      return c.json(createErrorResponse(error), error.httpStatus)
-    }
-
-    const response = await aiManager.sendMessage(provider, messages, config, undefined, {
+    const {
+      provider,
+      messages,
+      config,
       toolPermissions,
       allowOnceTools,
       permissionRules,
       sessionApprovedTools,
-    })
+    } = body
+
+    // Validate required fields
+    if (!provider || !messages || !config) {
+      const error = new AIError(
+        ErrorCode.INVALID_REQUEST,
+        'Missing required fields: provider, messages, config'
+      )
+      return c.json(createErrorResponse(error), error.httpStatus)
+    }
+
+    const response = await aiManager.sendMessage(
+      provider,
+      messages,
+      config,
+      undefined,
+      {
+        toolPermissions,
+        allowOnceTools,
+        permissionRules,
+        sessionApprovedTools,
+      }
+    )
 
     return c.json({
       content: response,
@@ -105,7 +140,7 @@ app.post('/chat', async (c) => {
 })
 
 // 获取支持的 AI 提供商列表
-app.get('/providers', (c) => {
+app.get('/providers', c => {
   try {
     const providers = aiManager.getAvailableProviders()
     return c.json({ providers })
@@ -116,7 +151,7 @@ app.get('/providers', (c) => {
 })
 
 // 获取指定提供商的默认模型
-app.get('/providers/:provider/default-model', (c) => {
+app.get('/providers/:provider/default-model', c => {
   try {
     const provider = c.req.param('provider')
     const defaultModel = aiManager.getDefaultModel(provider)
@@ -128,7 +163,7 @@ app.get('/providers/:provider/default-model', (c) => {
 })
 
 // 获取指定提供商支持的模型列表
-app.get('/providers/:provider/models', (c) => {
+app.get('/providers/:provider/models', c => {
   try {
     const provider = c.req.param('provider')
     const models = aiManager.getSupportedModels(provider)
@@ -140,14 +175,20 @@ app.get('/providers/:provider/models', (c) => {
 })
 
 // 验证 Provider 配置
-app.post('/providers/validate', async (c) => {
+app.post('/providers/validate', async c => {
   try {
     const body = await c.req.json<ValidateRequest>()
     const { provider, config } = body
 
     if (!provider || !config) {
-      const error = new AIError(ErrorCode.INVALID_REQUEST, 'Missing required fields: provider, config')
-      return c.json({ valid: false, error: error.toAPIError() }, error.httpStatus)
+      const error = new AIError(
+        ErrorCode.INVALID_REQUEST,
+        'Missing required fields: provider, config'
+      )
+      return c.json(
+        { valid: false, error: error.toAPIError() },
+        error.httpStatus
+      )
     }
 
     const result = await ProviderValidator.validateProvider(provider, config)
@@ -166,7 +207,7 @@ app.post('/providers/validate', async (c) => {
 })
 
 // 从对话中提取记忆
-app.post('/chat/extract', async (c) => {
+app.post('/chat/extract', async c => {
   try {
     const { provider, messages, config } = await c.req.json<{
       provider: string
@@ -175,7 +216,10 @@ app.post('/chat/extract', async (c) => {
     }>()
 
     if (!provider || !messages || !config) {
-      const error = new AIError(ErrorCode.INVALID_REQUEST, 'Missing required fields: provider, messages, config')
+      const error = new AIError(
+        ErrorCode.INVALID_REQUEST,
+        'Missing required fields: provider, messages, config'
+      )
       return c.json(createErrorResponse(error), error.httpStatus)
     }
 

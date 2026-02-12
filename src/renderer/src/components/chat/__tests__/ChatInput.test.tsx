@@ -17,139 +17,154 @@ import { ChatInput } from '../ChatInput'
  */
 
 // Use vi.hoisted to ensure mocks are set up before imports
-const { mockChatStore, mockConversationStore, mockSettingsStore, mockNotify } = vi.hoisted(() => {
-  // Create mock stores directly
-  const chatStoreState = {
-    isLoading: false,
-    error: null
-  }
-
-  const conversationStoreState = {
-    conversations: [],
-    currentConversationId: null,
-    isLoading: false
-  }
-
-  const settingsStoreState = {
-    currentProviderId: 'provider-1',
-    currentModelId: 'model-1',
-    temperature: 1,
-    thinkingEnabled: false,
-    lastUpdated: Date.now(),
-    providers: [
-      {
-        id: 'provider-1',
-        name: 'Test Provider',
-        type: 'openai',
-        apiKey: 'test-api-key',
-        enabled: true
-      }
-    ],
-    models: [
-      {
-        id: 'model-1',
-        providerId: 'provider-1',
-        modelId: 'gpt-4',
-        name: 'GPT-4',
-        enabled: true
-      }
-    ]
-  }
-
-  return {
-    mockChatStore: {
-      ...chatStoreState,
-      sendMessage: vi.fn(async () => {
-        chatStoreState.isLoading = true
-        await new Promise(resolve => setTimeout(resolve, 10))
-        chatStoreState.isLoading = false
-      }),
-      abortMessage: vi.fn(),
-      getState: vi.fn(() => ({ ...chatStoreState })),
-      setState: vi.fn((newState: any) => {
-        Object.assign(chatStoreState, typeof newState === 'function' ? newState(chatStoreState) : newState)
-      }),
-      subscribe: vi.fn(() => vi.fn())
-    },
-    mockConversationStore: {
-      ...conversationStoreState,
-      getCurrentConversation: vi.fn(() => null),
-      createConversation: vi.fn(async (title?: string) => ({
-        id: 'new-conv-id',
-        title: title ?? 'New Conversation',
-        messages: [],
-        createdAt: Date.now(),
-        updatedAt: Date.now()
-      })),
-      getState: vi.fn(() => ({ ...conversationStoreState })),
-      setState: vi.fn((newState: any) => {
-        Object.assign(conversationStoreState, typeof newState === 'function' ? newState(conversationStoreState) : newState)
-      }),
-      subscribe: vi.fn(() => vi.fn())
-    },
-    mockSettingsStore: {
-      ...settingsStoreState,
-      loadData: vi.fn(async () => {}),
-      getCurrentProvider: vi.fn(() => settingsStoreState.providers[0]),
-      getCurrentModel: vi.fn(() => settingsStoreState.models[0]),
-      getEnabledModels: vi.fn(() => {
-        const enabledProviderIds = settingsStoreState.providers
-          .filter((provider) => provider.enabled)
-          .map((provider) => provider.id)
-        return settingsStoreState.models.filter(
-          (model) => model.enabled && enabledProviderIds.includes(model.providerId)
-        )
-      }),
-      setThinkingEnabled: vi.fn((value: boolean) => {
-        settingsStoreState.thinkingEnabled = value
-      }),
-      setCurrentProvider: vi.fn(async (providerId: string) => {
-        settingsStoreState.currentProviderId = providerId
-      }),
-      setCurrentModel: vi.fn(async (modelId: string) => {
-        settingsStoreState.currentModelId = modelId
-      }),
-      setTemperature: vi.fn((temperature: number) => {
-        settingsStoreState.temperature = temperature
-      }),
-      getState: vi.fn(() => ({ ...settingsStoreState })),
-      setState: vi.fn((newState: any) => {
-        Object.assign(settingsStoreState, typeof newState === 'function' ? newState(settingsStoreState) : newState)
-      }),
-      subscribe: vi.fn(() => vi.fn())
-    },
-    mockNotify: {
-      error: vi.fn(),
-      success: vi.fn(),
-      info: vi.fn()
+const { mockChatStore, mockConversationStore, mockSettingsStore, mockNotify } =
+  vi.hoisted(() => {
+    // Create mock stores directly
+    const chatStoreState = {
+      isLoading: false,
+      error: null,
     }
-  }
-})
+
+    const conversationStoreState = {
+      conversations: [],
+      currentConversationId: null,
+      isLoading: false,
+    }
+
+    const settingsStoreState = {
+      currentProviderId: 'provider-1',
+      currentModelId: 'model-1',
+      temperature: 1,
+      thinkingEnabled: false,
+      lastUpdated: Date.now(),
+      providers: [
+        {
+          id: 'provider-1',
+          name: 'Test Provider',
+          type: 'openai',
+          apiKey: 'test-api-key',
+          enabled: true,
+        },
+      ],
+      models: [
+        {
+          id: 'model-1',
+          providerId: 'provider-1',
+          modelId: 'gpt-4',
+          name: 'GPT-4',
+          enabled: true,
+        },
+      ],
+    }
+
+    return {
+      mockChatStore: {
+        ...chatStoreState,
+        sendMessage: vi.fn(async () => {
+          chatStoreState.isLoading = true
+          await new Promise(resolve => setTimeout(resolve, 10))
+          chatStoreState.isLoading = false
+        }),
+        abortMessage: vi.fn(),
+        getState: vi.fn(() => ({ ...chatStoreState })),
+        setState: vi.fn((newState: any) => {
+          Object.assign(
+            chatStoreState,
+            typeof newState === 'function' ? newState(chatStoreState) : newState
+          )
+        }),
+        subscribe: vi.fn(() => vi.fn()),
+      },
+      mockConversationStore: {
+        ...conversationStoreState,
+        getCurrentConversation: vi.fn(() => null),
+        createConversation: vi.fn(async (title?: string) => ({
+          id: 'new-conv-id',
+          title: title ?? 'New Conversation',
+          messages: [],
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+        })),
+        getState: vi.fn(() => ({ ...conversationStoreState })),
+        setState: vi.fn((newState: any) => {
+          Object.assign(
+            conversationStoreState,
+            typeof newState === 'function'
+              ? newState(conversationStoreState)
+              : newState
+          )
+        }),
+        subscribe: vi.fn(() => vi.fn()),
+      },
+      mockSettingsStore: {
+        ...settingsStoreState,
+        loadData: vi.fn(async () => {}),
+        getCurrentProvider: vi.fn(() => settingsStoreState.providers[0]),
+        getCurrentModel: vi.fn(() => settingsStoreState.models[0]),
+        getEnabledModels: vi.fn(() => {
+          const enabledProviderIds = settingsStoreState.providers
+            .filter(provider => provider.enabled)
+            .map(provider => provider.id)
+          return settingsStoreState.models.filter(
+            model =>
+              model.enabled && enabledProviderIds.includes(model.providerId)
+          )
+        }),
+        setThinkingEnabled: vi.fn((value: boolean) => {
+          settingsStoreState.thinkingEnabled = value
+        }),
+        setCurrentProvider: vi.fn(async (providerId: string) => {
+          settingsStoreState.currentProviderId = providerId
+        }),
+        setCurrentModel: vi.fn(async (modelId: string) => {
+          settingsStoreState.currentModelId = modelId
+        }),
+        setTemperature: vi.fn((temperature: number) => {
+          settingsStoreState.temperature = temperature
+        }),
+        getState: vi.fn(() => ({ ...settingsStoreState })),
+        setState: vi.fn((newState: any) => {
+          Object.assign(
+            settingsStoreState,
+            typeof newState === 'function'
+              ? newState(settingsStoreState)
+              : newState
+          )
+        }),
+        subscribe: vi.fn(() => vi.fn()),
+      },
+      mockNotify: {
+        error: vi.fn(),
+        success: vi.fn(),
+        info: vi.fn(),
+      },
+    }
+  })
 
 // Mock Zustand stores
 vi.mock('@/stores/chatStore', () => ({
-  useChatStore: () => mockChatStore
+  useChatStore: () => mockChatStore,
 }))
 
 vi.mock('@/stores/conversationStore', () => ({
-  useConversationStore: () => mockConversationStore
+  useConversationStore: () => mockConversationStore,
 }))
 
 vi.mock('@/stores/settingsStore', () => ({
-  useSettingsStore: () => mockSettingsStore
+  useSettingsStore: () => mockSettingsStore,
 }))
 
 vi.mock('../ToolsDropdown', () => ({
-  ToolsDropdown: () => null
+  ToolsDropdown: () => null,
 }))
 
 vi.mock('../SkillsDropdown', () => ({
-  SkillsDropdown: () => null
+  SkillsDropdown: () => null,
 }))
 
 // Mock notify utility
 vi.mock('@/utils/notify', () => ({
-  notify: mockNotify
+  notify: mockNotify,
 }))
 
 describe('ChatInput', () => {
@@ -163,10 +178,14 @@ describe('ChatInput', () => {
       title: 'New Conversation',
       messages: [],
       createdAt: Date.now(),
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
     })
-    mockSettingsStore.getCurrentProvider.mockReturnValue(mockSettingsStore.providers[0])
-    mockSettingsStore.getCurrentModel.mockReturnValue(mockSettingsStore.models[0])
+    mockSettingsStore.getCurrentProvider.mockReturnValue(
+      mockSettingsStore.providers[0]
+    )
+    mockSettingsStore.getCurrentModel.mockReturnValue(
+      mockSettingsStore.models[0]
+    )
     mockSettingsStore.thinkingEnabled = false
   })
 
@@ -211,7 +230,7 @@ describe('ChatInput', () => {
       // Setup: conversation exists
       mockConversationStore.getCurrentConversation.mockReturnValue({
         id: 'conv-1',
-        title: 'Test Conversation'
+        title: 'Test Conversation',
       })
 
       render(<ChatInput />)
@@ -284,7 +303,7 @@ describe('ChatInput', () => {
       mockSettingsStore.getCurrentProvider.mockReturnValue(null)
       mockConversationStore.getCurrentConversation.mockReturnValue({
         id: 'conv-1',
-        title: 'Test Conversation'
+        title: 'Test Conversation',
       })
 
       render(<ChatInput />)
@@ -311,12 +330,12 @@ describe('ChatInput', () => {
         name: 'Test Provider',
         type: 'openai',
         apiKey: 'test-key',
-        enabled: true
+        enabled: true,
       })
       mockSettingsStore.getCurrentModel.mockReturnValue(null)
       mockConversationStore.getCurrentConversation.mockReturnValue({
         id: 'conv-1',
-        title: 'Test Conversation'
+        title: 'Test Conversation',
       })
 
       render(<ChatInput />)
@@ -343,18 +362,18 @@ describe('ChatInput', () => {
         name: 'Test Provider',
         type: 'openai',
         apiKey: '', // No API key
-        enabled: true
+        enabled: true,
       })
       mockSettingsStore.getCurrentModel.mockReturnValue({
         id: 'model-1',
         providerId: 'provider-1',
         modelId: 'gpt-4',
         name: 'GPT-4',
-        enabled: true
+        enabled: true,
       })
       mockConversationStore.getCurrentConversation.mockReturnValue({
         id: 'conv-1',
-        title: 'Test Conversation'
+        title: 'Test Conversation',
       })
 
       render(<ChatInput />)
@@ -380,21 +399,21 @@ describe('ChatInput', () => {
       // Setup: conversation exists with valid provider and model
       mockConversationStore.getCurrentConversation.mockReturnValue({
         id: 'conv-1',
-        title: 'Test Conversation'
+        title: 'Test Conversation',
       })
       mockSettingsStore.getCurrentProvider.mockReturnValue({
         id: 'provider-1',
         name: 'Test Provider',
         type: 'openai',
         apiKey: 'test-api-key',
-        enabled: true
+        enabled: true,
       })
       mockSettingsStore.getCurrentModel.mockReturnValue({
         id: 'model-1',
         providerId: 'provider-1',
         modelId: 'gpt-4',
         name: 'GPT-4',
-        enabled: true
+        enabled: true,
       })
 
       render(<ChatInput />)
@@ -444,21 +463,21 @@ describe('ChatInput', () => {
         title: 'New Conversation',
         messages: [],
         createdAt: Date.now(),
-        updatedAt: Date.now()
+        updatedAt: Date.now(),
       })
       mockSettingsStore.getCurrentProvider.mockReturnValue({
         id: 'provider-1',
         name: 'Test Provider',
         type: 'openai',
         apiKey: 'test-api-key',
-        enabled: true
+        enabled: true,
       })
       mockSettingsStore.getCurrentModel.mockReturnValue({
         id: 'model-1',
         providerId: 'provider-1',
         modelId: 'gpt-4',
         name: 'GPT-4',
-        enabled: true
+        enabled: true,
       })
 
       render(<ChatInput />)
@@ -480,7 +499,7 @@ describe('ChatInput', () => {
       // Setup: conversation exists
       mockConversationStore.getCurrentConversation.mockReturnValue({
         id: 'existing-conv-id',
-        title: 'Existing Conversation'
+        title: 'Existing Conversation',
       })
 
       render(<ChatInput />)
@@ -504,21 +523,21 @@ describe('ChatInput', () => {
       // Setup: conversation exists with valid provider and model
       mockConversationStore.getCurrentConversation.mockReturnValue({
         id: 'conv-1',
-        title: 'Test Conversation'
+        title: 'Test Conversation',
       })
       mockSettingsStore.getCurrentProvider.mockReturnValue({
         id: 'provider-1',
         name: 'Test Provider',
         type: 'openai',
         apiKey: 'test-api-key',
-        enabled: true
+        enabled: true,
       })
       mockSettingsStore.getCurrentModel.mockReturnValue({
         id: 'model-1',
         providerId: 'provider-1',
         modelId: 'gpt-4',
         name: 'GPT-4',
-        enabled: true
+        enabled: true,
       })
 
       render(<ChatInput />)
@@ -537,7 +556,7 @@ describe('ChatInput', () => {
           expect.objectContaining({
             apiKey: 'test-api-key',
             model: 'gpt-4',
-            temperature: 1
+            temperature: 1,
           }),
           [] // attachments
         )
@@ -549,21 +568,21 @@ describe('ChatInput', () => {
 
       mockConversationStore.getCurrentConversation.mockReturnValue({
         id: 'conv-1',
-        title: 'Test Conversation'
+        title: 'Test Conversation',
       })
       mockSettingsStore.getCurrentProvider.mockReturnValue({
         id: 'provider-1',
         name: 'Test Provider',
         type: 'openai',
         apiKey: 'test-api-key',
-        enabled: true
+        enabled: true,
       })
       mockSettingsStore.getCurrentModel.mockReturnValue({
         id: 'model-1',
         providerId: 'provider-1',
         modelId: 'gpt-4',
         name: 'GPT-4',
-        enabled: true
+        enabled: true,
       })
 
       render(<ChatInput />)

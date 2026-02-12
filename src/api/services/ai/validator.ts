@@ -17,7 +17,8 @@ export class ProviderValidator {
       if (!provider.validateConfig(config)) {
         return {
           valid: false,
-          error: 'Invalid configuration. Please check API key and other settings.',
+          error:
+            'Invalid configuration. Please check API key and other settings.',
         }
       }
 
@@ -55,15 +56,25 @@ export class ProviderValidator {
         errorMessage = error.message
 
         // 常见错误类型
-        if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+        if (
+          errorMessage.includes('401') ||
+          errorMessage.includes('Unauthorized')
+        ) {
           errorMessage = 'Invalid API key'
-        } else if (errorMessage.includes('403') || errorMessage.includes('Forbidden')) {
+        } else if (
+          errorMessage.includes('403') ||
+          errorMessage.includes('Forbidden')
+        ) {
           errorMessage = 'API key does not have required permissions'
         } else if (errorMessage.includes('429')) {
           errorMessage = 'Rate limit exceeded. Please try again later.'
         } else if (errorMessage.includes('timeout')) {
-          errorMessage = 'Request timeout. Please check your network connection.'
-        } else if (errorMessage.includes('fetch failed') || errorMessage.includes('ENOTFOUND')) {
+          errorMessage =
+            'Request timeout. Please check your network connection.'
+        } else if (
+          errorMessage.includes('fetch failed') ||
+          errorMessage.includes('ENOTFOUND')
+        ) {
           errorMessage = 'Network error. Please check your internet connection.'
         }
       }

@@ -33,11 +33,13 @@ vi.mock('lucide-react', () => {
 const mockApproveToolCall = vi.fn()
 
 vi.mock('@/stores/chatStore', () => ({
-  useChatStore: (selector: any) => selector({ approveToolCall: mockApproveToolCall })
+  useChatStore: (selector: any) =>
+    selector({ approveToolCall: mockApproveToolCall }),
 }))
 
 vi.mock('@/stores/conversationStore', () => ({
-  useConversationStore: (selector: any) => selector({ currentConversationId: 'conv-1' })
+  useConversationStore: (selector: any) =>
+    selector({ currentConversationId: 'conv-1' }),
 }))
 
 const renderCard = (name: string) => {

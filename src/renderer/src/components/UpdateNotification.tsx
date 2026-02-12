@@ -2,7 +2,13 @@ import { useState, useEffect } from 'react'
 import { Download, X, RefreshCw } from 'lucide-react'
 
 interface UpdateStatus {
-  status: 'checking' | 'available' | 'not-available' | 'downloading' | 'downloaded' | 'error'
+  status:
+    | 'checking'
+    | 'available'
+    | 'not-available'
+    | 'downloading'
+    | 'downloaded'
+    | 'error'
   version?: string
   progress?: number
   error?: string
@@ -15,12 +21,17 @@ export function UpdateNotification() {
   useEffect(() => {
     if (!window.api?.updater?.onStatus) return
 
-    const unsubscribe = window.api.updater.onStatus((newStatus: UpdateStatus) => {
-      setStatus(newStatus)
-      if (newStatus.status === 'available' || newStatus.status === 'downloaded') {
-        setDismissed(false)
+    const unsubscribe = window.api.updater.onStatus(
+      (newStatus: UpdateStatus) => {
+        setStatus(newStatus)
+        if (
+          newStatus.status === 'available' ||
+          newStatus.status === 'downloaded'
+        ) {
+          setDismissed(false)
+        }
       }
-    })
+    )
 
     return unsubscribe
   }, [])
@@ -39,7 +50,8 @@ export function UpdateNotification() {
 
   // Don't show if dismissed or no relevant status
   if (dismissed || !status) return null
-  if (status.status === 'not-available' || status.status === 'checking') return null
+  if (status.status === 'not-available' || status.status === 'checking')
+    return null
 
   return (
     <div className="fixed bottom-4 right-4 z-50 max-w-sm">
@@ -101,7 +113,9 @@ export function UpdateNotification() {
 
             {status.status === 'error' && (
               <>
-                <p className="text-sm font-medium text-red-500">Update failed</p>
+                <p className="text-sm font-medium text-red-500">
+                  Update failed
+                </p>
                 <p className="text-xs text-[hsl(var(--text-muted))] mt-1">
                   {status.error}
                 </p>

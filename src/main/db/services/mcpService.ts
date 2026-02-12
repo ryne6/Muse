@@ -57,7 +57,10 @@ export class MCPService {
   }
 
   // Update an MCP server
-  static async update(id: string, data: Partial<Omit<NewMCPServer, 'id' | 'createdAt'>>) {
+  static async update(
+    id: string,
+    data: Partial<Omit<NewMCPServer, 'id' | 'createdAt'>>
+  ) {
     const db = getDatabase()
     await db.update(mcpServers).set(data).where(eq(mcpServers.id, id))
     return await this.getById(id)

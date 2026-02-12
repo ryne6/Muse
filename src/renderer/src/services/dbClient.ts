@@ -10,13 +10,18 @@ export const dbClient = {
       return await window.api.ipc.invoke('db:conversations:getById', { id })
     },
     getWithMessages: async (id: string) => {
-      return await window.api.ipc.invoke('db:conversations:getWithMessages', { id })
+      return await window.api.ipc.invoke('db:conversations:getWithMessages', {
+        id,
+      })
     },
     create: async (data: any) => {
       return await window.api.ipc.invoke('db:conversations:create', data)
     },
     update: async (id: string, data: any) => {
-      return await window.api.ipc.invoke('db:conversations:update', { id, data })
+      return await window.api.ipc.invoke('db:conversations:update', {
+        id,
+        data,
+      })
     },
     delete: async (id: string) => {
       return await window.api.ipc.invoke('db:conversations:delete', { id })
@@ -26,22 +31,35 @@ export const dbClient = {
   // Messages
   messages: {
     getByConversationId: async (conversationId: string) => {
-      return await window.api.ipc.invoke('db:messages:getByConversationId', { conversationId })
+      return await window.api.ipc.invoke('db:messages:getByConversationId', {
+        conversationId,
+      })
     },
     getAllWithTools: async (conversationId: string) => {
-      return await window.api.ipc.invoke('db:messages:getAllWithTools', { conversationId })
+      return await window.api.ipc.invoke('db:messages:getAllWithTools', {
+        conversationId,
+      })
     },
     create: async (data: any) => {
       return await window.api.ipc.invoke('db:messages:create', data)
     },
     updateContent: async (id: string, content: string) => {
-      return await window.api.ipc.invoke('db:messages:updateContent', { id, content })
+      return await window.api.ipc.invoke('db:messages:updateContent', {
+        id,
+        content,
+      })
     },
     addToolCall: async (messageId: string, data: any) => {
-      return await window.api.ipc.invoke('db:messages:addToolCall', { messageId, data })
+      return await window.api.ipc.invoke('db:messages:addToolCall', {
+        messageId,
+        data,
+      })
     },
     addToolResult: async (toolCallId: string, data: any) => {
-      return await window.api.ipc.invoke('db:messages:addToolResult', { toolCallId, data })
+      return await window.api.ipc.invoke('db:messages:addToolResult', {
+        toolCallId,
+        data,
+      })
     },
   },
 
@@ -79,7 +97,9 @@ export const dbClient = {
       return await window.api.ipc.invoke('db:models:getAll')
     },
     getByProviderId: async (providerId: string) => {
-      return await window.api.ipc.invoke('db:models:getByProviderId', { providerId })
+      return await window.api.ipc.invoke('db:models:getByProviderId', {
+        providerId,
+      })
     },
     create: async (data: any) => {
       return await window.api.ipc.invoke('db:models:create', data)

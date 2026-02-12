@@ -13,13 +13,14 @@ describe('WebService', () => {
   })
 
   it('should enforce HTTPS for fetch', async () => {
-    await expect(service.fetch('http://example.com'))
-      .rejects.toThrow('HTTPS only')
+    await expect(service.fetch('http://example.com')).rejects.toThrow(
+      'HTTPS only'
+    )
   })
 
   it('should strip HTML when fetching', async () => {
     vi.mocked(axios.get).mockResolvedValue({
-      data: '<html><body><h1>Title</h1><script>alert(1)</script></body></html>'
+      data: '<html><body><h1>Title</h1><script>alert(1)</script></body></html>',
     })
 
     const result = await service.fetch('https://example.com')
@@ -37,7 +38,7 @@ describe('WebService', () => {
             <a class="result__snippet">Snippet text</a>
           </div>
         </div>
-      `
+      `,
     })
 
     const results = await service.search('test', 5)
@@ -46,7 +47,7 @@ describe('WebService', () => {
     expect(results[0]).toEqual({
       title: 'Example Title',
       url: 'https://example.com',
-      snippet: 'Snippet text'
+      snippet: 'Snippet text',
     })
   })
 })

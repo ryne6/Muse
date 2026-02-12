@@ -31,7 +31,7 @@ describe('GenericProvider', () => {
       const config: AIConfig = {
         apiKey: 'valid-key',
         model: 'custom-model',
-        baseURL: 'https://custom.api.com'
+        baseURL: 'https://custom.api.com',
       }
       expect(provider.validateConfig(config)).toBe(true)
     })
@@ -40,7 +40,7 @@ describe('GenericProvider', () => {
       const config: AIConfig = {
         apiKey: '',
         model: 'custom-model',
-        baseURL: 'https://custom.api.com'
+        baseURL: 'https://custom.api.com',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -49,7 +49,7 @@ describe('GenericProvider', () => {
       const config: AIConfig = {
         apiKey: 'valid-key',
         model: '',
-        baseURL: 'https://custom.api.com'
+        baseURL: 'https://custom.api.com',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -57,7 +57,7 @@ describe('GenericProvider', () => {
     it('should return false without baseURL', () => {
       const config: AIConfig = {
         apiKey: 'valid-key',
-        model: 'custom-model'
+        model: 'custom-model',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -66,7 +66,7 @@ describe('GenericProvider', () => {
       const config: AIConfig = {
         apiKey: 'valid-key',
         model: 'any-model-name-123',
-        baseURL: 'https://custom.api.com'
+        baseURL: 'https://custom.api.com',
       }
       expect(provider.validateConfig(config)).toBe(true)
     })
@@ -76,39 +76,45 @@ describe('GenericProvider', () => {
     it('should throw error when baseURL is missing', async () => {
       const configWithoutBaseURL: AIConfig = {
         apiKey: 'test-key',
-        model: 'custom-model'
+        model: 'custom-model',
       }
 
-      await expect(provider.sendMessage(
-        [{ role: 'user', content: 'Hello' }],
-        configWithoutBaseURL
-      )).rejects.toThrow('Base URL is required for generic provider')
+      await expect(
+        provider.sendMessage(
+          [{ role: 'user', content: 'Hello' }],
+          configWithoutBaseURL
+        )
+      ).rejects.toThrow('Base URL is required for generic provider')
     })
 
     it('should throw error when apiKey is missing', async () => {
       const configWithoutKey: AIConfig = {
         apiKey: '',
         model: 'custom-model',
-        baseURL: 'https://custom.api.com'
+        baseURL: 'https://custom.api.com',
       }
 
-      await expect(provider.sendMessage(
-        [{ role: 'user', content: 'Hello' }],
-        configWithoutKey
-      )).rejects.toThrow('API Key and model are required')
+      await expect(
+        provider.sendMessage(
+          [{ role: 'user', content: 'Hello' }],
+          configWithoutKey
+        )
+      ).rejects.toThrow('API Key and model are required')
     })
 
     it('should throw error when model is missing', async () => {
       const configWithoutModel: AIConfig = {
         apiKey: 'test-key',
         model: '',
-        baseURL: 'https://custom.api.com'
+        baseURL: 'https://custom.api.com',
       }
 
-      await expect(provider.sendMessage(
-        [{ role: 'user', content: 'Hello' }],
-        configWithoutModel
-      )).rejects.toThrow('API Key and model are required')
+      await expect(
+        provider.sendMessage(
+          [{ role: 'user', content: 'Hello' }],
+          configWithoutModel
+        )
+      ).rejects.toThrow('API Key and model are required')
     })
   })
 
@@ -122,14 +128,14 @@ describe('GenericProvider', () => {
         'llama-2-70b',
         'mistral-7b-instruct',
         'codellama-34b',
-        'custom/my-model:latest'
+        'custom/my-model:latest',
       ]
 
       testModels.forEach(model => {
         const config: AIConfig = {
           apiKey: 'key',
           model,
-          baseURL: 'https://api.example.com'
+          baseURL: 'https://api.example.com',
         }
         expect(provider.validateConfig(config)).toBe(true)
       })
@@ -140,7 +146,7 @@ describe('GenericProvider', () => {
     it('should require baseURL for all operations', () => {
       const configWithoutBase: AIConfig = {
         apiKey: 'key',
-        model: 'model'
+        model: 'model',
       }
       expect(provider.validateConfig(configWithoutBase)).toBe(false)
     })
@@ -149,14 +155,14 @@ describe('GenericProvider', () => {
       const testURLs = [
         'https://api.openrouter.ai/v1',
         'https://api.moonshot.cn/v1',
-        'http://localhost:11434'
+        'http://localhost:11434',
       ]
 
       testURLs.forEach(baseURL => {
         const config: AIConfig = {
           apiKey: 'key',
           model: 'model',
-          baseURL
+          baseURL,
         }
         expect(provider.validateConfig(config)).toBe(true)
       })

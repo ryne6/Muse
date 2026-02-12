@@ -2,7 +2,9 @@ import { MCPService } from '../../../main/db/services/mcpService'
 import { mcpManager } from './manager'
 
 // Helper to parse JSON fields that could be string (old data) or already parsed (new data)
-function parseJsonField<T>(value: T | string | null | undefined): T | undefined {
+function parseJsonField<T>(
+  value: T | string | null | undefined
+): T | undefined {
   if (!value) return undefined
   if (typeof value === 'string') {
     try {
@@ -41,10 +43,13 @@ export async function initializeMCP(): Promise<void> {
     // Connect to all servers
     await mcpManager.connectAll()
 
-    const connectedCount = mcpManager.getServerStates()
+    const connectedCount = mcpManager
+      .getServerStates()
       .filter(s => s.status === 'connected').length
 
-    console.log(`✅ MCP initialized: ${connectedCount}/${servers.length} connected`)
+    console.log(
+      `✅ MCP initialized: ${connectedCount}/${servers.length} connected`
+    )
   } catch (error) {
     console.error('❌ MCP initialization failed:', error)
   }

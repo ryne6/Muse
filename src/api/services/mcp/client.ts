@@ -2,7 +2,12 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { shell } from 'electron'
 import { exec } from 'child_process'
-import type { MCPServerConfig, MCPTool, MCPToolResult, MCPServerStatus } from './types'
+import type {
+  MCPServerConfig,
+  MCPTool,
+  MCPToolResult,
+  MCPServerStatus,
+} from './types'
 
 export class MCPClient {
   private client: Client | null = null
@@ -56,7 +61,7 @@ export class MCPClient {
         { capabilities: {} }
       )
 
-      this.transport.onerror = (error) => {
+      this.transport.onerror = error => {
         console.error(`[MCP:${this.config.name}] Transport error:`, error)
         this._error = error.message
         this._status = 'error'
@@ -73,7 +78,9 @@ export class MCPClient {
       // Discover available tools
       await this.refreshTools()
 
-      console.log(`[MCP:${this.config.name}] Connected, ${this._tools.length} tools available`)
+      console.log(
+        `[MCP:${this.config.name}] Connected, ${this._tools.length} tools available`
+      )
     } catch (error) {
       this._status = 'error'
       this._error = error instanceof Error ? error.message : String(error)
@@ -105,7 +112,7 @@ export class MCPClient {
     }
 
     const result = await this.client.listTools()
-    this._tools = result.tools.map((tool) => ({
+    this._tools = result.tools.map(tool => ({
       name: tool.name,
       description: tool.description,
       inputSchema: {
@@ -119,22 +126,32 @@ export class MCPClient {
     return this._tools
   }
 
-  async callTool(toolName: string, args: Record<string, unknown>): Promise<MCPToolResult> {
+  async callTool(
+    toolName: string,
+    args: Record<string, unknown>
+  ): Promise<MCPToolResult> {
     if (!this.client || this._status !== 'connected') {
       throw new Error('Not connected')
     }
 
-    const result = await this.client.callTool({ name: toolName, arguments: args })
+    const result = await this.client.callTool({
+      name: toolName,
+      arguments: args,
+    })
 
     // Convert MCP result to our format
     const content = 'content' in result ? result.content : []
     return {
-      content: content.map((item) => {
+      content: content.map(item => {
         if (item.type === 'text') {
           return { type: 'text' as const, text: item.text }
         }
         if (item.type === 'image') {
-          return { type: 'image' as const, data: item.data, mimeType: item.mimeType }
+          return {
+            type: 'image' as const,
+            data: item.data,
+            mimeType: item.mimeType,
+          }
         }
         return { type: 'resource' as const }
       }),
@@ -178,7 +195,7 @@ export class MCPClient {
       /feishu\.cn/i,
       /larksuite\.com/i,
     ]
-    return authPatterns.some((pattern) => pattern.test(url))
+    return authPatterns.some(pattern => pattern.test(url))
   }
 
   private openInBrowser(url: string): void {

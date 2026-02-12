@@ -23,8 +23,8 @@ const mockWindowApi = vi.hoisted(() => {
   return {
     workspace: {
       get: vi.fn(async () => ({
-        path: '/test/workspace'
-      }))
+        path: '/test/workspace',
+      })),
     },
     fs: {
       listFiles: vi.fn(async (path: string) => ({
@@ -34,18 +34,18 @@ const mockWindowApi = vi.hoisted(() => {
             path: `${path}/file1.ts`,
             isDirectory: false,
             size: 1024,
-            modifiedTime: Date.now()
+            modifiedTime: Date.now(),
           },
           {
             name: 'folder1',
             path: `${path}/folder1`,
             isDirectory: true,
             size: 0,
-            modifiedTime: Date.now()
-          }
-        ]
-      }))
-    }
+            modifiedTime: Date.now(),
+          },
+        ],
+      })),
+    },
   }
 })
 
@@ -63,16 +63,16 @@ beforeEach(() => {
         path: '/test/workspace/file1.ts',
         isDirectory: false,
         size: 1024,
-        modifiedTime: Date.now()
+        modifiedTime: Date.now(),
       },
       {
         name: 'folder1',
         path: '/test/workspace/folder1',
         isDirectory: true,
         size: 0,
-        modifiedTime: Date.now()
-      }
-    ]
+        modifiedTime: Date.now(),
+      },
+    ],
   })
 
   vi.clearAllMocks()
@@ -93,7 +93,7 @@ vi.mock('../FileTree', () => ({
         </div>
       ))}
     </div>
-  )
+  ),
 }))
 
 describe('FileExplorer', () => {
@@ -140,7 +140,9 @@ describe('FileExplorer', () => {
       render(<FileExplorer />)
 
       await waitFor(() => {
-        expect(mockWindowApi.fs.listFiles).toHaveBeenCalledWith('/test/workspace')
+        expect(mockWindowApi.fs.listFiles).toHaveBeenCalledWith(
+          '/test/workspace'
+        )
       })
     })
 
@@ -160,8 +162,14 @@ describe('FileExplorer', () => {
         await new Promise(resolve => setTimeout(resolve, 100))
         return {
           files: [
-            { name: 'file1.ts', path: '/test/workspace/file1.ts', isDirectory: false, size: 1024, modifiedTime: Date.now() }
-          ]
+            {
+              name: 'file1.ts',
+              path: '/test/workspace/file1.ts',
+              isDirectory: false,
+              size: 1024,
+              modifiedTime: Date.now(),
+            },
+          ],
         }
       })
 
@@ -195,7 +203,9 @@ describe('FileExplorer', () => {
 
       // Should call listFiles for the folder
       await waitFor(() => {
-        expect(mockWindowApi.fs.listFiles).toHaveBeenCalledWith('/test/workspace/folder1')
+        expect(mockWindowApi.fs.listFiles).toHaveBeenCalledWith(
+          '/test/workspace/folder1'
+        )
       })
     })
   })
@@ -239,7 +249,9 @@ describe('FileExplorer', () => {
       })
 
       // Find refresh button by aria-label
-      const refreshButton = screen.getByRole('button', { name: 'Refresh file tree' })
+      const refreshButton = screen.getByRole('button', {
+        name: 'Refresh file tree',
+      })
       await user.click(refreshButton)
 
       // Should call listFiles again
@@ -254,8 +266,14 @@ describe('FileExplorer', () => {
         await new Promise(resolve => setTimeout(resolve, 100))
         return {
           files: [
-            { name: 'file1.ts', path: '/test/workspace/file1.ts', isDirectory: false, size: 1024, modifiedTime: Date.now() }
-          ]
+            {
+              name: 'file1.ts',
+              path: '/test/workspace/file1.ts',
+              isDirectory: false,
+              size: 1024,
+              modifiedTime: Date.now(),
+            },
+          ],
         }
       })
 
@@ -263,11 +281,15 @@ describe('FileExplorer', () => {
 
       // Wait for workspace to load and header to render
       await waitFor(() => {
-        expect(screen.getByRole('button', { name: 'Refresh file tree' })).toBeInTheDocument()
+        expect(
+          screen.getByRole('button', { name: 'Refresh file tree' })
+        ).toBeInTheDocument()
       })
 
       // Button should be disabled during loading
-      const refreshButton = screen.getByRole('button', { name: 'Refresh file tree' })
+      const refreshButton = screen.getByRole('button', {
+        name: 'Refresh file tree',
+      })
       expect(refreshButton).toBeDisabled()
 
       // Wait for loading to complete

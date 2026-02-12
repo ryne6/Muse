@@ -8,7 +8,7 @@ interface WorkspaceStore {
   clearWorkspace: () => Promise<void>
 }
 
-export const useWorkspaceStore = create<WorkspaceStore>((set) => ({
+export const useWorkspaceStore = create<WorkspaceStore>(set => ({
   workspacePath: null,
   isSelecting: false,
   loadWorkspace: async () => {

@@ -36,7 +36,10 @@ export class SearchService {
 
     // Build conversation filter
     let conversationFilter = ''
-    if (query.filters?.conversationIds && query.filters.conversationIds.length > 0) {
+    if (
+      query.filters?.conversationIds &&
+      query.filters.conversationIds.length > 0
+    ) {
       const ids = query.filters.conversationIds.map(id => `'${id}'`).join(',')
       conversationFilter = `AND conversation_id IN (${ids})`
     }

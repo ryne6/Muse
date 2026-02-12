@@ -4,10 +4,12 @@ import { useConversationStore } from '@/stores/conversationStore'
 import { useSettingsStore } from '@/stores/settingsStore'
 
 export function MigrationHandler() {
-  const [migrationStatus, setMigrationStatus] = useState<'idle' | 'checking' | 'migrating' | 'done'>('idle')
-  const conversations = useConversationStore((state) => state.conversations)
-  const currentProvider = useSettingsStore((state) => state.currentProvider)
-  const providers = useSettingsStore((state) => state.providers)
+  const [migrationStatus, setMigrationStatus] = useState<
+    'idle' | 'checking' | 'migrating' | 'done'
+  >('idle')
+  const conversations = useConversationStore(state => state.conversations)
+  const currentProvider = useSettingsStore(state => state.currentProvider)
+  const providers = useSettingsStore(state => state.providers)
 
   useEffect(() => {
     checkAndMigrate()
@@ -21,7 +23,8 @@ export function MigrationHandler() {
       const stats = await dbClient.migration.verify()
 
       // If database is empty but localStorage has data, migrate
-      const hasLocalStorageData = conversations.length > 0 || Object.keys(providers).length > 0
+      const hasLocalStorageData =
+        conversations.length > 0 || Object.keys(providers).length > 0
 
       if (stats.conversations === 0 && hasLocalStorageData) {
         console.log('📦 Detected localStorage data, starting migration...')
@@ -68,7 +71,8 @@ export function MigrationHandler() {
         <div className="bg-card p-6 rounded-lg shadow-lg max-w-md">
           <h2 className="text-xl font-semibold mb-4">Migrating Data</h2>
           <p className="text-muted-foreground mb-4">
-            Upgrading your data to the new database format. This may take a moment...
+            Upgrading your data to the new database format. This may take a
+            moment...
           </p>
           <div className="flex items-center gap-2">
             <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full"></div>

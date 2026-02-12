@@ -5,15 +5,17 @@ import type { AIConfig } from '../../../../../shared/types/ai'
 // Mock tool executor
 vi.mock('../../tools/executor', () => ({
   ToolExecutor: vi.fn().mockImplementation(() => ({
-    execute: vi.fn().mockResolvedValue('Tool result')
-  }))
+    execute: vi.fn().mockResolvedValue('Tool result'),
+  })),
 }))
 
 // Mock getAllTools
 vi.mock('../../tools/definitions', () => ({
-  getAllTools: vi.fn().mockReturnValue([
-    { name: 'test_tool', description: 'Test', input_schema: {} }
-  ])
+  getAllTools: vi
+    .fn()
+    .mockReturnValue([
+      { name: 'test_tool', description: 'Test', input_schema: {} },
+    ]),
 }))
 
 describe('OpenAIProvider', () => {
@@ -45,7 +47,7 @@ describe('OpenAIProvider', () => {
     it('should return true for valid config', () => {
       const config: AIConfig = {
         apiKey: 'sk-valid-key',
-        model: 'gpt-4'
+        model: 'gpt-4',
       }
       expect(provider.validateConfig(config)).toBe(true)
     })
@@ -54,7 +56,7 @@ describe('OpenAIProvider', () => {
       provider.supportedModels.forEach(model => {
         const config: AIConfig = {
           apiKey: 'sk-valid-key',
-          model
+          model,
         }
         expect(provider.validateConfig(config)).toBe(true)
       })
@@ -63,7 +65,7 @@ describe('OpenAIProvider', () => {
     it('should return false for empty apiKey', () => {
       const config: AIConfig = {
         apiKey: '',
-        model: 'gpt-4'
+        model: 'gpt-4',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -71,7 +73,7 @@ describe('OpenAIProvider', () => {
     it('should return false for whitespace-only apiKey', () => {
       const config: AIConfig = {
         apiKey: '   ',
-        model: 'gpt-4'
+        model: 'gpt-4',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -79,7 +81,7 @@ describe('OpenAIProvider', () => {
     it('should return false for unsupported model', () => {
       const config: AIConfig = {
         apiKey: 'sk-valid-key',
-        model: 'invalid-model'
+        model: 'invalid-model',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -87,14 +89,14 @@ describe('OpenAIProvider', () => {
     it('should return false for empty model', () => {
       const config: AIConfig = {
         apiKey: 'sk-valid-key',
-        model: ''
+        model: '',
       }
       expect(provider.validateConfig(config)).toBe(false)
     })
 
     it('should return false for missing model', () => {
       const config = {
-        apiKey: 'sk-valid-key'
+        apiKey: 'sk-valid-key',
       } as AIConfig
       expect(provider.validateConfig(config)).toBe(false)
     })
@@ -104,25 +106,29 @@ describe('OpenAIProvider', () => {
     it('should throw error for invalid config before calling API', async () => {
       const invalidConfig: AIConfig = {
         apiKey: '',
-        model: 'gpt-4'
+        model: 'gpt-4',
       }
 
-      await expect(provider.sendMessage(
-        [{ role: 'user', content: 'Hello' }],
-        invalidConfig
-      )).rejects.toThrow('Invalid configuration')
+      await expect(
+        provider.sendMessage(
+          [{ role: 'user', content: 'Hello' }],
+          invalidConfig
+        )
+      ).rejects.toThrow('Invalid configuration')
     })
 
     it('should throw error for unsupported model', async () => {
       const invalidConfig: AIConfig = {
         apiKey: 'sk-test',
-        model: 'unsupported-model'
+        model: 'unsupported-model',
       }
 
-      await expect(provider.sendMessage(
-        [{ role: 'user', content: 'Hello' }],
-        invalidConfig
-      )).rejects.toThrow('Invalid configuration')
+      await expect(
+        provider.sendMessage(
+          [{ role: 'user', content: 'Hello' }],
+          invalidConfig
+        )
+      ).rejects.toThrow('Invalid configuration')
     })
   })
 
@@ -139,12 +145,16 @@ describe('OpenAIProvider', () => {
     })
 
     it('should have GPT-4 variants', () => {
-      const gpt4Models = provider.supportedModels.filter(m => m.includes('gpt-4'))
+      const gpt4Models = provider.supportedModels.filter(m =>
+        m.includes('gpt-4')
+      )
       expect(gpt4Models.length).toBeGreaterThan(0)
     })
 
     it('should have GPT-3.5 variants', () => {
-      const gpt35Models = provider.supportedModels.filter(m => m.includes('gpt-3.5'))
+      const gpt35Models = provider.supportedModels.filter(m =>
+        m.includes('gpt-3.5')
+      )
       expect(gpt35Models.length).toBeGreaterThan(0)
     })
   })

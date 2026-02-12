@@ -12,18 +12,24 @@ const SIZES = {
   lg: 'w-10 h-10',
 }
 
-export function ProviderLogo({ type, size = 'md', className }: ProviderLogoProps) {
+export function ProviderLogo({
+  type,
+  size = 'md',
+  className,
+}: ProviderLogoProps) {
   const sizeClass = SIZES[size]
 
   const logoPath = `/src/assets/providers/${type}.svg`
 
   return (
-    <div className={cn('flex items-center justify-center', sizeClass, className)}>
+    <div
+      className={cn('flex items-center justify-center', sizeClass, className)}
+    >
       <img
         src={logoPath}
         alt={`${type} logo`}
         className="w-full h-full object-contain"
-        onError={(e) => {
+        onError={e => {
           // Fallback to generic icon on error
           const target = e.target as HTMLImageElement
           target.style.display = 'none'

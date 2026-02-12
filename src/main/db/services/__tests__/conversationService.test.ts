@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { createTestDatabase, clearDatabase } from '../../../../../tests/setup/test-db'
+import {
+  createTestDatabase,
+  clearDatabase,
+} from '../../../../../tests/setup/test-db'
 import type { Database } from 'better-sqlite3'
 import * as schema from '../../schema'
 
@@ -20,13 +23,14 @@ const { getTestDb, setTestDb } = vi.hoisted(() => {
     getTestDb: () => testDb,
     setTestDb: (db: any) => {
       testDb = db
-    }
+    },
   }
 })
 
 // Mock the database module with hoisted functions
 vi.mock('../../index', async () => {
-  const actualSchema = await vi.importActual<typeof import('../../schema')>('../../schema')
+  const actualSchema =
+    await vi.importActual<typeof import('../../schema')>('../../schema')
   return {
     getDatabase: () => {
       const db = getTestDb()
@@ -35,13 +39,13 @@ vi.mock('../../index', async () => {
       }
       return db
     },
-    schema: actualSchema
+    schema: actualSchema,
   }
 })
 
 // Mock generateId
 vi.mock('../../utils/idGenerator', () => ({
-  generateId: vi.fn(() => `test-id-${Date.now()}`)
+  generateId: vi.fn(() => `test-id-${Date.now()}`),
 }))
 
 // Import ConversationService after mocking
@@ -83,7 +87,7 @@ describe('ConversationService', () => {
       const customData = {
         title: 'Custom Title',
         provider: 'openai',
-        model: 'gpt-4'
+        model: 'gpt-4',
       }
 
       const created = await ConversationService.create(customData)
@@ -112,7 +116,9 @@ describe('ConversationService', () => {
     })
 
     it('should get conversation by ID', async () => {
-      const created = await ConversationService.create({ title: 'Test Conversation' })
+      const created = await ConversationService.create({
+        title: 'Test Conversation',
+      })
       const retrieved = await ConversationService.getById(created.id)
 
       expect(retrieved).not.toBeNull()
@@ -121,7 +127,9 @@ describe('ConversationService', () => {
     })
 
     it('should update conversation', async () => {
-      const created = await ConversationService.create({ title: 'Original Title' })
+      const created = await ConversationService.create({
+        title: 'Original Title',
+      })
       await ConversationService.update(created.id, { title: 'Updated Title' })
 
       const updated = await ConversationService.getById(created.id)
@@ -157,7 +165,9 @@ describe('ConversationService', () => {
 
   describe('getWithMessages 测试', () => {
     it('should get conversation with its messages', async () => {
-      const conversation = await ConversationService.create({ title: 'Test Conv' })
+      const conversation = await ConversationService.create({
+        title: 'Test Conv',
+      })
 
       // Create messages using raw SQL
       testDb.sqlite.exec(`
@@ -177,7 +187,8 @@ describe('ConversationService', () => {
     })
 
     it('should return null for non-existent conversation', async () => {
-      const result = await ConversationService.getWithMessages('non-existent-id')
+      const result =
+        await ConversationService.getWithMessages('non-existent-id')
       expect(result).toBeNull()
     })
   })
@@ -193,7 +204,11 @@ describe('ConversationService', () => {
 
     it('should update provider and model', async () => {
       const created = await ConversationService.create({})
-      await ConversationService.updateProviderModel(created.id, 'openai', 'gpt-4')
+      await ConversationService.updateProviderModel(
+        created.id,
+        'openai',
+        'gpt-4'
+      )
 
       const updated = await ConversationService.getById(created.id)
       expect(updated!.provider).toBe('openai')
@@ -204,7 +219,10 @@ describe('ConversationService', () => {
   describe('updateSystemPrompt 测试', () => {
     it('should set system prompt for conversation', async () => {
       const created = await ConversationService.create({ title: 'Test' })
-      await ConversationService.updateSystemPrompt(created.id, 'You are a helpful assistant.')
+      await ConversationService.updateSystemPrompt(
+        created.id,
+        'You are a helpful assistant.'
+      )
 
       const updated = await ConversationService.getById(created.id)
       expect(updated!.systemPrompt).toBe('You are a helpful assistant.')
@@ -249,7 +267,9 @@ describe('ConversationService', () => {
 
   describe('级联删除测试', () => {
     it('should cascade delete messages when deleting conversation', async () => {
-      const conversation = await ConversationService.create({ title: 'Test Conv' })
+      const conversation = await ConversationService.create({
+        title: 'Test Conv',
+      })
 
       // Create messages using raw SQL
       testDb.sqlite.exec(`
@@ -260,22 +280,24 @@ describe('ConversationService', () => {
       `)
 
       // Verify messages exist
-      const messagesBefore = testDb.sqlite.prepare(
-        'SELECT * FROM messages WHERE conversation_id = ?'
-      ).all(conversation.id)
+      const messagesBefore = testDb.sqlite
+        .prepare('SELECT * FROM messages WHERE conversation_id = ?')
+        .all(conversation.id)
       expect(messagesBefore).toHaveLength(2)
 
       // Delete the conversation
       await ConversationService.delete(conversation.id)
 
       // Verify conversation is deleted
-      const deletedConversation = await ConversationService.getById(conversation.id)
+      const deletedConversation = await ConversationService.getById(
+        conversation.id
+      )
       expect(deletedConversation).toBeNull()
 
       // Verify messages are also deleted (cascade)
-      const messagesAfter = testDb.sqlite.prepare(
-        'SELECT * FROM messages WHERE conversation_id = ?'
-      ).all(conversation.id)
+      const messagesAfter = testDb.sqlite
+        .prepare('SELECT * FROM messages WHERE conversation_id = ?')
+        .all(conversation.id)
       expect(messagesAfter).toHaveLength(0)
     })
   })

@@ -13,7 +13,7 @@ describe('Tool Definitions', () => {
     })
 
     it('should include expected tool names', () => {
-      const names = fileSystemTools.map((tool) => tool.name)
+      const names = fileSystemTools.map(tool => tool.name)
       expect(names).toEqual([
         'Bash',
         'Read',
@@ -35,7 +35,7 @@ describe('Tool Definitions', () => {
     })
 
     it('each tool should have required fields', () => {
-      fileSystemTools.forEach((tool) => {
+      fileSystemTools.forEach(tool => {
         expect(tool).toHaveProperty('name')
         expect(tool).toHaveProperty('description')
         expect(tool).toHaveProperty('input_schema')
@@ -46,14 +46,14 @@ describe('Tool Definitions', () => {
     })
 
     it('each input_schema should have type object', () => {
-      fileSystemTools.forEach((tool) => {
+      fileSystemTools.forEach(tool => {
         expect(tool.input_schema.type).toBe('object')
       })
     })
   })
 
   describe('Bash tool', () => {
-    const bashTool = fileSystemTools.find((t) => t.name === 'Bash')
+    const bashTool = fileSystemTools.find(t => t.name === 'Bash')
 
     it('should exist', () => {
       expect(bashTool).toBeDefined()
@@ -70,7 +70,7 @@ describe('Tool Definitions', () => {
   })
 
   describe('Read tool', () => {
-    const readTool = fileSystemTools.find((t) => t.name === 'Read')
+    const readTool = fileSystemTools.find(t => t.name === 'Read')
 
     it('should exist', () => {
       expect(readTool).toBeDefined()
@@ -82,7 +82,7 @@ describe('Tool Definitions', () => {
   })
 
   describe('Write tool', () => {
-    const writeTool = fileSystemTools.find((t) => t.name === 'Write')
+    const writeTool = fileSystemTools.find(t => t.name === 'Write')
 
     it('should exist', () => {
       expect(writeTool).toBeDefined()
@@ -95,7 +95,7 @@ describe('Tool Definitions', () => {
   })
 
   describe('Edit tool', () => {
-    const editTool = fileSystemTools.find((t) => t.name === 'Edit')
+    const editTool = fileSystemTools.find(t => t.name === 'Edit')
 
     it('should exist', () => {
       expect(editTool).toBeDefined()
@@ -109,7 +109,7 @@ describe('Tool Definitions', () => {
   })
 
   describe('LS tool', () => {
-    const lsTool = fileSystemTools.find((t) => t.name === 'LS')
+    const lsTool = fileSystemTools.find(t => t.name === 'LS')
 
     it('should exist', () => {
       expect(lsTool).toBeDefined()
@@ -126,7 +126,7 @@ describe('Tool Definitions', () => {
   })
 
   describe('TodoWrite tool', () => {
-    const todoTool = fileSystemTools.find((t) => t.name === 'TodoWrite')
+    const todoTool = fileSystemTools.find(t => t.name === 'TodoWrite')
 
     it('should exist', () => {
       expect(todoTool).toBeDefined()

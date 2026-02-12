@@ -1,15 +1,20 @@
 import { BaseAIProvider } from './base'
-import type { AIMessage, AIConfig, AIStreamChunk, AIRequestOptions } from '../../../../shared/types/ai'
+import type {
+  AIMessage,
+  AIConfig,
+  AIStreamChunk,
+  AIRequestOptions,
+} from '../../../../shared/types/ai'
 import { getStrategy } from './strategies'
 import { ToolExecutor } from '../tools/executor'
 
 // Generic OpenAI-compatible provider for Moonshot, OpenRouter, and custom APIs
 export class GenericProvider extends BaseAIProvider {
   readonly name = 'generic'
-  readonly supportedModels: string[] = []  // Dynamic models
+  readonly supportedModels: string[] = [] // Dynamic models
 
   getDefaultModel(): string {
-    return ''  // Must be specified in config
+    return '' // Must be specified in config
   }
 
   async sendMessage(
@@ -28,7 +33,12 @@ export class GenericProvider extends BaseAIProvider {
 
     try {
       if (onChunk) {
-        return await this.streamResponseWithTools(messages, config, onChunk, options)
+        return await this.streamResponseWithTools(
+          messages,
+          config,
+          onChunk,
+          options
+        )
       } else {
         return await this.simpleResponseWithTools(messages, config, options)
       }
@@ -60,14 +70,19 @@ export class GenericProvider extends BaseAIProvider {
     let totalOutputTokens = 0
 
     while (true) {
-      const requestBody = strategy.buildBody(conversationMessages, config, { stream: true })
+      const requestBody = strategy.buildBody(conversationMessages, config, {
+        stream: true,
+      })
       const headers = strategy.buildHeaders(config)
 
-      const response = await fetch(`${config.baseURL}${strategy.getEndpoint(config)}`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(requestBody),
-      })
+      const response = await fetch(
+        `${config.baseURL}${strategy.getEndpoint(config)}`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(requestBody),
+        }
+      )
 
       if (!response.ok) {
         const error = await response.text()
@@ -108,7 +123,11 @@ export class GenericProvider extends BaseAIProvider {
                   onChunk({ content: result.content, done: false })
                 }
                 if (result?.thinking) {
-                  onChunk({ content: '', done: false, thinking: result.thinking })
+                  onChunk({
+                    content: '',
+                    done: false,
+                    thinking: result.thinking,
+                  })
                 }
                 if (result?.toolCalls) {
                   for (const tc of result.toolCalls) {
@@ -117,13 +136,15 @@ export class GenericProvider extends BaseAIProvider {
                       toolCalls[index] = {
                         id: tc.id || '',
                         name: tc.function?.name || '',
-                        arguments: tc.function?.arguments || ''
+                        arguments: tc.function?.arguments || '',
                       }
                     } else {
                       // Update existing entry
                       if (tc.id) toolCalls[index].id = tc.id
-                      if (tc.function?.name) toolCalls[index].name = tc.function.name
-                      if (tc.function?.arguments) toolCalls[index].arguments += tc.function.arguments
+                      if (tc.function?.name)
+                        toolCalls[index].name = tc.function.name
+                      if (tc.function?.arguments)
+                        toolCalls[index].arguments += tc.function.arguments
                     }
                   }
                 }
@@ -156,7 +177,11 @@ export class GenericProvider extends BaseAIProvider {
         onChunk({
           content: '',
           done: false,
-          toolCall: { id: toolCall.id, name: toolCall.name, input: functionArgs },
+          toolCall: {
+            id: toolCall.id,
+            name: toolCall.name,
+            input: functionArgs,
+          },
         })
 
         const result = await toolExecutor.execute(toolCall.name, functionArgs, {
@@ -172,7 +197,11 @@ export class GenericProvider extends BaseAIProvider {
         onChunk({
           content: '',
           done: false,
-          toolResult: { toolCallId: toolCall.id, output: result, isError: false },
+          toolResult: {
+            toolCallId: toolCall.id,
+            output: result,
+            isError: false,
+          },
         })
 
         conversationMessages.push({
@@ -182,7 +211,11 @@ export class GenericProvider extends BaseAIProvider {
       }
     }
 
-    onChunk({ content: '', done: true, usage: { inputTokens: totalInputTokens, outputTokens: totalOutputTokens } })
+    onChunk({
+      content: '',
+      done: true,
+      usage: { inputTokens: totalInputTokens, outputTokens: totalOutputTokens },
+    })
     return fullContent
   }
 
@@ -197,14 +230,19 @@ export class GenericProvider extends BaseAIProvider {
     let finalText = ''
 
     while (true) {
-      const requestBody = strategy.buildBody(conversationMessages, config, { stream: false })
+      const requestBody = strategy.buildBody(conversationMessages, config, {
+        stream: false,
+      })
       const headers = strategy.buildHeaders(config)
 
-      const response = await fetch(`${config.baseURL}${strategy.getEndpoint(config)}`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(requestBody),
-      })
+      const response = await fetch(
+        `${config.baseURL}${strategy.getEndpoint(config)}`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(requestBody),
+        }
+      )
 
       if (!response.ok) {
         const error = await response.text()
@@ -224,15 +262,19 @@ export class GenericProvider extends BaseAIProvider {
 
       for (const toolCall of toolCalls) {
         const functionArgs = JSON.parse(toolCall.function?.arguments || '{}')
-        const toolResult = await toolExecutor.execute(toolCall.function?.name, functionArgs, {
-          toolCallId: toolCall.id,
-          toolPermissions: options?.toolPermissions,
-          allowOnceTools: options?.allowOnceTools,
-          sessionApprovedTools: options?.sessionApprovedTools
-            ? new Set(options.sessionApprovedTools)
-            : undefined,
-          permissionRules: options?.permissionRules,
-        })
+        const toolResult = await toolExecutor.execute(
+          toolCall.function?.name,
+          functionArgs,
+          {
+            toolCallId: toolCall.id,
+            toolPermissions: options?.toolPermissions,
+            allowOnceTools: options?.allowOnceTools,
+            sessionApprovedTools: options?.sessionApprovedTools
+              ? new Set(options.sessionApprovedTools)
+              : undefined,
+            permissionRules: options?.permissionRules,
+          }
+        )
         conversationMessages.push({
           role: 'user',
           content: `Tool ${toolCall.function?.name} result: ${toolResult}`,

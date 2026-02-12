@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // Use vi.hoisted to define mocks before hoisting
 const { mockPragma, mockExec, MockDatabase } = vi.hoisted(() => {
-  const mockPragma = vi.fn().mockReturnValue([])  // Return empty array for schema migrations
+  const mockPragma = vi.fn().mockReturnValue([]) // Return empty array for schema migrations
   const mockExec = vi.fn()
   // Create a proper constructor function
   function MockDatabase() {
@@ -14,22 +14,22 @@ const { mockPragma, mockExec, MockDatabase } = vi.hoisted(() => {
 // Mock electron
 vi.mock('electron', () => ({
   app: {
-    getPath: vi.fn(() => '/mock/user/data')
-  }
+    getPath: vi.fn(() => '/mock/user/data'),
+  },
 }))
 
 // Mock better-sqlite3 as a constructor
 vi.mock('better-sqlite3', () => ({
-  default: MockDatabase
+  default: MockDatabase,
 }))
 
 // Mock drizzle-orm
 vi.mock('drizzle-orm/better-sqlite3', () => ({
-  drizzle: vi.fn(() => ({ mockDb: true }))
+  drizzle: vi.fn(() => ({ mockDb: true })),
 }))
 
 vi.mock('drizzle-orm/better-sqlite3/migrator', () => ({
-  migrate: vi.fn()
+  migrate: vi.fn(),
 }))
 
 // Import after mocks

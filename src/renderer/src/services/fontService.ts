@@ -11,17 +11,19 @@ export async function getSystemFonts(): Promise<string[]> {
   ]
 
   try {
-    const anyWindow = window as unknown as { queryLocalFonts?: () => Promise<Array<{ family: string }>> }
+    const anyWindow = window as unknown as {
+      queryLocalFonts?: () => Promise<Array<{ family: string }>>
+    }
     if (!anyWindow.queryLocalFonts) {
       return fallbackFonts
     }
 
     const fonts = await anyWindow.queryLocalFonts()
-    const families = fonts
-      .map((font) => font.family)
-      .filter(Boolean)
+    const families = fonts.map(font => font.family).filter(Boolean)
 
-    return Array.from(new Set([...families, ...fallbackFonts])).sort((a, b) => a.localeCompare(b))
+    return Array.from(new Set([...families, ...fallbackFonts])).sort((a, b) =>
+      a.localeCompare(b)
+    )
   } catch {
     return fallbackFonts
   }

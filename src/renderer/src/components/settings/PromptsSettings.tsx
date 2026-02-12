@@ -21,8 +21,8 @@ export function PromptsSettings() {
   const [presetName, setPresetName] = useState('')
   const [presetContent, setPresetContent] = useState('')
 
-  const globalSystemPrompt = useSettingsStore((s) => s.globalSystemPrompt)
-  const setGlobalSystemPrompt = useSettingsStore((s) => s.setGlobalSystemPrompt)
+  const globalSystemPrompt = useSettingsStore(s => s.globalSystemPrompt)
+  const setGlobalSystemPrompt = useSettingsStore(s => s.setGlobalSystemPrompt)
 
   const loadPresets = useCallback(async () => {
     try {
@@ -39,7 +39,7 @@ export function PromptsSettings() {
 
   const handleSelectPreset = (presetId: string) => {
     if (presetId === '__custom__') return
-    const preset = presets.find((p) => p.id === presetId)
+    const preset = presets.find(p => p.id === presetId)
     if (preset) {
       setGlobalSystemPrompt(preset.content)
       notify.success(`Applied preset: ${preset.name}`)
@@ -109,7 +109,7 @@ export function PromptsSettings() {
           {presets.length > 0 && (
             <Dropdown
               menu={{
-                items: presets.map((preset) => ({
+                items: presets.map(preset => ({
                   key: preset.id,
                   label: preset.name,
                   onClick: () => handleSelectPreset(preset.id),
@@ -124,12 +124,13 @@ export function PromptsSettings() {
         </div>
         <textarea
           value={globalSystemPrompt}
-          onChange={(e) => setGlobalSystemPrompt(e.target.value)}
+          onChange={e => setGlobalSystemPrompt(e.target.value)}
           placeholder="Enter custom instructions that will be added to all conversations..."
           className="w-full min-h-[120px] p-3 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--bg-main))] resize-y focus:outline-none focus:ring-2 focus:ring-primary"
         />
         <p className="text-xs text-muted-foreground">
-          This prompt will be appended to the built-in system prompt for all conversations.
+          This prompt will be appended to the built-in system prompt for all
+          conversations.
         </p>
       </div>
 
@@ -151,7 +152,7 @@ export function PromptsSettings() {
           </div>
         ) : (
           <div className="space-y-2">
-            {presets.map((preset) => (
+            {presets.map(preset => (
               <div
                 key={preset.id}
                 className="flex items-center justify-between p-3 rounded-lg border bg-background"
@@ -207,7 +208,7 @@ export function PromptsSettings() {
             <label className="text-sm font-medium">Name</label>
             <Input
               value={presetName}
-              onChange={(e) => setPresetName(e.target.value)}
+              onChange={e => setPresetName(e.target.value)}
               placeholder="e.g., React Expert"
             />
           </div>
@@ -215,7 +216,7 @@ export function PromptsSettings() {
             <label className="text-sm font-medium">Content</label>
             <textarea
               value={presetContent}
-              onChange={(e) => setPresetContent(e.target.value)}
+              onChange={e => setPresetContent(e.target.value)}
               placeholder="Enter the system prompt content..."
               className="w-full min-h-[150px] p-3 rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--bg-main))] resize-y focus:outline-none focus:ring-2 focus:ring-primary"
             />

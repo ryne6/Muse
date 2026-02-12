@@ -34,7 +34,9 @@ export interface AIMessage {
 /**
  * Helper to check if content is multimodal
  */
-export function isMultimodalContent(content: string | MessageContent[]): content is MessageContent[] {
+export function isMultimodalContent(
+  content: string | MessageContent[]
+): content is MessageContent[] {
   return Array.isArray(content)
 }
 
@@ -47,7 +49,7 @@ export function getTextContent(content: string | MessageContent[]): string {
   }
   return content
     .filter((c): c is TextContent => c.type === 'text')
-    .map((c) => c.text)
+    .map(c => c.text)
     .join('')
 }
 

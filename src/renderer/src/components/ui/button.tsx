@@ -3,7 +3,13 @@ import { Button as LobeButton } from '@lobehub/ui'
 import { cn } from '@/utils/cn'
 
 // Map shadcn variants to Lobe UI variants
-type ShadcnVariant = 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
+type ShadcnVariant =
+  | 'default'
+  | 'destructive'
+  | 'outline'
+  | 'secondary'
+  | 'ghost'
+  | 'link'
 type ShadcnSize = 'default' | 'sm' | 'lg' | 'icon'
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -14,7 +20,10 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'default', size = 'default', children, ...props }, ref) => {
+  (
+    { className, variant = 'default', size = 'default', children, ...props },
+    ref
+  ) => {
     // Size classes for Tailwind (Lobe UI uses different sizing)
     const sizeClasses = {
       default: 'h-9 px-4 py-2',

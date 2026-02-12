@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 // Mock uuid
 vi.mock('uuid', () => ({
-  v4: vi.fn(() => 'mock-uuid-123')
+  v4: vi.fn(() => 'mock-uuid-123'),
 }))
 
 // Use vi.hoisted to define mock before vi.mock hoisting
@@ -11,15 +11,15 @@ const mockDbClient = vi.hoisted(() => ({
     getAll: vi.fn(),
     create: vi.fn(),
     delete: vi.fn(),
-    update: vi.fn()
+    update: vi.fn(),
   },
   messages: {
-    getAllWithTools: vi.fn()
-  }
+    getAllWithTools: vi.fn(),
+  },
 }))
 
 vi.mock('@/services/dbClient', () => ({
-  dbClient: mockDbClient
+  dbClient: mockDbClient,
 }))
 
 import { useConversationStore } from '../conversationStore'
@@ -33,7 +33,7 @@ describe('ConversationStore', () => {
       currentConversationId: null,
       isLoading: false,
       loadedConversationIds: new Set<string>(),
-      loadingConversationId: null
+      loadingConversationId: null,
     })
   })
 
@@ -49,7 +49,12 @@ describe('ConversationStore', () => {
   describe('loadConversations', () => {
     it('should load conversations from database', async () => {
       const mockConversations = [
-        { id: 'conv-1', title: 'Chat 1', createdAt: new Date(), updatedAt: new Date() }
+        {
+          id: 'conv-1',
+          title: 'Chat 1',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
       ]
 
       mockDbClient.conversations.getAll.mockResolvedValue(mockConversations)
@@ -59,13 +64,15 @@ describe('ConversationStore', () => {
       expect(mockDbClient.conversations.getAll).toHaveBeenCalled()
       expect(mockDbClient.messages.getAllWithTools).not.toHaveBeenCalled()
       expect(useConversationStore.getState().conversations).toHaveLength(1)
-      expect(useConversationStore.getState().conversations[0]?.messages).toEqual([])
+      expect(
+        useConversationStore.getState().conversations[0]?.messages
+      ).toEqual([])
       expect(useConversationStore.getState().isLoading).toBe(false)
     })
 
     it('should set loading state during load', async () => {
       const loadingStates: boolean[] = []
-      const unsubscribe = useConversationStore.subscribe((state) => {
+      const unsubscribe = useConversationStore.subscribe(state => {
         loadingStates.push(state.isLoading)
       })
 
@@ -94,7 +101,9 @@ describe('ConversationStore', () => {
     it('should create a new conversation', async () => {
       mockDbClient.conversations.create.mockResolvedValue(undefined)
 
-      const result = await useConversationStore.getState().createConversation('Test Chat')
+      const result = await useConversationStore
+        .getState()
+        .createConversation('Test Chat')
 
       expect(result.title).toBe('Test Chat')
       expect(result.messages).toEqual([])
@@ -124,10 +133,22 @@ describe('ConversationStore', () => {
     beforeEach(() => {
       useConversationStore.setState({
         conversations: [
-          { id: 'conv-1', title: 'Chat 1', createdAt: 0, updatedAt: 0, messages: [] },
-          { id: 'conv-2', title: 'Chat 2', createdAt: 0, updatedAt: 0, messages: [] }
+          {
+            id: 'conv-1',
+            title: 'Chat 1',
+            createdAt: 0,
+            updatedAt: 0,
+            messages: [],
+          },
+          {
+            id: 'conv-2',
+            title: 'Chat 2',
+            createdAt: 0,
+            updatedAt: 0,
+            messages: [],
+          },
         ],
-        currentConversationId: 'conv-1'
+        currentConversationId: 'conv-1',
       })
     })
 
@@ -145,13 +166,23 @@ describe('ConversationStore', () => {
 
       await useConversationStore.getState().deleteConversation('conv-1')
 
-      expect(useConversationStore.getState().currentConversationId).toBe('conv-2')
+      expect(useConversationStore.getState().currentConversationId).toBe(
+        'conv-2'
+      )
     })
 
     it('should set currentId to null when deleting last conversation', async () => {
       useConversationStore.setState({
-        conversations: [{ id: 'conv-1', title: 'Chat 1', createdAt: 0, updatedAt: 0, messages: [] }],
-        currentConversationId: 'conv-1'
+        conversations: [
+          {
+            id: 'conv-1',
+            title: 'Chat 1',
+            createdAt: 0,
+            updatedAt: 0,
+            messages: [],
+          },
+        ],
+        currentConversationId: 'conv-1',
       })
       mockDbClient.conversations.delete.mockResolvedValue(undefined)
 
@@ -165,19 +196,29 @@ describe('ConversationStore', () => {
     beforeEach(() => {
       useConversationStore.setState({
         conversations: [
-          { id: 'conv-1', title: 'Old Title', createdAt: 0, updatedAt: 0, messages: [] }
-        ]
+          {
+            id: 'conv-1',
+            title: 'Old Title',
+            createdAt: 0,
+            updatedAt: 0,
+            messages: [],
+          },
+        ],
       })
     })
 
     it('should rename conversation', async () => {
       mockDbClient.conversations.update.mockResolvedValue(undefined)
 
-      await useConversationStore.getState().renameConversation('conv-1', 'New Title')
+      await useConversationStore
+        .getState()
+        .renameConversation('conv-1', 'New Title')
 
       const conv = useConversationStore.getState().conversations[0]
       expect(conv.title).toBe('New Title')
-      expect(mockDbClient.conversations.update).toHaveBeenCalledWith('conv-1', { title: 'New Title' })
+      expect(mockDbClient.conversations.update).toHaveBeenCalledWith('conv-1', {
+        title: 'New Title',
+      })
     })
   })
 
@@ -185,7 +226,9 @@ describe('ConversationStore', () => {
     it('should set currentConversationId', () => {
       useConversationStore.getState().loadConversation('conv-123')
 
-      expect(useConversationStore.getState().currentConversationId).toBe('conv-123')
+      expect(useConversationStore.getState().currentConversationId).toBe(
+        'conv-123'
+      )
     })
   })
 
@@ -193,15 +236,25 @@ describe('ConversationStore', () => {
     beforeEach(() => {
       useConversationStore.setState({
         conversations: [
-          { id: 'conv-1', title: 'Chat', createdAt: 0, updatedAt: 0, messages: [] }
-        ]
+          {
+            id: 'conv-1',
+            title: 'Chat',
+            createdAt: 0,
+            updatedAt: 0,
+            messages: [],
+          },
+        ],
       })
     })
 
     it('should update conversation with partial data', () => {
-      useConversationStore.getState().updateConversation('conv-1', { title: 'Updated' })
+      useConversationStore
+        .getState()
+        .updateConversation('conv-1', { title: 'Updated' })
 
-      expect(useConversationStore.getState().conversations[0].title).toBe('Updated')
+      expect(useConversationStore.getState().conversations[0].title).toBe(
+        'Updated'
+      )
     })
   })
 
@@ -209,14 +262,25 @@ describe('ConversationStore', () => {
     beforeEach(() => {
       useConversationStore.setState({
         conversations: [
-          { id: 'conv-1', title: 'Chat', createdAt: 0, updatedAt: 0, messages: [] }
+          {
+            id: 'conv-1',
+            title: 'Chat',
+            createdAt: 0,
+            updatedAt: 0,
+            messages: [],
+          },
         ],
-        currentConversationId: 'conv-1'
+        currentConversationId: 'conv-1',
       })
     })
 
     it('should add message to current conversation', () => {
-      const message = { id: 'msg-1', role: 'user' as const, content: 'Hello', timestamp: Date.now() }
+      const message = {
+        id: 'msg-1',
+        role: 'user' as const,
+        content: 'Hello',
+        timestamp: Date.now(),
+      }
 
       useConversationStore.getState().addMessage(message)
 
@@ -227,11 +291,18 @@ describe('ConversationStore', () => {
 
     it('should not add message if no current conversation', () => {
       useConversationStore.setState({ currentConversationId: null })
-      const message = { id: 'msg-1', role: 'user' as const, content: 'Hello', timestamp: Date.now() }
+      const message = {
+        id: 'msg-1',
+        role: 'user' as const,
+        content: 'Hello',
+        timestamp: Date.now(),
+      }
 
       useConversationStore.getState().addMessage(message)
 
-      expect(useConversationStore.getState().conversations[0].messages).toHaveLength(0)
+      expect(
+        useConversationStore.getState().conversations[0].messages
+      ).toHaveLength(0)
     })
   })
 
@@ -239,9 +310,15 @@ describe('ConversationStore', () => {
     it('should return current conversation', () => {
       useConversationStore.setState({
         conversations: [
-          { id: 'conv-1', title: 'Chat', createdAt: 0, updatedAt: 0, messages: [] }
+          {
+            id: 'conv-1',
+            title: 'Chat',
+            createdAt: 0,
+            updatedAt: 0,
+            messages: [],
+          },
         ],
-        currentConversationId: 'conv-1'
+        currentConversationId: 'conv-1',
       })
 
       const result = useConversationStore.getState().getCurrentConversation()
@@ -265,9 +342,21 @@ describe('ConversationStore', () => {
 
       useConversationStore.setState({
         conversations: [
-          { id: 'conv-1', title: 'Today', createdAt: 0, updatedAt: today + 1000, messages: [] },
-          { id: 'conv-2', title: 'Old', createdAt: 0, updatedAt: today - 40 * 86400000, messages: [] }
-        ]
+          {
+            id: 'conv-1',
+            title: 'Today',
+            createdAt: 0,
+            updatedAt: today + 1000,
+            messages: [],
+          },
+          {
+            id: 'conv-2',
+            title: 'Old',
+            createdAt: 0,
+            updatedAt: today - 40 * 86400000,
+            messages: [],
+          },
+        ],
       })
 
       const result = useConversationStore.getState().getConversationsByDate()

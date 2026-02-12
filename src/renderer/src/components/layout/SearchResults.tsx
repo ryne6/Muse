@@ -23,7 +23,8 @@ const contentTypeLabels: Record<SearchContentType, string> = {
 
 export function SearchResults() {
   const containerRef = useRef<HTMLDivElement>(null)
-  const { results, total, hasMore, isLoading, error, loadMore } = useSearchStore()
+  const { results, total, hasMore, isLoading, error, loadMore } =
+    useSearchStore()
   const { selectConversation } = useConversationStore()
 
   // Infinite scroll
@@ -33,7 +34,11 @@ export function SearchResults() {
 
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = container
-      if (scrollHeight - scrollTop - clientHeight < 100 && hasMore && !isLoading) {
+      if (
+        scrollHeight - scrollTop - clientHeight < 100 &&
+        hasMore &&
+        !isLoading
+      ) {
         loadMore()
       }
     }
@@ -49,9 +54,7 @@ export function SearchResults() {
 
   if (error) {
     return (
-      <div className="p-4 text-center text-destructive text-sm">
-        {error}
-      </div>
+      <div className="p-4 text-center text-destructive text-sm">{error}</div>
     )
   }
 
@@ -60,16 +63,19 @@ export function SearchResults() {
   }
 
   // Group results by conversation
-  const grouped = results.reduce((acc, result) => {
-    if (!acc[result.conversationId]) {
-      acc[result.conversationId] = {
-        title: result.conversationTitle,
-        results: [],
+  const grouped = results.reduce(
+    (acc, result) => {
+      if (!acc[result.conversationId]) {
+        acc[result.conversationId] = {
+          title: result.conversationTitle,
+          results: [],
+        }
       }
-    }
-    acc[result.conversationId].results.push(result)
-    return acc
-  }, {} as Record<string, { title: string; results: SearchResult[] }>)
+      acc[result.conversationId].results.push(result)
+      return acc
+    },
+    {} as Record<string, { title: string; results: SearchResult[] }>
+  )
 
   return (
     <div ref={containerRef} className="max-h-[400px] overflow-y-auto">
@@ -78,11 +84,14 @@ export function SearchResults() {
       </div>
 
       {Object.entries(grouped).map(([convId, group]) => (
-        <div key={convId} className="border-b border-[hsl(var(--border))] last:border-b-0">
+        <div
+          key={convId}
+          className="border-b border-[hsl(var(--border))] last:border-b-0"
+        >
           <div className="px-3 py-2 text-xs text-[hsl(var(--text-muted))] bg-[hsl(var(--surface-3))]">
             {group.title}
           </div>
-          {group.results.map((result) => (
+          {group.results.map(result => (
             <SearchResultItem
               key={result.id}
               result={result}
@@ -92,9 +101,7 @@ export function SearchResults() {
         </div>
       ))}
 
-      {isLoading && (
-        <LoadingInline />
-      )}
+      {isLoading && <LoadingInline />}
     </div>
   )
 }

@@ -112,7 +112,7 @@ describe('AIProviderFactory', () => {
         supportedModels: ['test-model'],
         sendMessage: async () => 'test',
         validateConfig: () => true,
-        getDefaultModel: () => 'test-model'
+        getDefaultModel: () => 'test-model',
       }
 
       AIProviderFactory.registerProvider('test-provider', mockProvider)
@@ -126,7 +126,7 @@ describe('AIProviderFactory', () => {
         supportedModels: ['custom-model'],
         sendMessage: async () => 'custom',
         validateConfig: () => true,
-        getDefaultModel: () => 'custom-model'
+        getDefaultModel: () => 'custom-model',
       }
 
       AIProviderFactory.registerProvider('claude', mockProvider)

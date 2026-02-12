@@ -16,14 +16,14 @@ vi.mock('../../../mcp/manager', () => ({
   mcpManager: {
     isMCPTool: mockIsMCPTool,
     callTool: mockCallTool,
-  }
+  },
 }))
 
 // Mock axios for IPC bridge calls
 vi.mock('axios', () => ({
   default: {
-    post: vi.fn().mockResolvedValue({ data: { content: 'mock content' } })
-  }
+    post: vi.fn().mockResolvedValue({ data: { content: 'mock content' } }),
+  },
 }))
 
 // Import after mocking
@@ -42,10 +42,16 @@ describe('MCP Tool Execution Integration', () => {
     it('should route MCP tools to mcpManager', async () => {
       mockCallTool.mockResolvedValue('MCP result')
 
-      const result = await executor.execute('mcp__server__tool', { arg: 'value' }, { toolPermissions: { allowAll: true } })
+      const result = await executor.execute(
+        'mcp__server__tool',
+        { arg: 'value' },
+        { toolPermissions: { allowAll: true } }
+      )
 
       expect(mockIsMCPTool).toHaveBeenCalledWith('mcp__server__tool')
-      expect(mockCallTool).toHaveBeenCalledWith('mcp__server__tool', { arg: 'value' })
+      expect(mockCallTool).toHaveBeenCalledWith('mcp__server__tool', {
+        arg: 'value',
+      })
       expect(result).toBe('MCP result')
     })
 
@@ -71,7 +77,11 @@ describe('MCP Tool Execution Integration', () => {
     it('should handle unknown tools with error when allowAll', async () => {
       mockIsMCPTool.mockReturnValue(false)
 
-      const result = await executor.execute('UnknownTool', {}, { toolPermissions: { allowAll: true } })
+      const result = await executor.execute(
+        'UnknownTool',
+        {},
+        { toolPermissions: { allowAll: true } }
+      )
 
       expect(result).toContain('Error')
       expect(result).toContain('Unknown tool')
@@ -82,7 +92,11 @@ describe('MCP Tool Execution Integration', () => {
     it('should return successful MCP tool result', async () => {
       mockCallTool.mockResolvedValue('Tool executed successfully')
 
-      const result = await executor.execute('mcp__fs__read', { path: '/test' }, { toolPermissions: { allowAll: true } })
+      const result = await executor.execute(
+        'mcp__fs__read',
+        { path: '/test' },
+        { toolPermissions: { allowAll: true } }
+      )
 
       expect(result).toBe('Tool executed successfully')
     })
@@ -90,7 +104,11 @@ describe('MCP Tool Execution Integration', () => {
     it('should handle MCP tool errors gracefully', async () => {
       mockCallTool.mockRejectedValue(new Error('MCP connection failed'))
 
-      const result = await executor.execute('mcp__fs__read', { path: '/test' }, { toolPermissions: { allowAll: true } })
+      const result = await executor.execute(
+        'mcp__fs__read',
+        { path: '/test' },
+        { toolPermissions: { allowAll: true } }
+      )
 
       expect(result).toBe('Error: MCP connection failed')
     })
@@ -98,7 +116,11 @@ describe('MCP Tool Execution Integration', () => {
     it('should handle MCP tool errors without message', async () => {
       mockCallTool.mockRejectedValue({})
 
-      const result = await executor.execute('mcp__fs__read', { path: '/test' }, { toolPermissions: { allowAll: true } })
+      const result = await executor.execute(
+        'mcp__fs__read',
+        { path: '/test' },
+        { toolPermissions: { allowAll: true } }
+      )
 
       expect(result).toBe('Error: MCP tool execution failed')
     })

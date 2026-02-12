@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { createTestDatabase, clearDatabase } from '../../../../../tests/setup/test-db'
+import {
+  createTestDatabase,
+  clearDatabase,
+} from '../../../../../tests/setup/test-db'
 import type { Database } from 'better-sqlite3'
 
 /**
@@ -18,13 +21,14 @@ const { getTestDb, setTestDb } = vi.hoisted(() => {
     getTestDb: () => testDb,
     setTestDb: (db: any) => {
       testDb = db
-    }
+    },
   }
 })
 
 // Mock the database module with hoisted functions
 vi.mock('../../index', async () => {
-  const actualSchema = await vi.importActual<typeof import('../../schema')>('../../schema')
+  const actualSchema =
+    await vi.importActual<typeof import('../../schema')>('../../schema')
   return {
     getDatabase: () => {
       const db = getTestDb()
@@ -33,14 +37,14 @@ vi.mock('../../index', async () => {
       }
       return db
     },
-    schema: actualSchema
+    schema: actualSchema,
   }
 })
 
 // Mock generateId with counter for uniqueness
 let idCounter = 0
 vi.mock('../../utils/idGenerator', () => ({
-  generateId: vi.fn(() => `test-id-${Date.now()}-${idCounter++}`)
+  generateId: vi.fn(() => `test-id-${Date.now()}-${idCounter++}`),
 }))
 
 // Import PromptPresetService after mocking
@@ -65,7 +69,7 @@ describe('PromptPresetService', () => {
     it('should create a new preset', async () => {
       const presetData = {
         name: 'Code Assistant',
-        content: 'You are a helpful coding assistant.'
+        content: 'You are a helpful coding assistant.',
       }
 
       const created = await PromptPresetService.create(presetData)
@@ -82,7 +86,7 @@ describe('PromptPresetService', () => {
       // Create first preset
       await PromptPresetService.create({
         name: 'Preset 1',
-        content: 'Content 1'
+        content: 'Content 1',
       })
 
       // Wait 1 second to ensure different timestamp (SQLite uses second precision)
@@ -90,7 +94,7 @@ describe('PromptPresetService', () => {
 
       await PromptPresetService.create({
         name: 'Preset 2',
-        content: 'Content 2'
+        content: 'Content 2',
       })
 
       const allPresets = await PromptPresetService.getAll()
@@ -104,7 +108,7 @@ describe('PromptPresetService', () => {
     it('should get preset by ID', async () => {
       const created = await PromptPresetService.create({
         name: 'Test Preset',
-        content: 'Test content'
+        content: 'Test content',
       })
 
       const retrieved = await PromptPresetService.getById(created.id)
@@ -118,11 +122,11 @@ describe('PromptPresetService', () => {
     it('should update preset name', async () => {
       const created = await PromptPresetService.create({
         name: 'Original Name',
-        content: 'Original content'
+        content: 'Original content',
       })
 
       const updated = await PromptPresetService.update(created.id, {
-        name: 'Updated Name'
+        name: 'Updated Name',
       })
 
       expect(updated).not.toBeNull()
@@ -133,11 +137,11 @@ describe('PromptPresetService', () => {
     it('should update preset content', async () => {
       const created = await PromptPresetService.create({
         name: 'Test Preset',
-        content: 'Original content'
+        content: 'Original content',
       })
 
       const updated = await PromptPresetService.update(created.id, {
-        content: 'Updated content'
+        content: 'Updated content',
       })
 
       expect(updated).not.toBeNull()
@@ -148,12 +152,12 @@ describe('PromptPresetService', () => {
     it('should update both name and content', async () => {
       const created = await PromptPresetService.create({
         name: 'Original Name',
-        content: 'Original content'
+        content: 'Original content',
       })
 
       const updated = await PromptPresetService.update(created.id, {
         name: 'New Name',
-        content: 'New content'
+        content: 'New content',
       })
 
       expect(updated).not.toBeNull()
@@ -164,27 +168,29 @@ describe('PromptPresetService', () => {
     it('should update updatedAt timestamp on update', async () => {
       const created = await PromptPresetService.create({
         name: 'Test Preset',
-        content: 'Test content'
+        content: 'Test content',
       })
 
       // Wait 1 second to ensure different timestamp (SQLite uses second precision)
       await new Promise(resolve => setTimeout(resolve, 1100))
 
       const updated = await PromptPresetService.update(created.id, {
-        name: 'Updated Name'
+        name: 'Updated Name',
       })
 
       // Re-fetch to get the stored timestamp
       const refetched = await PromptPresetService.getById(created.id)
 
       // The updatedAt should be different from createdAt after update
-      expect(refetched!.updatedAt.getTime()).toBeGreaterThan(refetched!.createdAt.getTime())
+      expect(refetched!.updatedAt.getTime()).toBeGreaterThan(
+        refetched!.createdAt.getTime()
+      )
     })
 
     it('should delete preset', async () => {
       const created = await PromptPresetService.create({
         name: 'To Delete',
-        content: 'Will be deleted'
+        content: 'Will be deleted',
       })
 
       await PromptPresetService.delete(created.id)
@@ -210,7 +216,7 @@ describe('PromptPresetService', () => {
     it('should create preset with empty content', async () => {
       const created = await PromptPresetService.create({
         name: 'Empty Content',
-        content: ''
+        content: '',
       })
 
       expect(created).toBeDefined()
@@ -221,7 +227,7 @@ describe('PromptPresetService', () => {
       const longContent = 'A'.repeat(10000)
       const created = await PromptPresetService.create({
         name: 'Long Content',
-        content: longContent
+        content: longContent,
       })
 
       expect(created).toBeDefined()
@@ -231,7 +237,7 @@ describe('PromptPresetService', () => {
     it('should handle special characters in name and content', async () => {
       const created = await PromptPresetService.create({
         name: 'Test "Quotes" & <Special>',
-        content: 'Content with\nnewlines\tand\ttabs'
+        content: 'Content with\nnewlines\tand\ttabs',
       })
 
       const retrieved = await PromptPresetService.getById(created.id)

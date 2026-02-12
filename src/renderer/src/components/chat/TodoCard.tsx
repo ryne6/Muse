@@ -1,4 +1,10 @@
-import { CheckCircle2, Circle, Loader2, ListTodo, ChevronUp } from 'lucide-react'
+import {
+  CheckCircle2,
+  Circle,
+  Loader2,
+  ListTodo,
+  ChevronUp,
+} from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { useConversationStore } from '@/stores/conversationStore'
 import { useMemo, useState } from 'react'
@@ -32,8 +38,8 @@ const STATUS_CONFIG = {
 export function TodoPanel() {
   const [isExpanded, setIsExpanded] = useState(true)
 
-  const conversation = useConversationStore((s) => {
-    const conv = s.conversations.find((c) => c.id === s.currentConversationId)
+  const conversation = useConversationStore(s => {
+    const conv = s.conversations.find(c => c.id === s.currentConversationId)
     return conv ?? null
   })
 
@@ -56,22 +62,20 @@ export function TodoPanel() {
 
   if (todos.length === 0) return null
 
-  const doneCount = todos.filter((t) => t.status === 'done').length
+  const doneCount = todos.filter(t => t.status === 'done').length
   const allDone = doneCount === todos.length
 
   return (
     <div className="border-t border-border bg-background px-6 py-3">
       <div
         className="flex items-center gap-2 cursor-pointer select-none"
-        onClick={() => setIsExpanded((prev) => !prev)}
+        onClick={() => setIsExpanded(prev => !prev)}
       >
         <ListTodo className="w-4 h-4 text-muted-foreground" />
         <span className="text-xs text-muted-foreground">
           Tasks: {doneCount}/{todos.length} completed
         </span>
-        {allDone && (
-          <span className="text-xs text-green-500">All done</span>
-        )}
+        {allDone && <span className="text-xs text-green-500">All done</span>}
         <div className="flex-1" />
         <ChevronUp
           className={cn(
@@ -86,16 +90,22 @@ export function TodoPanel() {
       >
         <div className="overflow-hidden">
           <div className="space-y-1 max-h-[200px] overflow-y-auto pt-2">
-            {todos.map((todo) => {
+            {todos.map(todo => {
               const config = STATUS_CONFIG[todo.status] ?? STATUS_CONFIG.todo
               const Icon = config.icon
               return (
                 <div key={todo.id} className="flex items-start gap-2 py-0.5">
-                  <Icon className={cn('w-3.5 h-3.5 mt-0.5 flex-shrink-0', config.className)} />
+                  <Icon
+                    className={cn(
+                      'w-3.5 h-3.5 mt-0.5 flex-shrink-0',
+                      config.className
+                    )}
+                  />
                   <span
                     className={cn(
                       'text-xs',
-                      todo.status === 'done' && 'line-through text-muted-foreground'
+                      todo.status === 'done' &&
+                        'line-through text-muted-foreground'
                     )}
                   >
                     {todo.title}

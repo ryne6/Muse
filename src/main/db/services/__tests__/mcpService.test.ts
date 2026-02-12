@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { createTestDatabase, clearDatabase } from '../../../../../tests/setup/test-db'
+import {
+  createTestDatabase,
+  clearDatabase,
+} from '../../../../../tests/setup/test-db'
 import type { Database } from 'better-sqlite3'
 
 /**
@@ -19,13 +22,14 @@ const { getTestDb, setTestDb } = vi.hoisted(() => {
     getTestDb: () => testDb,
     setTestDb: (db: any) => {
       testDb = db
-    }
+    },
   }
 })
 
 // Mock the database module with hoisted functions
 vi.mock('../../index', async () => {
-  const actualSchema = await vi.importActual<typeof import('../../schema')>('../../schema')
+  const actualSchema =
+    await vi.importActual<typeof import('../../schema')>('../../schema')
   return {
     getDatabase: () => {
       const db = getTestDb()
@@ -34,14 +38,14 @@ vi.mock('../../index', async () => {
       }
       return db
     },
-    schema: actualSchema
+    schema: actualSchema,
   }
 })
 
 // Mock generateId with counter for uniqueness
 let idCounter = 0
 vi.mock('../../utils/idGenerator', () => ({
-  generateId: vi.fn(() => `test-id-${Date.now()}-${idCounter++}`)
+  generateId: vi.fn(() => `test-id-${Date.now()}-${idCounter++}`),
 }))
 
 // Import MCPService after mocking
@@ -68,7 +72,7 @@ describe('MCPService', () => {
         name: 'Test Server',
         command: 'npx',
         args: ['-y', '@modelcontextprotocol/server-filesystem'],
-        env: { HOME: '/home/user' }
+        env: { HOME: '/home/user' },
       }
 
       const created = await MCPService.create(serverData)
@@ -77,7 +81,10 @@ describe('MCPService', () => {
       expect(created!.id).toBeDefined()
       expect(created!.name).toBe('Test Server')
       expect(created!.command).toBe('npx')
-      expect(created!.args).toEqual(['-y', '@modelcontextprotocol/server-filesystem'])
+      expect(created!.args).toEqual([
+        '-y',
+        '@modelcontextprotocol/server-filesystem',
+      ])
       expect(created!.env).toEqual({ HOME: '/home/user' })
       expect(created!.enabled).toBe(true)
     })
@@ -85,12 +92,12 @@ describe('MCPService', () => {
     it('should get all MCP servers', async () => {
       await MCPService.create({
         name: 'Server 1',
-        command: 'cmd1'
+        command: 'cmd1',
       })
 
       await MCPService.create({
         name: 'Server 2',
-        command: 'cmd2'
+        command: 'cmd2',
       })
 
       const allServers = await MCPService.getAll()
@@ -101,7 +108,7 @@ describe('MCPService', () => {
     it('should get MCP server by ID', async () => {
       const created = await MCPService.create({
         name: 'Test Server',
-        command: 'test-cmd'
+        command: 'test-cmd',
       })
 
       const retrieved = await MCPService.getById(created!.id)
@@ -114,7 +121,7 @@ describe('MCPService', () => {
     it('should get MCP server by name', async () => {
       await MCPService.create({
         name: 'Unique Server',
-        command: 'unique-cmd'
+        command: 'unique-cmd',
       })
 
       const retrieved = await MCPService.getByName('Unique Server')
@@ -126,12 +133,12 @@ describe('MCPService', () => {
     it('should update MCP server', async () => {
       const created = await MCPService.create({
         name: 'Original Name',
-        command: 'original-cmd'
+        command: 'original-cmd',
       })
 
       const updated = await MCPService.update(created!.id, {
         name: 'Updated Name',
-        command: 'updated-cmd'
+        command: 'updated-cmd',
       })
 
       expect(updated!.name).toBe('Updated Name')
@@ -143,12 +150,12 @@ describe('MCPService', () => {
         name: 'Test Server',
         command: 'cmd',
         args: ['arg1'],
-        env: { KEY: 'value1' }
+        env: { KEY: 'value1' },
       })
 
       const updated = await MCPService.update(created!.id, {
         args: ['arg1', 'arg2'],
-        env: { KEY: 'value2', NEW_KEY: 'new_value' }
+        env: { KEY: 'value2', NEW_KEY: 'new_value' },
       })
 
       expect(updated!.args).toEqual(['arg1', 'arg2'])
@@ -158,7 +165,7 @@ describe('MCPService', () => {
     it('should delete MCP server', async () => {
       const created = await MCPService.create({
         name: 'To Delete',
-        command: 'delete-cmd'
+        command: 'delete-cmd',
       })
 
       await MCPService.delete(created!.id)
@@ -173,13 +180,13 @@ describe('MCPService', () => {
       await MCPService.create({
         name: 'Enabled Server',
         command: 'cmd1',
-        enabled: true
+        enabled: true,
       })
 
       await MCPService.create({
         name: 'Disabled Server',
         command: 'cmd2',
-        enabled: false
+        enabled: false,
       })
 
       const enabledServers = await MCPService.getEnabled()
@@ -192,7 +199,7 @@ describe('MCPService', () => {
       await MCPService.create({
         name: 'Disabled Server',
         command: 'cmd',
-        enabled: false
+        enabled: false,
       })
 
       const enabledServers = await MCPService.getEnabled()
@@ -206,7 +213,7 @@ describe('MCPService', () => {
       const created = await MCPService.create({
         name: 'Test Server',
         command: 'cmd',
-        enabled: true
+        enabled: true,
       })
 
       const toggled = await MCPService.toggleEnabled(created!.id)
@@ -219,7 +226,7 @@ describe('MCPService', () => {
       const created = await MCPService.create({
         name: 'Test Server',
         command: 'cmd',
-        enabled: false
+        enabled: false,
       })
 
       const toggled = await MCPService.toggleEnabled(created!.id)
@@ -257,7 +264,7 @@ describe('MCPService', () => {
     it('should create server with minimal data', async () => {
       const created = await MCPService.create({
         name: 'Minimal Server',
-        command: 'cmd'
+        command: 'cmd',
       })
 
       expect(created).toBeDefined()
@@ -270,7 +277,7 @@ describe('MCPService', () => {
       const created = await MCPService.create({
         name: 'Empty Args',
         command: 'cmd',
-        args: []
+        args: [],
       })
 
       expect(created!.args).toEqual([])
@@ -280,7 +287,7 @@ describe('MCPService', () => {
       const created = await MCPService.create({
         name: 'Empty Env',
         command: 'cmd',
-        env: {}
+        env: {},
       })
 
       expect(created!.env).toEqual({})

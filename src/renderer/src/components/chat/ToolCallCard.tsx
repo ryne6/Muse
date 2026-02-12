@@ -15,19 +15,27 @@ import {
   ListTodo,
 } from 'lucide-react'
 import type { ToolCall, ToolResult } from '@shared/types/conversation'
-import type { PermissionRequestPayload, ApprovalScope } from '@shared/types/toolPermissions'
+import type {
+  PermissionRequestPayload,
+  ApprovalScope,
+} from '@shared/types/toolPermissions'
 import { TOOL_PERMISSION_PREFIX } from '@shared/types/toolPermissions'
 import { cn } from '@/utils/cn'
 import { ScrollArea } from '@lobehub/ui'
 import { useChatStore } from '@/stores/chatStore'
 import { useConversationStore } from '@/stores/conversationStore'
 
-function parsePermissionRequest(output?: string): PermissionRequestPayload | null {
+function parsePermissionRequest(
+  output?: string
+): PermissionRequestPayload | null {
   if (!output?.startsWith(TOOL_PERMISSION_PREFIX)) return null
   const raw = output.slice(TOOL_PERMISSION_PREFIX.length)
   try {
     const parsed = JSON.parse(raw) as PermissionRequestPayload
-    if (parsed?.kind === 'permission_request' && typeof parsed.toolName === 'string') {
+    if (
+      parsed?.kind === 'permission_request' &&
+      typeof parsed.toolName === 'string'
+    ) {
       return parsed
     }
   } catch {
@@ -54,18 +62,23 @@ type ApprovalStatus = 'idle' | 'loading' | 'approved' | 'approvedAll' | 'denied'
 
 export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
-  const approveToolCall = useChatStore((state) => state.approveToolCall)
-  const denyToolCall = useChatStore((state) => state.denyToolCall)
-  const currentConversationId = useConversationStore((state) => state.currentConversationId)
+  const approveToolCall = useChatStore(state => state.approveToolCall)
+  const denyToolCall = useChatStore(state => state.denyToolCall)
+  const currentConversationId = useConversationStore(
+    state => state.currentConversationId
+  )
 
-  const rawPermissionRequest = toolResult?.output?.startsWith(TOOL_PERMISSION_PREFIX) ?? false
+  const rawPermissionRequest =
+    toolResult?.output?.startsWith(TOOL_PERMISSION_PREFIX) ?? false
   const permissionRequest = parsePermissionRequest(toolResult?.output)
   const isPermissionRequest = rawPermissionRequest
 
   const isTodoWrite = toolCall.name === 'TodoWrite'
 
   // Task 1: Collapse state - permission requests default to expanded, TodoWrite always collapsed
-  const [isCollapsed, setIsCollapsed] = useState(!isPermissionRequest || isTodoWrite)
+  const [isCollapsed, setIsCollapsed] = useState(
+    !isPermissionRequest || isTodoWrite
+  )
   // Task 6: Approval button status
   const [approvalStatus, setApprovalStatus] = useState<ApprovalStatus>('idle')
   // P0: Dropdown and deny input state
@@ -138,7 +151,10 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
       const canApprove = Boolean(currentConversationId)
       const showButtons = Boolean(permissionRequest && canApprove)
       const isLoading = approvalStatus === 'loading'
-      const isActioned = approvalStatus === 'approved' || approvalStatus === 'approvedAll' || approvalStatus === 'denied'
+      const isActioned =
+        approvalStatus === 'approved' ||
+        approvalStatus === 'approvedAll' ||
+        approvalStatus === 'denied'
 
       const handleApprove = async (scope: ApprovalScope) => {
         if (!currentConversationId || isLoading || isActioned) return
@@ -181,7 +197,7 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
               {/* 允许下拉菜单 */}
               <div className="relative">
                 <button
-                  onClick={(e) => {
+                  onClick={e => {
                     e.stopPropagation()
                     setShowApproveMenu(!showApproveMenu)
                   }}
@@ -239,10 +255,10 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
                   <input
                     type="text"
                     value={denyReason}
-                    onChange={(e) => setDenyReason(e.target.value)}
+                    onChange={e => setDenyReason(e.target.value)}
                     placeholder="拒绝原因（可选）"
                     className="flex-1 text-xs px-2 py-1 rounded border border-border bg-background"
-                    onKeyDown={(e) => e.key === 'Enter' && handleDeny()}
+                    onKeyDown={e => e.key === 'Enter' && handleDeny()}
                   />
                   <button
                     onClick={handleDeny}
@@ -314,13 +330,7 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
   }
 
   return (
-    <div
-      className={cn(
-        'border rounded-lg p-3 mb-2',
-        borderColor,
-        bgColor
-      )}
-    >
+    <div className={cn('border rounded-lg p-3 mb-2', borderColor, bgColor)}>
       {/* Header - clickable to toggle collapse */}
       <div
         className="flex items-center gap-2 cursor-pointer select-none"
@@ -336,7 +346,8 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
         <div className="flex-1" />
         {statusIcon}
         <span className="text-xs text-muted-foreground">
-          {status === 'pending' && (isPermissionRequest ? '需要权限' : 'Running...')}
+          {status === 'pending' &&
+            (isPermissionRequest ? '需要权限' : 'Running...')}
           {status === 'success' && 'Success'}
           {status === 'error' && 'Error'}
         </span>
@@ -346,12 +357,15 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
       {!isCollapsed && (
         <>
           {/* Parameters (skip for TodoWrite) */}
-          {toolCall.name !== 'TodoWrite' && Object.keys(toolCall.input).length > 0 && (
-            <div className="bg-background/50 rounded p-2 mt-2">
-              <div className="text-xs text-muted-foreground mb-1">Parameters:</div>
-              <div className="space-y-1">{renderInput()}</div>
-            </div>
-          )}
+          {toolCall.name !== 'TodoWrite' &&
+            Object.keys(toolCall.input).length > 0 && (
+              <div className="bg-background/50 rounded p-2 mt-2">
+                <div className="text-xs text-muted-foreground mb-1">
+                  Parameters:
+                </div>
+                <div className="space-y-1">{renderInput()}</div>
+              </div>
+            )}
 
           {/* Output Result (skip for TodoWrite) */}
           {toolResult && !isTodoWrite && (

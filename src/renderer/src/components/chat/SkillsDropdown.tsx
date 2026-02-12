@@ -34,7 +34,8 @@ export function SkillsDropdown() {
   useEffect(() => {
     const handleSkillsUpdated = () => loadSkills()
     window.addEventListener('skills-updated', handleSkillsUpdated)
-    return () => window.removeEventListener('skills-updated', handleSkillsUpdated)
+    return () =>
+      window.removeEventListener('skills-updated', handleSkillsUpdated)
   }, [loadSkills])
 
   const truncateStyle = {
@@ -55,7 +56,7 @@ export function SkillsDropdown() {
   ]
 
   if (skills.length > 0) {
-    skills.forEach((skill) => {
+    skills.forEach(skill => {
       menuItems.push({
         key: skill.path,
         label: <span style={truncateStyle}>{skill.name}</span>,
@@ -71,7 +72,7 @@ export function SkillsDropdown() {
   }
 
   const currentLabel = selectedSkill
-    ? skills.find((s) => s.path === selectedSkill)?.name || 'Selected'
+    ? skills.find(s => s.path === selectedSkill)?.name || 'Selected'
     : 'Auto'
 
   return (

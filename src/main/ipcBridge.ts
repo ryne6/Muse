@@ -11,18 +11,21 @@ const gitService = new GitService()
 const webService = new WebService()
 
 // CORS for local API access
-app.use('*', cors({
-  origin: ['http://localhost:3000'],
-  credentials: true,
-}))
+app.use(
+  '*',
+  cors({
+    origin: ['http://localhost:3000'],
+    credentials: true,
+  })
+)
 
 // Health check
-app.get('/health', (c) => {
+app.get('/health', c => {
   return c.json({ status: 'ok' })
 })
 
 // IPC bridge endpoint
-app.post('/ipc/:channel', async (c) => {
+app.post('/ipc/:channel', async c => {
   const channel = c.req.param('channel')
   const body = await c.req.json()
 
@@ -140,7 +143,7 @@ app.post('/ipc/:channel', async (c) => {
 export function startIpcBridge(port = 3001): void {
   console.log(`🔗 Starting IPC Bridge on port ${port}...`)
 
-  serve({ fetch: app.fetch, port }, (info) => {
+  serve({ fetch: app.fetch, port }, info => {
     console.log(`✅ IPC Bridge running at http://localhost:${info.port}`)
   })
 }

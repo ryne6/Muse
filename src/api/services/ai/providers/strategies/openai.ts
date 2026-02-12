@@ -1,10 +1,18 @@
-import type { AIConfig, AIMessage, MessageContent } from '../../../../../shared/types/ai'
-import type { ProviderStrategy, StrategyOptions, StreamChunkResult } from './index'
+import type {
+  AIConfig,
+  AIMessage,
+  MessageContent,
+} from '../../../../../shared/types/ai'
+import type {
+  ProviderStrategy,
+  StrategyOptions,
+  StreamChunkResult,
+} from './index'
 import { getAllTools } from '../../tools/definitions'
 
 function convertContent(content: string | MessageContent[]): string | any[] {
   if (typeof content === 'string') return content
-  return content.map((block) => {
+  return content.map(block => {
     if (block.type === 'text') {
       return { type: 'text', text: block.text }
     }
@@ -22,7 +30,7 @@ function convertContent(content: string | MessageContent[]): string | any[] {
 }
 
 function convertTools(tools: any[]): any[] {
-  return tools.map((tool) => ({
+  return tools.map(tool => ({
     type: 'function',
     function: {
       name: tool.name,
@@ -43,9 +51,13 @@ export const openAIStrategy: ProviderStrategy = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${config.apiKey}`,
   }),
-  buildBody: (messages: AIMessage[], config: AIConfig, options: StrategyOptions) => ({
+  buildBody: (
+    messages: AIMessage[],
+    config: AIConfig,
+    options: StrategyOptions
+  ) => ({
     model: config.model,
-    messages: messages.map((msg) => ({
+    messages: messages.map(msg => ({
       role: msg.role,
       content: convertContent(msg.content),
     })),

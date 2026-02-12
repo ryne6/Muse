@@ -33,7 +33,7 @@ export class ClaudeProvider extends BaseAIProvider {
       return content
     }
 
-    return content.map((block) => {
+    return content.map(block => {
       if (block.type === 'text') {
         return { type: 'text', text: block.text }
       } else if (block.type === 'image') {
@@ -67,9 +67,20 @@ export class ClaudeProvider extends BaseAIProvider {
 
     try {
       if (onChunk) {
-        return await this.streamResponseWithTools(client, messages, config, onChunk, options)
+        return await this.streamResponseWithTools(
+          client,
+          messages,
+          config,
+          onChunk,
+          options
+        )
       } else {
-        return await this.simpleResponseWithTools(client, messages, config, options)
+        return await this.simpleResponseWithTools(
+          client,
+          messages,
+          config,
+          options
+        )
       }
     } catch (error) {
       this.logError(error)
@@ -90,10 +101,10 @@ export class ClaudeProvider extends BaseAIProvider {
     let totalOutputTokens = 0
 
     // Extract system message and conversation messages
-    const systemMessage = messages.find((m) => m.role === 'system')
+    const systemMessage = messages.find(m => m.role === 'system')
     const conversationMessages: any[] = messages
-      .filter((m) => m.role !== 'system')
-      .map((m) => ({
+      .filter(m => m.role !== 'system')
+      .map(m => ({
         role: m.role,
         content: this.convertContent(m.content),
       }))
@@ -110,9 +121,10 @@ export class ClaudeProvider extends BaseAIProvider {
 
       // Add system prompt if present
       if (systemMessage) {
-        requestParams.system = typeof systemMessage.content === 'string'
-          ? systemMessage.content
-          : systemMessage.content.map((b: any) => b.text || '').join('\n')
+        requestParams.system =
+          typeof systemMessage.content === 'string'
+            ? systemMessage.content
+            : systemMessage.content.map((b: any) => b.text || '').join('\n')
       }
 
       // Add thinking configuration if enabled
@@ -128,7 +140,12 @@ export class ClaudeProvider extends BaseAIProvider {
       }
 
       const stream = await client.messages.create(requestParams)
-      console.log('[Claude] Request with thinking:', config.thinkingEnabled, 'params:', JSON.stringify(requestParams.thinking))
+      console.log(
+        '[Claude] Request with thinking:',
+        config.thinkingEnabled,
+        'params:',
+        JSON.stringify(requestParams.thinking)
+      )
 
       let currentContent = ''
       const toolUses: any[] = []
@@ -136,7 +153,10 @@ export class ClaudeProvider extends BaseAIProvider {
       for await (const chunk of stream) {
         console.log('[Claude] Chunk:', chunk.type, (chunk as any).delta?.type)
         if (chunk.type === 'content_block_start') {
-          console.log('[Claude] Block start:', (chunk as any).content_block?.type)
+          console.log(
+            '[Claude] Block start:',
+            (chunk as any).content_block?.type
+          )
           if (chunk.content_block.type === 'tool_use') {
             toolUses.push({
               id: chunk.content_block.id,
@@ -147,7 +167,11 @@ export class ClaudeProvider extends BaseAIProvider {
         } else if (chunk.type === 'content_block_delta') {
           if (chunk.delta.type === 'thinking_delta') {
             // Stream thinking content
-            onChunk({ content: '', done: false, thinking: chunk.delta.thinking })
+            onChunk({
+              content: '',
+              done: false,
+              thinking: chunk.delta.thinking,
+            })
           } else if (chunk.delta.type === 'text_delta') {
             currentContent += chunk.delta.text
             fullContent += chunk.delta.text
@@ -156,7 +180,8 @@ export class ClaudeProvider extends BaseAIProvider {
             // Accumulate tool input
             const lastTool = toolUses[toolUses.length - 1]
             if (lastTool) {
-              lastTool.inputJson = (lastTool.inputJson || '') + chunk.delta.partial_json
+              lastTool.inputJson =
+                (lastTool.inputJson || '') + chunk.delta.partial_json
             }
           }
         } else if (chunk.type === 'message_start') {
@@ -230,7 +255,7 @@ export class ClaudeProvider extends BaseAIProvider {
       // Add assistant message with tool uses and user message with tool results
       conversationMessages.push({
         role: 'assistant',
-        content: toolUses.map((t) => ({
+        content: toolUses.map(t => ({
           type: 'tool_use',
           id: t.id,
           name: t.name,
@@ -244,7 +269,11 @@ export class ClaudeProvider extends BaseAIProvider {
       })
     }
 
-    onChunk({ content: '', done: true, usage: { inputTokens: totalInputTokens, outputTokens: totalOutputTokens } })
+    onChunk({
+      content: '',
+      done: true,
+      usage: { inputTokens: totalInputTokens, outputTokens: totalOutputTokens },
+    })
     return fullContent
   }
 
@@ -257,10 +286,10 @@ export class ClaudeProvider extends BaseAIProvider {
     const toolExecutor = new ToolExecutor()
 
     // Extract system message and conversation messages
-    const systemMessage = messages.find((m) => m.role === 'system')
+    const systemMessage = messages.find(m => m.role === 'system')
     const conversationMessages: any[] = messages
-      .filter((m) => m.role !== 'system')
-      .map((m) => ({
+      .filter(m => m.role !== 'system')
+      .map(m => ({
         role: m.role,
         content: this.convertContent(m.content),
       }))
@@ -278,9 +307,10 @@ export class ClaudeProvider extends BaseAIProvider {
 
       // Add system prompt if present
       if (systemMessage) {
-        requestParams.system = typeof systemMessage.content === 'string'
-          ? systemMessage.content
-          : systemMessage.content.map((b: any) => b.text || '').join('\n')
+        requestParams.system =
+          typeof systemMessage.content === 'string'
+            ? systemMessage.content
+            : systemMessage.content.map((b: any) => b.text || '').join('\n')
       }
 
       // Add thinking configuration if enabled
@@ -297,7 +327,9 @@ export class ClaudeProvider extends BaseAIProvider {
       const response = await client.messages.create(requestParams)
 
       // Extract text content
-      const textContent = response.content.filter((block) => block.type === 'text')
+      const textContent = response.content.filter(
+        block => block.type === 'text'
+      )
       for (const block of textContent) {
         if (block.type === 'text') {
           finalText += block.text
@@ -305,7 +337,9 @@ export class ClaudeProvider extends BaseAIProvider {
       }
 
       // Check for tool uses
-      const toolUses = response.content.filter((block) => block.type === 'tool_use')
+      const toolUses = response.content.filter(
+        block => block.type === 'tool_use'
+      )
 
       if (toolUses.length === 0) {
         break
@@ -315,15 +349,19 @@ export class ClaudeProvider extends BaseAIProvider {
       const toolResults: any[] = []
       for (const toolUse of toolUses) {
         if (toolUse.type === 'tool_use') {
-          const result = await toolExecutor.execute(toolUse.name, toolUse.input, {
-            toolCallId: toolUse.id,
-            toolPermissions: options?.toolPermissions,
-            allowOnceTools: options?.allowOnceTools,
-            sessionApprovedTools: options?.sessionApprovedTools
-              ? new Set(options.sessionApprovedTools)
-              : undefined,
-            permissionRules: options?.permissionRules,
-          })
+          const result = await toolExecutor.execute(
+            toolUse.name,
+            toolUse.input,
+            {
+              toolCallId: toolUse.id,
+              toolPermissions: options?.toolPermissions,
+              allowOnceTools: options?.allowOnceTools,
+              sessionApprovedTools: options?.sessionApprovedTools
+                ? new Set(options.sessionApprovedTools)
+                : undefined,
+              permissionRules: options?.permissionRules,
+            }
+          )
           toolResults.push({
             type: 'tool_result',
             tool_use_id: toolUse.id,

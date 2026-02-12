@@ -3,7 +3,10 @@
 import fs from 'fs'
 import path from 'path'
 import os from 'os'
-import type { PermissionConfig, PermissionRule } from '@shared/types/toolPermissions'
+import type {
+  PermissionConfig,
+  PermissionRule,
+} from '@shared/types/toolPermissions'
 
 const GLOBAL_DIR = path.join(os.homedir(), '.muse')
 const GLOBAL_FILE = path.join(GLOBAL_DIR, 'permissions.json')
@@ -40,9 +43,10 @@ export class PermissionFileService {
       throw new Error('workspacePath is required for project-level rules')
     }
 
-    const filePath = source === 'global'
-      ? GLOBAL_FILE
-      : path.join(workspacePath!, PROJECT_DIR_NAME, PROJECT_FILE_NAME)
+    const filePath =
+      source === 'global'
+        ? GLOBAL_FILE
+        : path.join(workspacePath!, PROJECT_DIR_NAME, PROJECT_FILE_NAME)
 
     const config = this.readConfigFile(filePath)
     config.rules.push(rule)
@@ -61,12 +65,13 @@ export class PermissionFileService {
       throw new Error('workspacePath is required for project-level rules')
     }
 
-    const filePath = source === 'global'
-      ? GLOBAL_FILE
-      : path.join(workspacePath!, PROJECT_DIR_NAME, PROJECT_FILE_NAME)
+    const filePath =
+      source === 'global'
+        ? GLOBAL_FILE
+        : path.join(workspacePath!, PROJECT_DIR_NAME, PROJECT_FILE_NAME)
 
     const config = this.readConfigFile(filePath)
-    config.rules = config.rules.filter((r) => r.id !== ruleId)
+    config.rules = config.rules.filter(r => r.id !== ruleId)
     this.writeConfigFile(filePath, config)
   }
 
@@ -83,22 +88,27 @@ export class PermissionFileService {
     // Watch project file
     if (workspacePath) {
       const projectFile = path.join(
-        workspacePath, PROJECT_DIR_NAME, PROJECT_FILE_NAME
+        workspacePath,
+        PROJECT_DIR_NAME,
+        PROJECT_FILE_NAME
       )
       this.watchFile(projectFile)
     }
   }
 
   stopWatch(): void {
-    this.watchers.forEach((w) => w.close())
+    this.watchers.forEach(w => w.close())
     this.watchers = []
   }
 
   // --- private helpers ---
 
-  private loadFile(filePath: string, source: 'project' | 'global'): PermissionRule[] {
+  private loadFile(
+    filePath: string,
+    source: 'project' | 'global'
+  ): PermissionRule[] {
     const config = this.readConfigFile(filePath)
-    return config.rules.map((r) => ({ ...r, source }))
+    return config.rules.map(r => ({ ...r, source }))
   }
 
   private readConfigFile(filePath: string): PermissionConfig {

@@ -18,9 +18,9 @@ beforeEach(() => {
   ;(global as any).window = {
     api: {
       search: {
-        query: mockQuery
-      }
-    }
+        query: mockQuery,
+      },
+    },
   }
   // Reset store state
   useSearchStore.setState({

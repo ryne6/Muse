@@ -20,7 +20,9 @@ import type { PendingAttachment } from '@shared/types/attachment'
 
 export function ChatInput() {
   const [input, setInput] = useState('')
-  const [pendingAttachments, setPendingAttachments] = useState<PendingAttachment[]>([])
+  const [pendingAttachments, setPendingAttachments] = useState<
+    PendingAttachment[]
+  >([])
   const [isFullscreen, setIsFullscreen] = useState(false)
   const { sendMessage, isLoading, abortMessage } = useChatStore()
   const { getCurrentConversation, createConversation } = useConversationStore()
@@ -38,7 +40,7 @@ export function ChatInput() {
 
   // Derive last inputTokens from most recent assistant message
   const lastAssistantMsg = conversation?.messages
-    ?.filter((m) => m.role === 'assistant' && m.inputTokens)
+    ?.filter(m => m.role === 'assistant' && m.inputTokens)
     .at(-1)
   const lastInputTokens = lastAssistantMsg?.inputTokens ?? null
 
@@ -48,35 +50,41 @@ export function ChatInput() {
   }, [loadData])
 
   // Convert File to PendingAttachment
-  const fileToAttachment = useCallback(async (file: File): Promise<PendingAttachment> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader()
-      reader.onload = () => {
-        const img = new Image()
-        img.onload = () => {
-          resolve({
-            id: uuidv4(),
-            file,
-            filename: file.name,
-            mimeType: file.type,
-            dataUrl: reader.result as string,
-            note: '',
-            size: file.size,
-            width: img.width,
-            height: img.height,
-          })
+  const fileToAttachment = useCallback(
+    async (file: File): Promise<PendingAttachment> => {
+      return new Promise(resolve => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          const img = new Image()
+          img.onload = () => {
+            resolve({
+              id: uuidv4(),
+              file,
+              filename: file.name,
+              mimeType: file.type,
+              dataUrl: reader.result as string,
+              note: '',
+              size: file.size,
+              width: img.width,
+              height: img.height,
+            })
+          }
+          img.src = reader.result as string
         }
-        img.src = reader.result as string
-      }
-      reader.readAsDataURL(file)
-    })
-  }, [])
+        reader.readAsDataURL(file)
+      })
+    },
+    []
+  )
 
   // Handle image selection
-  const handleImagesSelected = useCallback(async (files: File[]) => {
-    const attachments = await Promise.all(files.map(fileToAttachment))
-    setPendingAttachments(prev => [...prev, ...attachments])
-  }, [fileToAttachment])
+  const handleImagesSelected = useCallback(
+    async (files: File[]) => {
+      const attachments = await Promise.all(files.map(fileToAttachment))
+      setPendingAttachments(prev => [...prev, ...attachments])
+    },
+    [fileToAttachment]
+  )
 
   // Remove pending attachment
   const handleRemoveAttachment = useCallback((id: string) => {
@@ -86,76 +94,99 @@ export function ChatInput() {
   // Update attachment note
   const handleNoteChange = useCallback((id: string, note: string) => {
     setPendingAttachments(prev =>
-      prev.map(a => a.id === id ? { ...a, note } : a)
+      prev.map(a => (a.id === id ? { ...a, note } : a))
     )
   }, [])
 
   // Handle memory slash commands
-  const handleMemoryCommand = useCallback(async (message: string): Promise<boolean> => {
-    const memoryEnabled = useSettingsStore.getState().memoryEnabled
-    const workspacePath = useConversationStore.getState().getEffectiveWorkspace()
+  const handleMemoryCommand = useCallback(
+    async (message: string): Promise<boolean> => {
+      const memoryEnabled = useSettingsStore.getState().memoryEnabled
+      const workspacePath = useConversationStore
+        .getState()
+        .getEffectiveWorkspace()
 
-    if (message === '/memories') {
-      if (!memoryEnabled) {
-        notify.info('记忆功能未开启，请在设置中开启')
-        return true
-      }
-      try {
-        const memories = await window.api.memory.getAll()
-        if (memories.length === 0) {
-          notify.info('暂无记忆')
-        } else {
-          const summary = memories.slice(0, 10).map((m) => `[${m.category}] ${m.content}`).join('\n')
-          notify.info(`当前记忆 (${memories.length} 条):\n${summary}`)
+      if (message === '/memories') {
+        if (!memoryEnabled) {
+          notify.info('记忆功能未开启，请在设置中开启')
+          return true
         }
-      } catch { notify.error('获取记忆失败') }
-      return true
-    }
-
-    if (message.startsWith('/remember-project ')) {
-      if (!memoryEnabled) {
-        notify.info('记忆功能未开启，请在设置中开启')
+        try {
+          const memories = await window.api.memory.getAll()
+          if (memories.length === 0) {
+            notify.info('暂无记忆')
+          } else {
+            const summary = memories
+              .slice(0, 10)
+              .map(m => `[${m.category}] ${m.content}`)
+              .join('\n')
+            notify.info(`当前记忆 (${memories.length} 条):\n${summary}`)
+          }
+        } catch {
+          notify.error('获取记忆失败')
+        }
         return true
       }
-      const content = message.slice('/remember-project '.length).trim()
-      if (!content) return true
-      try {
-        await window.api.memory.remember(content, 'project', workspacePath || undefined)
-        notify.success('已保存到项目记忆')
-      } catch { notify.error('保存记忆失败') }
-      return true
-    }
 
-    if (message.startsWith('/remember ')) {
-      if (!memoryEnabled) {
-        notify.info('记忆功能未开启，请在设置中开启')
+      if (message.startsWith('/remember-project ')) {
+        if (!memoryEnabled) {
+          notify.info('记忆功能未开启，请在设置中开启')
+          return true
+        }
+        const content = message.slice('/remember-project '.length).trim()
+        if (!content) return true
+        try {
+          await window.api.memory.remember(
+            content,
+            'project',
+            workspacePath || undefined
+          )
+          notify.success('已保存到项目记忆')
+        } catch {
+          notify.error('保存记忆失败')
+        }
         return true
       }
-      const content = message.slice('/remember '.length).trim()
-      if (!content) return true
-      try {
-        await window.api.memory.remember(content, 'user')
-        notify.success('已保存到用户记忆')
-      } catch { notify.error('保存记忆失败') }
-      return true
-    }
 
-    if (message.startsWith('/forget ')) {
-      if (!memoryEnabled) {
-        notify.info('记忆功能未开启，请在设置中开启')
+      if (message.startsWith('/remember ')) {
+        if (!memoryEnabled) {
+          notify.info('记忆功能未开启，请在设置中开启')
+          return true
+        }
+        const content = message.slice('/remember '.length).trim()
+        if (!content) return true
+        try {
+          await window.api.memory.remember(content, 'user')
+          notify.success('已保存到用户记忆')
+        } catch {
+          notify.error('保存记忆失败')
+        }
         return true
       }
-      const keyword = message.slice('/forget '.length).trim()
-      if (!keyword) return true
-      try {
-        const result = await window.api.memory.forget(keyword, workspacePath || undefined)
-        notify.success(`已删除 ${result.deletedCount} 条匹配的记忆`)
-      } catch { notify.error('删除记忆失败') }
-      return true
-    }
 
-    return false
-  }, [])
+      if (message.startsWith('/forget ')) {
+        if (!memoryEnabled) {
+          notify.info('记忆功能未开启，请在设置中开启')
+          return true
+        }
+        const keyword = message.slice('/forget '.length).trim()
+        if (!keyword) return true
+        try {
+          const result = await window.api.memory.forget(
+            keyword,
+            workspacePath || undefined
+          )
+          notify.success(`已删除 ${result.deletedCount} 条匹配的记忆`)
+        } catch {
+          notify.error('删除记忆失败')
+        }
+        return true
+      }
+
+      return false
+    },
+    []
+  )
 
   const handleSend = async () => {
     if ((!input.trim() && pendingAttachments.length === 0) || isLoading) return
@@ -199,7 +230,13 @@ export function ChatInput() {
         thinkingEnabled,
       }
 
-      await sendMessage(currentConversation.id, message, provider.type, aiConfig, attachments)
+      await sendMessage(
+        currentConversation.id,
+        message,
+        provider.type,
+        aiConfig,
+        attachments
+      )
     } catch (error) {
       console.error('Failed to send message:', error)
       notify.error(
@@ -221,26 +258,29 @@ export function ChatInput() {
         {/* Pending Attachments Preview */}
         {pendingAttachments.length > 0 && (
           <div className="px-4 py-2 border-b flex gap-2 flex-wrap">
-            {pendingAttachments.map((attachment) => (
+            {pendingAttachments.map(attachment => (
               <ImagePreview
                 key={attachment.id}
                 attachment={attachment}
                 onRemove={() => handleRemoveAttachment(attachment.id)}
-                onNoteChange={(note) => handleNoteChange(attachment.id, note)}
+                onNoteChange={note => handleNoteChange(attachment.id, note)}
               />
             ))}
           </div>
         )}
 
         {/* Input Area */}
-        <ImageDropZone onImagesDropped={handleImagesSelected} disabled={isLoading}>
+        <ImageDropZone
+          onImagesDropped={handleImagesSelected}
+          disabled={isLoading}
+        >
           <div className="px-6 py-4">
             <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--bg-main))] shadow-[0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
               {/* Text Input Area with Fullscreen Button */}
               <div className="relative p-3 pb-2">
                 <textarea
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={e => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="从任何想法开始…"
                   aria-label="Message input"

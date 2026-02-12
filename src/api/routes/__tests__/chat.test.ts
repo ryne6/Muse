@@ -4,7 +4,11 @@ import { AIManager } from '../../services/ai/manager'
 import { ProviderValidator } from '../../services/ai/validator'
 import { AIError } from '../../services/ai/errors'
 import { ErrorCode } from '../../../shared/types/error'
-import type { AIMessage, AIConfig, AIStreamChunk } from '../../../shared/types/ai'
+import type {
+  AIMessage,
+  AIConfig,
+  AIStreamChunk,
+} from '../../../shared/types/ai'
 
 // Mock AI Manager
 vi.mock('../../services/ai/manager')
@@ -17,17 +21,15 @@ describe('Chat Routes', () => {
 
   describe('POST /chat/stream', () => {
     it('should handle streaming chat request successfully', async () => {
-      const mockMessages: AIMessage[] = [
-        { role: 'user', content: 'Hello' }
-      ]
+      const mockMessages: AIMessage[] = [{ role: 'user', content: 'Hello' }]
       const mockConfig: AIConfig = {
         apiKey: 'test-key',
-        model: 'test-model'
+        model: 'test-model',
       }
 
       const mockChunks: AIStreamChunk[] = [
         { content: 'Hello ', done: false },
-        { content: 'there!', done: true }
+        { content: 'there!', done: true },
       ]
 
       // Mock AIManager.sendMessage to call onChunk callback
@@ -48,8 +50,8 @@ describe('Chat Routes', () => {
         body: JSON.stringify({
           provider: 'openai',
           messages: mockMessages,
-          config: mockConfig
-        })
+          config: mockConfig,
+        }),
       })
 
       expect(res.status).toBe(200)
@@ -58,7 +60,10 @@ describe('Chat Routes', () => {
         mockMessages,
         mockConfig,
         expect.any(Function),
-        expect.objectContaining({ toolPermissions: undefined, allowOnceTools: undefined })
+        expect.objectContaining({
+          toolPermissions: undefined,
+          allowOnceTools: undefined,
+        })
       )
     })
 
@@ -69,8 +74,8 @@ describe('Chat Routes', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: [{ role: 'user', content: 'Hello' }],
-          config: { apiKey: 'test', model: 'test' }
-        })
+          config: { apiKey: 'test', model: 'test' },
+        }),
       })
 
       expect(res.status).toBe(400)
@@ -85,8 +90,8 @@ describe('Chat Routes', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider: 'openai',
-          config: { apiKey: 'test', model: 'test' }
-        })
+          config: { apiKey: 'test', model: 'test' },
+        }),
       })
 
       expect(res.status).toBe(400)
@@ -100,8 +105,8 @@ describe('Chat Routes', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider: 'openai',
-          messages: [{ role: 'user', content: 'Hello' }]
-        })
+          messages: [{ role: 'user', content: 'Hello' }],
+        }),
       })
 
       expect(res.status).toBe(400)
@@ -113,7 +118,7 @@ describe('Chat Routes', () => {
       const res = await chatApp.request('/chat/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: 'invalid json'
+        body: 'invalid json',
       })
 
       expect(res.status).toBe(500)
@@ -132,8 +137,8 @@ describe('Chat Routes', () => {
         body: JSON.stringify({
           provider: 'openai',
           messages: [{ role: 'user', content: 'Hello' }],
-          config: { apiKey: 'test', model: 'test' }
-        })
+          config: { apiKey: 'test', model: 'test' },
+        }),
       })
 
       expect(res.status).toBe(200)
@@ -146,12 +151,10 @@ describe('Chat Routes', () => {
 
   describe('POST /chat', () => {
     it('should handle non-streaming chat request successfully', async () => {
-      const mockMessages: AIMessage[] = [
-        { role: 'user', content: 'Hello' }
-      ]
+      const mockMessages: AIMessage[] = [{ role: 'user', content: 'Hello' }]
       const mockConfig: AIConfig = {
         apiKey: 'test-key',
-        model: 'test-model'
+        model: 'test-model',
       }
 
       vi.mocked(AIManager.prototype.sendMessage).mockResolvedValue(
@@ -164,21 +167,24 @@ describe('Chat Routes', () => {
         body: JSON.stringify({
           provider: 'openai',
           messages: mockMessages,
-          config: mockConfig
-        })
+          config: mockConfig,
+        }),
       })
 
       expect(res.status).toBe(200)
       const data = await res.json()
       expect(data).toEqual({
-        content: 'Hello! How can I help you?'
+        content: 'Hello! How can I help you?',
       })
       expect(AIManager.prototype.sendMessage).toHaveBeenCalledWith(
         'openai',
         mockMessages,
         mockConfig,
         undefined,
-        expect.objectContaining({ toolPermissions: undefined, allowOnceTools: undefined })
+        expect.objectContaining({
+          toolPermissions: undefined,
+          allowOnceTools: undefined,
+        })
       )
     })
 
@@ -193,8 +199,8 @@ describe('Chat Routes', () => {
         body: JSON.stringify({
           provider: 'openai',
           messages: [{ role: 'user', content: 'Hello' }],
-          config: { apiKey: 'invalid', model: 'test' }
-        })
+          config: { apiKey: 'invalid', model: 'test' },
+        }),
       })
 
       expect(res.status).toBe(500)
@@ -207,7 +213,7 @@ describe('Chat Routes', () => {
       const res = await chatApp.request('/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: 'not json'
+        body: 'not json',
       })
 
       expect(res.status).toBe(500)
@@ -219,7 +225,9 @@ describe('Chat Routes', () => {
   describe('GET /providers', () => {
     it('should return list of available providers', async () => {
       const mockProviders = ['claude', 'openai', 'gemini', 'deepseek']
-      vi.mocked(AIManager.prototype.getAvailableProviders).mockReturnValue(mockProviders)
+      vi.mocked(AIManager.prototype.getAvailableProviders).mockReturnValue(
+        mockProviders
+      )
 
       const res = await chatApp.request('/providers')
 
@@ -229,9 +237,11 @@ describe('Chat Routes', () => {
     })
 
     it('should handle errors when getting providers', async () => {
-      vi.mocked(AIManager.prototype.getAvailableProviders).mockImplementation(() => {
-        throw new Error('Failed to get providers')
-      })
+      vi.mocked(AIManager.prototype.getAvailableProviders).mockImplementation(
+        () => {
+          throw new Error('Failed to get providers')
+        }
+      )
 
       const res = await chatApp.request('/providers')
 
@@ -270,20 +280,26 @@ describe('Chat Routes', () => {
   describe('GET /providers/:provider/models', () => {
     it('should return supported models for provider', async () => {
       const mockModels = ['gpt-4', 'gpt-3.5-turbo', 'gpt-4-turbo']
-      vi.mocked(AIManager.prototype.getSupportedModels).mockReturnValue(mockModels)
+      vi.mocked(AIManager.prototype.getSupportedModels).mockReturnValue(
+        mockModels
+      )
 
       const res = await chatApp.request('/providers/openai/models')
 
       expect(res.status).toBe(200)
       const data = await res.json()
       expect(data).toEqual({ models: mockModels })
-      expect(AIManager.prototype.getSupportedModels).toHaveBeenCalledWith('openai')
+      expect(AIManager.prototype.getSupportedModels).toHaveBeenCalledWith(
+        'openai'
+      )
     })
 
     it('should handle errors when getting models', async () => {
-      vi.mocked(AIManager.prototype.getSupportedModels).mockImplementation(() => {
-        throw new Error('Provider not found')
-      })
+      vi.mocked(AIManager.prototype.getSupportedModels).mockImplementation(
+        () => {
+          throw new Error('Provider not found')
+        }
+      )
 
       const res = await chatApp.request('/providers/invalid/models')
 
@@ -296,7 +312,7 @@ describe('Chat Routes', () => {
   describe('POST /providers/validate', () => {
     it('should validate provider configuration successfully', async () => {
       vi.mocked(ProviderValidator.validateProvider).mockResolvedValue({
-        valid: true
+        valid: true,
       })
 
       const res = await chatApp.request('/providers/validate', {
@@ -304,8 +320,8 @@ describe('Chat Routes', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider: 'openai',
-          config: { apiKey: 'valid-key', model: 'gpt-4' }
-        })
+          config: { apiKey: 'valid-key', model: 'gpt-4' },
+        }),
       })
 
       expect(res.status).toBe(200)
@@ -316,7 +332,7 @@ describe('Chat Routes', () => {
     it('should return validation error for invalid config', async () => {
       vi.mocked(ProviderValidator.validateProvider).mockResolvedValue({
         valid: false,
-        error: 'Invalid API key'
+        error: 'Invalid API key',
       })
 
       const res = await chatApp.request('/providers/validate', {
@@ -324,15 +340,15 @@ describe('Chat Routes', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider: 'openai',
-          config: { apiKey: 'invalid-key', model: 'gpt-4' }
-        })
+          config: { apiKey: 'invalid-key', model: 'gpt-4' },
+        }),
       })
 
       expect(res.status).toBe(200)
       const data = await res.json()
       expect(data).toEqual({
         valid: false,
-        error: 'Invalid API key'
+        error: 'Invalid API key',
       })
     })
 
@@ -346,8 +362,8 @@ describe('Chat Routes', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider: 'openai',
-          config: { apiKey: 'test', model: 'gpt-4' }
-        })
+          config: { apiKey: 'test', model: 'gpt-4' },
+        }),
       })
 
       // Network errors are mapped to 503
@@ -361,7 +377,7 @@ describe('Chat Routes', () => {
       const res = await chatApp.request('/providers/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: 'invalid'
+        body: 'invalid',
       })
 
       expect(res.status).toBe(500)
@@ -375,8 +391,8 @@ describe('Chat Routes', () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          config: { apiKey: 'test', model: 'gpt-4' }
-        })
+          config: { apiKey: 'test', model: 'gpt-4' },
+        }),
       })
 
       expect(res.status).toBe(400)
@@ -390,8 +406,8 @@ describe('Chat Routes', () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          provider: 'openai'
-        })
+          provider: 'openai',
+        }),
       })
 
       expect(res.status).toBe(400)
@@ -411,8 +427,8 @@ describe('Chat Routes', () => {
         body: JSON.stringify({
           provider: 'openai',
           messages: [{ role: 'user', content: 'Hello' }],
-          config: { apiKey: 'test', model: 'test' }
-        })
+          config: { apiKey: 'test', model: 'test' },
+        }),
       })
 
       expect(res.status).toBe(503)
@@ -431,8 +447,8 @@ describe('Chat Routes', () => {
         body: JSON.stringify({
           provider: 'openai',
           messages: [{ role: 'user', content: 'Hello' }],
-          config: { apiKey: 'test', model: 'test' }
-        })
+          config: { apiKey: 'test', model: 'test' },
+        }),
       })
 
       expect(res.status).toBe(504)
@@ -441,10 +457,14 @@ describe('Chat Routes', () => {
     })
 
     it('should preserve AIError properties through error response', async () => {
-      const aiError = new AIError(ErrorCode.RATE_LIMITED, 'Rate limit exceeded', {
-        retryAfter: 60,
-        details: { limit: 100, remaining: 0 }
-      })
+      const aiError = new AIError(
+        ErrorCode.RATE_LIMITED,
+        'Rate limit exceeded',
+        {
+          retryAfter: 60,
+          details: { limit: 100, remaining: 0 },
+        }
+      )
       vi.mocked(AIManager.prototype.sendMessage).mockRejectedValue(aiError)
 
       const res = await chatApp.request('/chat', {
@@ -453,8 +473,8 @@ describe('Chat Routes', () => {
         body: JSON.stringify({
           provider: 'openai',
           messages: [{ role: 'user', content: 'Hello' }],
-          config: { apiKey: 'test', model: 'test' }
-        })
+          config: { apiKey: 'test', model: 'test' },
+        }),
       })
 
       expect(res.status).toBe(429)
@@ -474,8 +494,8 @@ describe('Chat Routes', () => {
         body: JSON.stringify({
           provider: 'openai',
           messages: [{ role: 'user', content: 'Hello' }],
-          config: { apiKey: 'invalid', model: 'test' }
-        })
+          config: { apiKey: 'invalid', model: 'test' },
+        }),
       })
 
       expect(res.status).toBe(401)
@@ -485,7 +505,10 @@ describe('Chat Routes', () => {
     })
 
     it('should map provider errors to 502', async () => {
-      const aiError = new AIError(ErrorCode.PROVIDER_ERROR, 'Provider service unavailable')
+      const aiError = new AIError(
+        ErrorCode.PROVIDER_ERROR,
+        'Provider service unavailable'
+      )
       vi.mocked(AIManager.prototype.sendMessage).mockRejectedValue(aiError)
 
       const res = await chatApp.request('/chat', {
@@ -494,8 +517,8 @@ describe('Chat Routes', () => {
         body: JSON.stringify({
           provider: 'openai',
           messages: [{ role: 'user', content: 'Hello' }],
-          config: { apiKey: 'test', model: 'test' }
-        })
+          config: { apiKey: 'test', model: 'test' },
+        }),
       })
 
       expect(res.status).toBe(502)
@@ -514,8 +537,8 @@ describe('Chat Routes', () => {
         body: JSON.stringify({
           provider: 'openai',
           messages: [],
-          config: { apiKey: 'test', model: 'test' }
-        })
+          config: { apiKey: 'test', model: 'test' },
+        }),
       })
 
       // Should still succeed with empty messages
@@ -532,8 +555,8 @@ describe('Chat Routes', () => {
         body: JSON.stringify({
           provider: 'openai',
           messages: [{ role: 'user', content: longContent }],
-          config: { apiKey: 'test', model: 'test' }
-        })
+          config: { apiKey: 'test', model: 'test' },
+        }),
       })
 
       expect(res.status).toBe(200)
@@ -542,7 +565,10 @@ describe('Chat Routes', () => {
         [{ role: 'user', content: longContent }],
         expect.any(Object),
         undefined,
-        expect.objectContaining({ toolPermissions: undefined, allowOnceTools: undefined })
+        expect.objectContaining({
+          toolPermissions: undefined,
+          allowOnceTools: undefined,
+        })
       )
     })
 
@@ -556,8 +582,8 @@ describe('Chat Routes', () => {
         body: JSON.stringify({
           provider: 'openai',
           messages: [{ role: 'user', content: specialContent }],
-          config: { apiKey: 'test', model: 'test' }
-        })
+          config: { apiKey: 'test', model: 'test' },
+        }),
       })
 
       expect(res.status).toBe(200)
@@ -568,9 +594,11 @@ describe('Chat Routes', () => {
         { role: 'system', content: 'You are a helpful assistant' },
         { role: 'user', content: 'Hello' },
         { role: 'assistant', content: 'Hi there!' },
-        { role: 'user', content: 'How are you?' }
+        { role: 'user', content: 'How are you?' },
       ]
-      vi.mocked(AIManager.prototype.sendMessage).mockResolvedValue('I am doing well!')
+      vi.mocked(AIManager.prototype.sendMessage).mockResolvedValue(
+        'I am doing well!'
+      )
 
       const res = await chatApp.request('/chat', {
         method: 'POST',
@@ -578,8 +606,8 @@ describe('Chat Routes', () => {
         body: JSON.stringify({
           provider: 'openai',
           messages,
-          config: { apiKey: 'test', model: 'test' }
-        })
+          config: { apiKey: 'test', model: 'test' },
+        }),
       })
 
       expect(res.status).toBe(200)
@@ -588,7 +616,10 @@ describe('Chat Routes', () => {
         messages,
         expect.any(Object),
         undefined,
-        expect.objectContaining({ toolPermissions: undefined, allowOnceTools: undefined })
+        expect.objectContaining({
+          toolPermissions: undefined,
+          allowOnceTools: undefined,
+        })
       )
     })
 
@@ -598,8 +629,8 @@ describe('Chat Routes', () => {
         toolUse: {
           id: 'tool_123',
           name: 'read_file',
-          input: { path: '/test.txt' }
-        }
+          input: { path: '/test.txt' },
+        },
       }
 
       vi.mocked(AIManager.prototype.sendMessage).mockImplementation(
@@ -618,8 +649,8 @@ describe('Chat Routes', () => {
         body: JSON.stringify({
           provider: 'openai',
           messages: [{ role: 'user', content: 'Read file' }],
-          config: { apiKey: 'test', model: 'test' }
-        })
+          config: { apiKey: 'test', model: 'test' },
+        }),
       })
 
       expect(res.status).toBe(200)
@@ -635,7 +666,7 @@ describe('Chat Routes', () => {
         maxTokens: 2048,
         temperature: 0.8,
         baseURL: 'https://custom.api.com',
-        systemPrompt: 'You are a coding assistant'
+        systemPrompt: 'You are a coding assistant',
       }
 
       vi.mocked(AIManager.prototype.sendMessage).mockResolvedValue('Response')
@@ -646,8 +677,8 @@ describe('Chat Routes', () => {
         body: JSON.stringify({
           provider: 'openai',
           messages: [{ role: 'user', content: 'Hello' }],
-          config: fullConfig
-        })
+          config: fullConfig,
+        }),
       })
 
       expect(res.status).toBe(200)
@@ -656,7 +687,10 @@ describe('Chat Routes', () => {
         expect.any(Array),
         fullConfig,
         undefined,
-        expect.objectContaining({ toolPermissions: undefined, allowOnceTools: undefined })
+        expect.objectContaining({
+          toolPermissions: undefined,
+          allowOnceTools: undefined,
+        })
       )
     })
   })

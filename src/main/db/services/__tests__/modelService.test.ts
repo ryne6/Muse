@@ -1,5 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { createTestDatabase, clearDatabase } from '../../../../../tests/setup/test-db'
+import {
+  createTestDatabase,
+  clearDatabase,
+} from '../../../../../tests/setup/test-db'
 import type { Database } from 'better-sqlite3'
 import * as schema from '../../schema'
 
@@ -10,7 +13,7 @@ const { getTestDb, setTestDb } = vi.hoisted(() => {
     getTestDb: () => testDb,
     setTestDb: (db: any) => {
       testDb = db
-    }
+    },
   }
 })
 
@@ -18,7 +21,8 @@ const { getTestDb, setTestDb } = vi.hoisted(() => {
 // Note: ModelService imports from '../index' which resolves to 'src/main/db/index'
 // From this test file, that's '../../index'
 vi.mock('../../index', async () => {
-  const actualSchema = await vi.importActual<typeof import('../../schema')>('../../schema')
+  const actualSchema =
+    await vi.importActual<typeof import('../../schema')>('../../schema')
   return {
     getDatabase: () => {
       const db = getTestDb()
@@ -27,7 +31,7 @@ vi.mock('../../index', async () => {
       }
       return db
     },
-    schema: actualSchema
+    schema: actualSchema,
   }
 })
 
@@ -81,7 +85,7 @@ describe('ModelService', () => {
         name: 'GPT-4',
         contextLength: 8000,
         isCustom: false,
-        enabled: true
+        enabled: true,
       }
 
       const result = await ModelService.create(modelData)
@@ -100,7 +104,7 @@ describe('ModelService', () => {
       const modelData = {
         providerId: testProviderId,
         modelId: 'gpt-3.5',
-        name: 'GPT-3.5'
+        name: 'GPT-3.5',
       }
 
       const result = await ModelService.create(modelData)
@@ -116,7 +120,7 @@ describe('ModelService', () => {
         providerId: testProviderId,
         modelId: 'custom-model',
         name: 'Custom Model',
-        isCustom: true
+        isCustom: true,
       }
 
       const result = await ModelService.create(modelData)
@@ -136,12 +140,12 @@ describe('ModelService', () => {
       await ModelService.create({
         providerId: testProviderId,
         modelId: 'model-1',
-        name: 'Model 1'
+        name: 'Model 1',
       })
       await ModelService.create({
         providerId: testProviderId2,
         modelId: 'model-2',
-        name: 'Model 2'
+        name: 'Model 2',
       })
 
       const result = await ModelService.getAll()
@@ -158,13 +162,13 @@ describe('ModelService', () => {
         providerId: testProviderId,
         modelId: 'model-1',
         name: 'Enabled Model',
-        enabled: true
+        enabled: true,
       })
       await ModelService.create({
         providerId: testProviderId2,
         modelId: 'model-2',
         name: 'Disabled Model',
-        enabled: false
+        enabled: false,
       })
 
       const result = await ModelService.getEnabled()
@@ -180,12 +184,12 @@ describe('ModelService', () => {
       await ModelService.create({
         providerId: testProviderId,
         modelId: 'model-1',
-        name: 'Provider 1 Model'
+        name: 'Provider 1 Model',
       })
       await ModelService.create({
         providerId: testProviderId2,
         modelId: 'model-2',
-        name: 'Provider 2 Model'
+        name: 'Provider 2 Model',
       })
 
       const result = await ModelService.getByProviderId(testProviderId)
@@ -205,7 +209,7 @@ describe('ModelService', () => {
       const created = await ModelService.create({
         providerId: testProviderId,
         modelId: 'model-1',
-        name: 'Test Model'
+        name: 'Test Model',
       })
 
       const result = await ModelService.getById(created.id)
@@ -227,18 +231,18 @@ describe('ModelService', () => {
         {
           providerId: testProviderId,
           modelId: 'model-1',
-          name: 'Model 1'
+          name: 'Model 1',
         },
         {
           providerId: testProviderId,
           modelId: 'model-2',
-          name: 'Model 2'
+          name: 'Model 2',
         },
         {
           providerId: testProviderId2,
           modelId: 'model-3',
-          name: 'Model 3'
-        }
+          name: 'Model 3',
+        },
       ]
 
       const result = await ModelService.createMany(modelsData)
@@ -260,12 +264,12 @@ describe('ModelService', () => {
         providerId: testProviderId,
         modelId: 'model-1',
         name: 'Original Name',
-        enabled: true
+        enabled: true,
       })
 
       const updated = await ModelService.update(created.id, {
         name: 'Updated Name',
-        enabled: false
+        enabled: false,
       })
 
       expect(updated?.name).toBe('Updated Name')
@@ -278,7 +282,7 @@ describe('ModelService', () => {
       const created = await ModelService.create({
         providerId: testProviderId,
         modelId: 'model-1',
-        name: 'To Delete'
+        name: 'To Delete',
       })
 
       await ModelService.delete(created.id)
@@ -293,23 +297,24 @@ describe('ModelService', () => {
       await ModelService.create({
         providerId: testProviderId,
         modelId: 'model-1',
-        name: 'Provider 1 Model 1'
+        name: 'Provider 1 Model 1',
       })
       await ModelService.create({
         providerId: testProviderId,
         modelId: 'model-2',
-        name: 'Provider 1 Model 2'
+        name: 'Provider 1 Model 2',
       })
       await ModelService.create({
         providerId: testProviderId2,
         modelId: 'model-3',
-        name: 'Provider 2 Model'
+        name: 'Provider 2 Model',
       })
 
       await ModelService.deleteByProviderId(testProviderId)
 
       const provider1Models = await ModelService.getByProviderId(testProviderId)
-      const provider2Models = await ModelService.getByProviderId(testProviderId2)
+      const provider2Models =
+        await ModelService.getByProviderId(testProviderId2)
 
       expect(provider1Models).toHaveLength(0)
       expect(provider2Models).toHaveLength(1)
@@ -322,7 +327,7 @@ describe('ModelService', () => {
         providerId: testProviderId,
         modelId: 'model-1',
         name: 'Test Model',
-        enabled: true
+        enabled: true,
       })
 
       const toggled = await ModelService.toggleEnabled(created.id)
@@ -344,13 +349,13 @@ describe('ModelService', () => {
         providerId: testProviderId,
         modelId: 'model-1',
         name: 'Model 1',
-        enabled: false
+        enabled: false,
       })
       const model2 = await ModelService.create({
         providerId: testProviderId,
         modelId: 'model-2',
         name: 'Model 2',
-        enabled: false
+        enabled: false,
       })
 
       await ModelService.setEnabledBatch([model1.id, model2.id], true)
@@ -369,13 +374,13 @@ describe('ModelService', () => {
         providerId: testProviderId,
         modelId: 'model-1',
         name: 'Standard Model',
-        isCustom: false
+        isCustom: false,
       })
       await ModelService.create({
         providerId: testProviderId2,
         modelId: 'model-2',
         name: 'Custom Model',
-        isCustom: true
+        isCustom: true,
       })
 
       const result = await ModelService.getCustomModels()
@@ -392,19 +397,19 @@ describe('ModelService', () => {
         providerId: testProviderId,
         modelId: 'model-1',
         name: 'Enabled Model',
-        enabled: true
+        enabled: true,
       })
       await ModelService.create({
         providerId: testProviderId,
         modelId: 'model-2',
         name: 'Disabled Model',
-        enabled: false
+        enabled: false,
       })
       await ModelService.create({
         providerId: testProviderId2,
         modelId: 'model-3',
         name: 'Other Provider Model',
-        enabled: true
+        enabled: true,
       })
 
       const result = await ModelService.getEnabledByProviderId(testProviderId)

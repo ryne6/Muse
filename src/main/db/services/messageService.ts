@@ -20,21 +20,23 @@ export class MessageService {
   static async getWithTools(messageId: string) {
     const db = getDatabase()
 
-    const message = await db.select().from(messages).where(eq(messages.id, messageId)).limit(1)
+    const message = await db
+      .select()
+      .from(messages)
+      .where(eq(messages.id, messageId))
+      .limit(1)
 
     if (!message[0]) return null
 
-    const calls = await db.select().from(toolCalls).where(eq(toolCalls.messageId, messageId))
+    const calls = await db
+      .select()
+      .from(toolCalls)
+      .where(eq(toolCalls.messageId, messageId))
 
     const results = await db
       .select()
       .from(toolResults)
-      .where(
-        eq(
-          toolResults.toolCallId,
-          calls.map((c) => c.id)[0] || ''
-        )
-      )
+      .where(eq(toolResults.toolCallId, calls.map(c => c.id)[0] || ''))
 
     return {
       ...message[0],
@@ -70,7 +72,10 @@ export class MessageService {
   }
 
   // Add tool call to message
-  static async addToolCall(messageId: string, data: Omit<NewToolCall, 'id' | 'messageId'>) {
+  static async addToolCall(
+    messageId: string,
+    data: Omit<NewToolCall, 'id' | 'messageId'>
+  ) {
     const db = getDatabase()
 
     const newToolCall: NewToolCall = {
@@ -85,7 +90,10 @@ export class MessageService {
   }
 
   // Add tool result
-  static async addToolResult(toolCallId: string, data: Omit<NewToolResult, 'id' | 'toolCallId'>) {
+  static async addToolResult(
+    toolCallId: string,
+    data: Omit<NewToolResult, 'id' | 'toolCallId'>
+  ) {
     const db = getDatabase()
 
     const newToolResult: NewToolResult = {
@@ -112,22 +120,20 @@ export class MessageService {
     const conversationMessages = await this.getByConversationId(conversationId)
 
     const messagesWithTools = await Promise.all(
-      conversationMessages.map(async (message) => {
+      conversationMessages.map(async message => {
         const calls = await db
           .select()
           .from(toolCalls)
           .where(eq(toolCalls.messageId, message.id))
 
-        const callIds = calls.map((c) => c.id)
+        const callIds = calls.map(c => c.id)
         const results =
           callIds.length > 0
             ? await db
                 .select()
                 .from(toolResults)
                 .where(
-                  and(
-                    ...callIds.map((id) => eq(toolResults.toolCallId, id))
-                  )
+                  and(...callIds.map(id => eq(toolResults.toolCallId, id)))
                 )
             : []
 

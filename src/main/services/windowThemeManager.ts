@@ -31,6 +31,8 @@ export class WindowThemeManager {
 
   /** 绑定窗口，注册生命周期 hooks */
   attach(win: BrowserWindow): void {
+    // 重置旧窗口状态（窗口关闭后重新打开时 liquidGlassViewId 还残留）
+    this.liquidGlassViewId = null
     this.win = win
     win.webContents.once('did-finish-load', () => {
       this.applyLiquidGlass()

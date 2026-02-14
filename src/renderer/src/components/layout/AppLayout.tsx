@@ -93,7 +93,7 @@ export function AppLayout() {
     <div
       className={`flex flex-col h-screen overflow-hidden rounded-[28px] ${
         isTahoe
-          ? 'bg-[hsl(var(--bg-layout)/0.9)]'
+          ? 'bg-[hsl(var(--bg-layout)/0.5)]'
           : 'bg-[hsl(var(--bg-layout))]'
       }`}
     >

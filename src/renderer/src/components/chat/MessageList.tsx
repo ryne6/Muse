@@ -29,12 +29,22 @@ export function MessageList() {
 
   const virtuaRef = useRef<VListHandle>(null)
   const scrollEndTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // 记录已完成初始滚动的对话 ID，避免每次消息变化都滚
+  const initialScrollDoneRef = useRef<string | null>(null)
+
+  const hasMessages = messageIds.length > 0
 
   // 注册滚动方法到 store，供 AutoScroll / BackBottom 调用
-  // key={conversationId} 会导致 VList 重新挂载，用 rAF 确保 ref 已赋值
+  // 依赖 hasMessages：app 启动时 VList 延迟挂载，需要在消息就绪后重新触发
   useEffect(() => {
+    if (!hasMessages) return
+
     const raf = requestAnimationFrame(() => {
       if (virtuaRef.current) {
+        const scrollToEnd = () => {
+          const handle = virtuaRef.current
+          if (handle) handle.scrollTo(handle.scrollSize)
+        }
         registerScrollMethods({
           scrollToIndex: (index, options) => {
             virtuaRef.current?.scrollToIndex(index, {
@@ -47,18 +57,23 @@ export function MessageList() {
               smooth: options?.smooth,
             })
           },
-          scrollToEnd: () => {
-            const handle = virtuaRef.current
-            if (handle) handle.scrollTo(handle.scrollSize)
-          },
+          scrollToEnd,
         })
+        // 首次进入 / 切换对话时滚到底部（每个对话只触发一次）
+        if (initialScrollDoneRef.current !== currentConversationId) {
+          initialScrollDoneRef.current = currentConversationId
+          requestAnimationFrame(() => {
+            scrollToEnd()
+            setScrollState({ atBottom: true })
+          })
+        }
       }
     })
     return () => {
       cancelAnimationFrame(raf)
       registerScrollMethods(null)
     }
-  }, [registerScrollMethods, currentConversationId])
+  }, [registerScrollMethods, currentConversationId, hasMessages])
 
   // VList onScroll 签名: (offset: number) => void
   const handleScroll = useCallback(

@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { Plus, Loader2, CheckCircle, XCircle } from 'lucide-react'
 import { Modal } from '@lobehub/ui'
-import { Button } from '@/components/ui/button'
-import { dbClient } from '@/services/dbClient'
-import { apiClient } from '@/services/apiClient'
-import { notify } from '@/utils/notify'
-import { useSettingsStore } from '@/stores/settingsStore'
+import { Button } from '~/components/ui/button'
+import { dbClient } from '~/services/dbClient'
+import { apiClient } from '~/services/apiClient'
+import { notify } from '~/utils/notify'
+import { useSettingsStore } from '~/stores/settingsStore'
 
 interface AddProviderDialogProps {
   onProviderAdded: () => void
@@ -257,7 +257,7 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
                     required
                   />
                   <Button
-                    type="button"
+                    htmlType="button"
                     variant="outline"
                     onClick={handleTestConnection}
                     disabled={isValidating || !formData.apiKey}

@@ -1,4 +1,4 @@
-import logoImage from '@/assets/providers/logo.png'
+import logoImage from '~/assets/providers/logo.png'
 
 interface SidebarHeaderProps {
   showText: boolean

@@ -5,8 +5,8 @@ import {
   ListTodo,
   ChevronUp,
 } from 'lucide-react'
-import { cn } from '@/utils/cn'
-import { useConversationStore } from '@/stores/conversationStore'
+import { cn } from '~/utils/cn'
+import { useConversationStore } from '~/stores/conversationStore'
 import { useMemo, useState } from 'react'
 
 interface TodoItem {

@@ -79,7 +79,7 @@ const { mockChatStore, mockConversationStore, mockSettingsStore, mockNotify } =
       mockConversationStore: {
         ...conversationStoreState,
         getCurrentConversation: vi.fn(() => null),
-        getEffectiveWorkspace: vi.fn(() => '/test/workspace'),
+        getEffectiveWorkspace: vi.fn(() => '~main/test/workspace'),
         createConversation: vi.fn(async (title?: string) => ({
           id: 'new-conv-id',
           title: title ?? 'New Conversation',
@@ -144,7 +144,7 @@ const { mockChatStore, mockConversationStore, mockSettingsStore, mockNotify } =
   })
 
 // Mock Zustand stores — each mock must be both callable (hook) and have .getState()
-vi.mock('@/stores/chatStore', () => {
+vi.mock('~/stores/chatStore', () => {
   const hook = () => mockChatStore
   hook.getState = () => mockChatStore
   hook.setState = mockChatStore.setState
@@ -152,7 +152,7 @@ vi.mock('@/stores/chatStore', () => {
   return { useChatStore: hook }
 })
 
-vi.mock('@/stores/conversationStore', () => {
+vi.mock('~/stores/conversationStore', () => {
   const hook = () => mockConversationStore
   hook.getState = () => mockConversationStore
   hook.setState = mockConversationStore.setState
@@ -160,7 +160,7 @@ vi.mock('@/stores/conversationStore', () => {
   return { useConversationStore: hook }
 })
 
-vi.mock('@/stores/settingsStore', () => {
+vi.mock('~/stores/settingsStore', () => {
   const hook = () => mockSettingsStore
   hook.getState = () => mockSettingsStore
   hook.setState = mockSettingsStore.setState
@@ -177,7 +177,7 @@ vi.mock('../SkillsDropdown', () => ({
 }))
 
 // Mock notify utility
-vi.mock('@/utils/notify', () => ({
+vi.mock('~/utils/notify', () => ({
   notify: mockNotify,
 }))
 

@@ -2,7 +2,7 @@
 // License: MIT
 
 import { ArrowDown } from 'lucide-react'
-import { useChatStore } from '@/stores/chatStore'
+import { useChatStore } from '~/stores/chatStore'
 
 // 浮动按钮，放在 VList 外部（绝对定位），上滚时出现
 export function BackBottom() {

@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { ChevronDown } from 'lucide-react'
-import { useSettingsStore } from '@/stores/settingsStore'
-import type { Model } from '@shared/types/db'
+import { useSettingsStore } from '~/stores/settingsStore'
+import type { Model } from '~shared/types/db'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,8 +9,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Button } from '@/components/ui/button'
+} from '~/components/ui/dropdown-menu'
+import { Button } from '~/components/ui/button'
 
 export function ModelSelector() {
   const {

@@ -1,5 +1,5 @@
 import { Loader2 } from 'lucide-react'
-import { useLoadingStore } from '@/stores/loadingStore'
+import { useLoadingStore } from '~/stores/loadingStore'
 
 interface LoadingInlineProps {
   label?: string

@@ -1,5 +1,5 @@
 import { Button as LobeButton, type ButtonProps as LobeButtonProps } from '@lobehub/ui'
-import { cn } from '@/utils/cn'
+import { cn } from '~/utils/cn'
 
 type ShadcnVariant =
   | 'default'

@@ -6,7 +6,7 @@ import {
   initApiClient,
   getApiBaseUrl,
 } from '../apiClient'
-import { ErrorCode } from '@shared/types/error'
+import { ErrorCode } from '~shared/types/error'
 
 describe('APIClient', () => {
   let client: APIClient
@@ -309,7 +309,7 @@ describe('APIClient', () => {
     it('should return current API base URL', () => {
       const url = getApiBaseUrl()
       expect(url).toContain('http://localhost:')
-      expect(url).toContain('/api')
+      expect(url).toContain('~main/api')
     })
   })
 

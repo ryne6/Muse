@@ -72,10 +72,10 @@ if (hasDom) {
   }
 
   // Mock dbClient for UI components
-  vi.mock('@renderer/services/dbClient', () => ({
+  vi.mock('~renderer/services/dbClient', () => ({
     dbClient: mockDbClient
   }))
-  vi.mock('@/services/dbClient', () => ({
+  vi.mock('~/services/dbClient', () => ({
     dbClient: mockDbClient
   }))
 }

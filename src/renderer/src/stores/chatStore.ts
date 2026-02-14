@@ -7,16 +7,16 @@ import type {
   AIConfig,
   MessageContent,
   AIRequestOptions,
-} from '@shared/types/ai'
-import type { APIError } from '@shared/types/error'
-import { getErrorMessage } from '@shared/types/error'
-import type { Message, ToolCall, ToolResult } from '@shared/types/conversation'
-import type { PendingAttachment } from '@shared/types/attachment'
-import type { ApprovalScope } from '@shared/types/toolPermissions'
+} from '~shared/types/ai'
+import type { APIError } from '~shared/types/error'
+import { getErrorMessage } from '~shared/types/error'
+import type { Message, ToolCall, ToolResult } from '~shared/types/conversation'
+import type { PendingAttachment } from '~shared/types/attachment'
+import type { ApprovalScope } from '~shared/types/toolPermissions'
 import { useConversationStore } from './conversationStore'
 import { useSettingsStore } from './settingsStore'
 
-import { getTextContent } from '@shared/types/ai'
+import { getTextContent } from '~shared/types/ai'
 
 // TODO: Consider extracting memory-related logic into a dedicated memoryStore.ts
 
@@ -245,7 +245,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
             const base64 = await window.api.attachments.getBase64(attachment.id)
             return base64
               ? {
-                  type: 'image',
+                  type: 'image' as const,
                   mimeType: attachment.mimeType,
                   data: base64,
                   note: attachment.note || undefined,
@@ -253,7 +253,12 @@ export const useChatStore = create<ChatStore>((set, get) => ({
               : null
           })
         )
-        contentBlocks.push(...imageBlocks.filter(Boolean))
+        const validImageBlocks = imageBlocks.filter(
+          (
+            block
+          ): block is NonNullable<(typeof imageBlocks)[number]> => block !== null
+        )
+        contentBlocks.push(...validImageBlocks)
       }
 
       return contentBlocks

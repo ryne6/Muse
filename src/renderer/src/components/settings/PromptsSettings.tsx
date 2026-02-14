@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Plus, Pencil, Trash2, FileText } from 'lucide-react'
 import { Modal, Dropdown } from '@lobehub/ui'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { useSettingsStore } from '@/stores/settingsStore'
-import { notify } from '@/utils/notify'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { useSettingsStore } from '~/stores/settingsStore'
+import { notify } from '~/utils/notify'
 
 interface PromptPreset {
   id: string

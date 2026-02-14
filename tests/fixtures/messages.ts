@@ -1,4 +1,4 @@
-import type { NewMessage, NewToolCall, NewToolResult } from '@main/db/schema'
+import type { NewMessage, NewToolCall, NewToolResult } from '~main/db/schema'
 
 /**
  * Message 测试数据 fixtures
@@ -34,7 +34,7 @@ export const mockMessages = [
 export const mockToolCall: Omit<NewToolCall, 'id' | 'createdAt'> = {
   messageId: 'message-1',
   toolName: 'read_file',
-  toolInput: JSON.stringify({ path: '/test/file.txt' })
+  toolInput: JSON.stringify({ path: '~main/test/file.txt' })
 }
 
 export const mockToolResult: Omit<NewToolResult, 'id' | 'createdAt'> = {

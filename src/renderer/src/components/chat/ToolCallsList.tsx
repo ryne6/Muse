@@ -1,5 +1,5 @@
 import { memo } from 'react'
-import type { ToolCall, ToolResult } from '@shared/types/conversation'
+import type { ToolCall, ToolResult } from '~shared/types/conversation'
 import { ToolCallCard } from './ToolCallCard'
 
 interface ToolCallsListProps {

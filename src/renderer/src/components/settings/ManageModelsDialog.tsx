@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, Loader2 } from 'lucide-react'
 import { Modal } from '@lobehub/ui'
-import { Button } from '@/components/ui/button'
-import { dbClient } from '@/services/dbClient'
-import { notify } from '@/utils/notify'
-import { useSettingsStore } from '@/stores/settingsStore'
+import { Button } from '~/components/ui/button'
+import { dbClient } from '~/services/dbClient'
+import { notify } from '~/utils/notify'
+import { useSettingsStore } from '~/stores/settingsStore'
 
 interface Model {
   id: string

@@ -14,16 +14,16 @@ import {
   Terminal,
   ListTodo,
 } from 'lucide-react'
-import type { ToolCall, ToolResult } from '@shared/types/conversation'
+import type { ToolCall, ToolResult } from '~shared/types/conversation'
 import type {
   PermissionRequestPayload,
   ApprovalScope,
-} from '@shared/types/toolPermissions'
-import { TOOL_PERMISSION_PREFIX } from '@shared/types/toolPermissions'
-import { cn } from '@/utils/cn'
+} from '~shared/types/toolPermissions'
+import { TOOL_PERMISSION_PREFIX } from '~shared/types/toolPermissions'
+import { cn } from '~/utils/cn'
 import { ScrollArea } from '@lobehub/ui'
-import { useChatStore } from '@/stores/chatStore'
-import { useConversationStore } from '@/stores/conversationStore'
+import { useChatStore } from '~/stores/chatStore'
+import { useConversationStore } from '~/stores/conversationStore'
 
 function parsePermissionRequest(
   output?: string

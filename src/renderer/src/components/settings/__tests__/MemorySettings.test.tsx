@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { MemorySettings } from '../MemorySettings'
-import type { MemoryRecord } from '@shared/types/ipc'
+import type { MemoryRecord } from '~shared/types/ipc'
 
 vi.mock('lucide-react', () => {
   const make = (name: string) => {
@@ -26,11 +26,11 @@ vi.mock('lucide-react', () => {
   }
 })
 
-vi.mock('@/components/ui/button', () => ({
+vi.mock('~/components/ui/button', () => ({
   Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
 }))
 
-vi.mock('@/components/ui/input', () => ({
+vi.mock('~/components/ui/input', () => ({
   Input: (props: any) => <input {...props} />,
 }))
 
@@ -45,14 +45,14 @@ const { storeState, setMemoryEnabledMock } = vi.hoisted(() => {
   }
 })
 
-vi.mock('@/stores/settingsStore', () => ({
+vi.mock('~/stores/settingsStore', () => ({
   useSettingsStore: (selector: any) => selector(storeState),
 }))
 
 const notifySuccess = vi.fn()
 const notifyError = vi.fn()
 
-vi.mock('@/utils/notify', () => ({
+vi.mock('~/utils/notify', () => ({
   notify: {
     success: (...args: any[]) => notifySuccess(...args),
     error: (...args: any[]) => notifyError(...args),

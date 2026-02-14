@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { ChevronRight, ChevronDown } from 'lucide-react'
 import { FileIcon } from './FileIcon'
-import { cn } from '@/utils/cn'
+import { cn } from '~/utils/cn'
 
 export interface FileNode {
   name: string

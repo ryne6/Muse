@@ -16,6 +16,25 @@ const api: IpcApi = {
     readFile: (path: string) => ipcRenderer.invoke('fs:readFile', { path }),
     writeFile: (path: string, content: string) =>
       ipcRenderer.invoke('fs:writeFile', { path, content }),
+    editFile: (
+      path: string,
+      oldText: string,
+      newText: string,
+      replaceAll = false
+    ) =>
+      ipcRenderer.invoke('fs:editFile', {
+        path,
+        oldText,
+        newText,
+        replaceAll,
+      }),
+    glob: (pattern: string, path?: string) =>
+      ipcRenderer.invoke('fs:glob', { pattern, path }),
+    grep: (
+      pattern: string,
+      path?: string,
+      options?: { glob?: string; ignoreCase?: boolean; maxResults?: number }
+    ) => ipcRenderer.invoke('fs:grep', { pattern, path, options }),
     listFiles: (path: string, pattern?: string) =>
       ipcRenderer.invoke('fs:listFiles', { path, pattern }),
     exists: (path: string) => ipcRenderer.invoke('fs:exists', { path }),
@@ -24,6 +43,38 @@ const api: IpcApi = {
   exec: {
     command: (command: string, cwd?: string) =>
       ipcRenderer.invoke('exec:command', { command, cwd }),
+  },
+  git: {
+    status: (path?: string) => ipcRenderer.invoke('git:status', { path }),
+    diff: (path?: string, staged?: boolean, file?: string) =>
+      ipcRenderer.invoke('git:diff', { path, staged, file }),
+    log: (path?: string, maxCount?: number) =>
+      ipcRenderer.invoke('git:log', { path, maxCount }),
+    commit: (path: string | undefined, message: string, files?: string[]) =>
+      ipcRenderer.invoke('git:commit', { path, message, files }),
+    push: (path?: string, remote?: string, branch?: string) =>
+      ipcRenderer.invoke('git:push', { path, remote, branch }),
+    checkout: (
+      path: string | undefined,
+      branch: string,
+      create?: boolean
+    ) => ipcRenderer.invoke('git:checkout', { path, branch, create }),
+  },
+  web: {
+    fetch: (url: string, maxLength?: number) =>
+      ipcRenderer.invoke('web:fetch', { url, maxLength }),
+    search: (
+      query: string,
+      limit?: number,
+      recencyDays?: number,
+      domains?: string[]
+    ) =>
+      ipcRenderer.invoke('web:search', {
+        query,
+        limit,
+        recencyDays,
+        domains,
+      }),
   },
   workspace: {
     get: () => ipcRenderer.invoke('workspace:get'),

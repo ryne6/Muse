@@ -10,8 +10,8 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
     resolve: {
       alias: {
-        '@main': resolve('src/main'),
-        '@shared': resolve('src/shared')
+        '~main': resolve('src/main'),
+        '~shared': resolve('src/shared')
       }
     }
   },
@@ -19,7 +19,7 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
     resolve: {
       alias: {
-        '@shared': resolve('src/shared')
+        '~shared': resolve('src/shared')
       }
     }
   },
@@ -41,9 +41,9 @@ export default defineConfig({
     },
     resolve: {
       alias: {
-        '@': resolve('src/renderer/src'),
-        '@renderer': resolve('src/renderer/src'),
-        '@shared': resolve('src/shared')
+        '~': resolve('src/renderer/src'),
+        '~renderer': resolve('src/renderer/src'),
+        '~shared': resolve('src/shared')
       }
     },
     plugins: [

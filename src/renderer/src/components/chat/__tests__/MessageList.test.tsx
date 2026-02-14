@@ -35,7 +35,7 @@ const mockConversationStore = vi.hoisted(() => {
   }
 })
 
-vi.mock('@/stores/conversationStore', () => ({
+vi.mock('~/stores/conversationStore', () => ({
   useConversationStore: (
     selector?: (state: typeof mockConversationStore) => unknown
   ) => (selector ? selector(mockConversationStore) : mockConversationStore),
@@ -56,7 +56,7 @@ interface MockChatState {
   scrollToBottom: ReturnType<typeof vi.fn>
 }
 
-vi.mock('@/stores/chatStore', () => ({
+vi.mock('~/stores/chatStore', () => ({
   useChatStore: (selector?: (state: MockChatState) => unknown) => {
     const state: MockChatState = {
       isLoading: false,

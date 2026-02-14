@@ -11,11 +11,11 @@ import {
   AlertTriangle,
   Loader2,
 } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { useSettingsStore } from '@/stores/settingsStore'
-import { notify } from '@/utils/notify'
-import type { MemoryRecord } from '@shared/types/ipc'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { useSettingsStore } from '~/stores/settingsStore'
+import { notify } from '~/utils/notify'
+import type { MemoryRecord } from '~shared/types/ipc'
 
 type CategoryFilter =
   | 'all'

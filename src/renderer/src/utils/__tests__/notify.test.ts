@@ -25,7 +25,7 @@ vi.mock('@lobehub/ui', () => ({
 }))
 
 import { notify } from '../notify'
-import { ErrorCode } from '@shared/types/error'
+import { ErrorCode } from '~shared/types/error'
 
 describe('notify', () => {
   beforeEach(() => {

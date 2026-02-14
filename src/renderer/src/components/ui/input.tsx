@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Input as LobeInput } from '@lobehub/ui'
-import { cn } from '@/utils/cn'
+import { cn } from '~/utils/cn'
 
 type LobeInputRef = React.ElementRef<typeof LobeInput>
 

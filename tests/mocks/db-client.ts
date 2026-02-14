@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 import { mockProviders } from '../fixtures/providers'
-import type { Provider, Model, Conversation, Message } from '@main/db/schema'
+import type { Provider, Model, Conversation, Message } from '~main/db/schema'
 
 /**
  * Mock dbClient for UI component testing

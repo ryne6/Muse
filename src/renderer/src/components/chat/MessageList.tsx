@@ -6,8 +6,8 @@ import { VList, type VListHandle } from 'virtua'
 import {
   useConversationStore,
   selectCurrentMessageIds,
-} from '@/stores/conversationStore'
-import { useChatStore } from '@/stores/chatStore'
+} from '~/stores/conversationStore'
+import { useChatStore } from '~/stores/chatStore'
 import { useShallow } from 'zustand/react/shallow'
 import { MessageItem } from './MessageItem'
 import { AutoScroll } from './AutoScroll'

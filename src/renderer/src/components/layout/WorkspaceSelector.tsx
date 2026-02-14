@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Folder, X } from 'lucide-react'
 import { Button } from '../ui/button'
-import { useWorkspaceStore } from '@/stores/workspaceStore'
+import { useWorkspaceStore } from '~/stores/workspaceStore'
 
 export function WorkspaceSelector() {
   const {
@@ -24,7 +24,7 @@ export function WorkspaceSelector() {
           <div className="flex-1 min-w-0">
             <div className="text-xs text-muted-foreground">Workspace</div>
             <div className="text-sm truncate" title={workspacePath}>
-              {workspacePath.split('/').pop() || workspacePath}
+              {workspacePath.split('~main/').pop() || workspacePath}
             </div>
           </div>
           <Button

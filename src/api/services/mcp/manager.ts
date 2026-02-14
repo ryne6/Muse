@@ -3,7 +3,6 @@ import type {
   MCPServerConfig,
   MCPTool,
   MCPServerState,
-  MCPToolResult,
 } from './types'
 import { createMCPToolName, parseMCPToolName } from './types'
 

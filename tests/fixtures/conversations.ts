@@ -1,4 +1,4 @@
-import type { NewConversation } from '@main/db/schema'
+import type { NewConversation } from '~main/db/schema'
 
 /**
  * Conversation 测试数据 fixtures

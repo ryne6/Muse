@@ -22,15 +22,15 @@ const mockSettingsStore = vi.hoisted(() => ({
   triggerRefresh: vi.fn(),
 }))
 
-vi.mock('@/services/dbClient', () => ({
+vi.mock('~/services/dbClient', () => ({
   dbClient: mockDbClient,
 }))
 
-vi.mock('@/utils/notify', () => ({
+vi.mock('~/utils/notify', () => ({
   notify: mockNotify,
 }))
 
-vi.mock('@/stores/settingsStore', () => ({
+vi.mock('~/stores/settingsStore', () => ({
   useSettingsStore: () => mockSettingsStore,
 }))
 

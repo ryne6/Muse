@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import type { AIMessage, AIConfig, AIStreamChunk } from '@shared/types/ai'
+import type { AIMessage, AIConfig, AIStreamChunk } from '~shared/types/ai'
 
 /**
  * Mock AI Provider 响应
@@ -24,7 +24,7 @@ export const mockToolUseChunk: AIStreamChunk = {
   toolUse: {
     id: 'tool_test_123',
     name: 'read_file',
-    input: { path: '/test/file.txt' }
+    input: { path: '~main/test/file.txt' }
   }
 }
 

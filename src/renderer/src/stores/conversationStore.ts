@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { v4 as uuidv4 } from 'uuid'
-import type { Conversation, Message } from '@shared/types/conversation'
-import { dbClient } from '@/services/dbClient'
+import type { Conversation, Message } from '~shared/types/conversation'
+import { dbClient } from '~/services/dbClient'
 import { useWorkspaceStore } from './workspaceStore'
 import { useSettingsStore } from './settingsStore'
 

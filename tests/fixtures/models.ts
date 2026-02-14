@@ -1,4 +1,4 @@
-import type { NewModel } from '@main/db/schema'
+import type { NewModel } from '~main/db/schema'
 
 /**
  * Model 测试数据 fixtures

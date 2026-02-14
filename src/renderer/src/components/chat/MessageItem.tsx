@@ -1,6 +1,6 @@
 import { memo, useCallback } from 'react'
-import logoImage from '@/assets/providers/logo.png'
-import { useConversationStore } from '@/stores/conversationStore'
+import logoImage from '~/assets/providers/logo.png'
+import { useConversationStore } from '~/stores/conversationStore'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { ToolCallsList } from './ToolCallsList'
 import { MessageImage } from './MessageImage'

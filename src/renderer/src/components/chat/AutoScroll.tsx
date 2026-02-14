@@ -2,8 +2,8 @@
 // License: MIT
 
 import { useEffect, useCallback } from 'react'
-import { useConversationStore } from '@/stores/conversationStore'
-import { useChatStore } from '@/stores/chatStore'
+import { useConversationStore } from '~/stores/conversationStore'
+import { useChatStore } from '~/stores/chatStore'
 
 // 无 UI 组件，放在 VList 最后一项内部，负责流式生成时自动跟随底部
 export function AutoScroll() {

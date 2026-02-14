@@ -32,11 +32,16 @@ export async function initializeMCP(): Promise<void> {
     // Add each server to the manager
     for (const server of servers) {
       mcpManager.addServer({
+        id: server.id,
         name: server.name,
         command: server.command,
         args: parseJsonField<string[]>(server.args),
         env: parseJsonField<Record<string, string>>(server.env),
         enabled: true,
+        createdAt:
+          server.createdAt instanceof Date
+            ? server.createdAt.getTime()
+            : Number(server.createdAt),
       })
     }
 
@@ -66,11 +71,13 @@ export async function connectMcpServer(server: {
   if (!server.enabled) return
 
   mcpManager.addServer({
+    id: `runtime-${server.name}`,
     name: server.name,
     command: server.command,
     args: parseJsonField<string[]>(server.args),
     env: parseJsonField<Record<string, string>>(server.env),
     enabled: true,
+    createdAt: Date.now(),
   })
 
   await mcpManager.connectServer(server.name)

@@ -1,7 +1,7 @@
 import axios from 'axios'
-import { TOOL_PERMISSION_PREFIX } from '@shared/types/toolPermissions'
-import type { PermissionRule, HooksConfig } from '@shared/types/toolPermissions'
-import { PermissionEngine } from '@shared/permissions/engine'
+import { TOOL_PERMISSION_PREFIX } from '~shared/types/toolPermissions'
+import type { PermissionRule, HooksConfig } from '~shared/types/toolPermissions'
+import { PermissionEngine } from '~shared/permissions/engine'
 
 // Lazy-loaded MCP manager to avoid SDK side effects at import time
 let mcpManagerInstance: typeof import('../../mcp/manager').mcpManager | null =

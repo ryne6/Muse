@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Plus, Power, Trash2, Server, RefreshCw } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { dbClient } from '@/services/dbClient'
-import { notify } from '@/utils/notify'
-import { cn } from '@/utils/cn'
+import { Button } from '~/components/ui/button'
+import { Input } from '~/components/ui/input'
+import { dbClient } from '~/services/dbClient'
+import { notify } from '~/utils/notify'
+import { cn } from '~/utils/cn'
 
 interface MCPServer {
   id: string

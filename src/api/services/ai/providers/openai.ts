@@ -140,7 +140,9 @@ export class OpenAIProvider extends BaseAIProvider {
         requestParams.tools = this.convertTools(getAllTools())
       }
 
-      const stream = await client.chat.completions.create(requestParams)
+      const stream = (await client.chat.completions.create(
+        requestParams
+      )) as unknown as AsyncIterable<any>
 
       let currentContent = ''
       const toolCalls: OpenAI.ChatCompletionMessageToolCall[] = []

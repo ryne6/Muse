@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { Star, MoreVertical, Trash2, Edit2, Settings } from 'lucide-react'
 import { Dropdown } from '@lobehub/ui'
-import type { Conversation } from '@shared/types/conversation'
-import { useConversationStore } from '@/stores/conversationStore'
+import type { MenuInfo } from '@lobehub/ui'
+import type { Conversation } from '~shared/types/conversation'
+import { useConversationStore } from '~/stores/conversationStore'
 import { ConversationSettingsDialog } from './ConversationSettingsDialog'
 
 interface ConversationItemProps {
@@ -26,20 +27,20 @@ export function ConversationItem({ conversation }: ConversationItemProps) {
     loadConversation(conversation.id)
   }
 
-  const handleDelete = (e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleDelete = (info: MenuInfo) => {
+    info.domEvent.stopPropagation()
     if (confirm(`Delete "${conversation.title}"?`)) {
       deleteConversation(conversation.id)
     }
   }
 
-  const handleRename = (e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleRename = (info: MenuInfo) => {
+    info.domEvent.stopPropagation()
     setIsEditing(true)
   }
 
-  const handleSettings = (e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleSettings = (info: MenuInfo) => {
+    info.domEvent.stopPropagation()
     setIsSettingsOpen(true)
   }
 

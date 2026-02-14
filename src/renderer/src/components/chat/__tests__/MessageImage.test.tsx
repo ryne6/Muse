@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { MessageImage } from '../MessageImage'
-import type { AttachmentPreview } from '@shared/types/attachment'
+import type { AttachmentPreview } from '~shared/types/attachment'
 
 vi.mock('lucide-react', () => {
   const Loader2 = (props: any) => <span data-testid="Loader2" {...props} />

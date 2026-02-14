@@ -1,6 +1,6 @@
 import { Folder } from 'lucide-react'
-import { useConversationStore } from '@/stores/conversationStore'
-import { useWorkspaceStore } from '@/stores/workspaceStore'
+import { useConversationStore } from '~/stores/conversationStore'
+import { useWorkspaceStore } from '~/stores/workspaceStore'
 
 export function WorkspaceDropdown() {
   const { currentConversationId, conversations, setWorkspace } =
@@ -30,7 +30,7 @@ export function WorkspaceDropdown() {
   }
 
   const displayName = effectiveWorkspace
-    ? effectiveWorkspace.split('/').pop() || effectiveWorkspace
+    ? effectiveWorkspace.split('~main/').pop() || effectiveWorkspace
     : 'No workspace'
 
   return (

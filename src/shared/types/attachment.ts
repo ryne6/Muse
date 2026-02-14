@@ -48,14 +48,15 @@ export interface PendingAttachment {
  * Data for creating a new attachment
  */
 export interface NewAttachmentData {
+  id?: string
   messageId: string
   filename: string
   mimeType: string
-  data: Buffer
-  note?: string
+  data: Buffer | string
+  note?: string | null
   size: number
-  width?: number
-  height?: number
+  width?: number | null
+  height?: number | null
 }
 
 /**

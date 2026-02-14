@@ -4,7 +4,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { ToolCallsList } from '../ToolCallsList'
-import type { ToolCall, ToolResult } from '@shared/types/conversation'
+import type { ToolCall, ToolResult } from '~shared/types/conversation'
 
 vi.mock('lucide-react', () => {
   const make = (name: string) => {
@@ -35,12 +35,12 @@ vi.mock('@lobehub/ui', () => ({
   ScrollArea: ({ children }: any) => <div>{children}</div>,
 }))
 
-vi.mock('@/stores/chatStore', () => ({
+vi.mock('~/stores/chatStore', () => ({
   useChatStore: (selector: any) =>
     selector({ approveToolCall: vi.fn() }),
 }))
 
-vi.mock('@/stores/conversationStore', () => ({
+vi.mock('~/stores/conversationStore', () => ({
   useConversationStore: (selector: any) =>
     selector({ currentConversationId: 'conv-1' }),
 }))
@@ -49,7 +49,7 @@ describe('ToolCallsList', () => {
   describe('TodoWrite filtering', () => {
     it('filters out TodoWrite tool calls', () => {
       const toolCalls: ToolCall[] = [
-        { id: 'tc-1', name: 'Read', input: { path: '/foo' } },
+        { id: 'tc-1', name: 'Read', input: { path: '~main/foo' } },
         { id: 'tc-2', name: 'TodoWrite', input: { todos: [] } },
       ]
       render(<ToolCallsList toolCalls={toolCalls} />)
@@ -75,7 +75,7 @@ describe('ToolCallsList', () => {
   describe('tool result matching', () => {
     it('renders tool calls with matching results', () => {
       const toolCalls: ToolCall[] = [
-        { id: 'tc-1', name: 'Read', input: { path: '/foo' } },
+        { id: 'tc-1', name: 'Read', input: { path: '~main/foo' } },
         { id: 'tc-2', name: 'Bash', input: { command: 'ls' } },
       ]
       const toolResults: ToolResult[] = [
@@ -91,7 +91,7 @@ describe('ToolCallsList', () => {
 
     it('renders tool calls without results (pending state)', () => {
       const toolCalls: ToolCall[] = [
-        { id: 'tc-1', name: 'Read', input: { path: '/foo' } },
+        { id: 'tc-1', name: 'Read', input: { path: '~main/foo' } },
       ]
       render(<ToolCallsList toolCalls={toolCalls} toolResults={[]} />)
       expect(screen.getByTestId('FileText')).toBeTruthy()

@@ -1,4 +1,4 @@
-import type { Conversation } from '@shared/types/conversation'
+import type { Conversation } from '~shared/types/conversation'
 import { ConversationItem } from './ConversationItem'
 
 interface ConversationGroupProps {

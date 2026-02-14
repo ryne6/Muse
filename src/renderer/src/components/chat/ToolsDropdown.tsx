@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Wrench, ChevronDown } from 'lucide-react'
 import { Dropdown } from '@lobehub/ui'
-import { dbClient } from '@/services/dbClient'
+import { dbClient } from '~/services/dbClient'
 
 // Built-in tools list
 const BUILTIN_TOOLS = [

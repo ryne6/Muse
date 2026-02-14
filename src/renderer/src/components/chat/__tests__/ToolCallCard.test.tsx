@@ -4,8 +4,8 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { ToolCallCard } from '../ToolCallCard'
-import type { ToolCall, ToolResult } from '@shared/types/conversation'
-import { TOOL_PERMISSION_PREFIX } from '@shared/types/toolPermissions'
+import type { ToolCall, ToolResult } from '~shared/types/conversation'
+import { TOOL_PERMISSION_PREFIX } from '~shared/types/toolPermissions'
 
 vi.mock('lucide-react', () => {
   const make = (name: string) => {
@@ -38,12 +38,12 @@ vi.mock('@lobehub/ui', () => ({
 
 const mockApproveToolCall = vi.fn()
 
-vi.mock('@/stores/chatStore', () => ({
+vi.mock('~/stores/chatStore', () => ({
   useChatStore: (selector: any) =>
     selector({ approveToolCall: mockApproveToolCall }),
 }))
 
-vi.mock('@/stores/conversationStore', () => ({
+vi.mock('~/stores/conversationStore', () => ({
   useConversationStore: (selector: any) =>
     selector({ currentConversationId: 'conv-1' }),
 }))

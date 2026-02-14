@@ -257,6 +257,25 @@ export interface IpcApi {
     import: (memories: any[]) => Promise<{ imported: number; skipped: number }>
     deleteByType: (type: string) => Promise<{ success: boolean }>
   }
+  updater: {
+    check: () => Promise<{ success: boolean; error?: string }>
+    download: () => Promise<{ success: boolean; error?: string }>
+    install: () => void
+    onStatus: (
+      callback: (status: {
+        status:
+          | 'checking'
+          | 'available'
+          | 'not-available'
+          | 'downloading'
+          | 'downloaded'
+          | 'error'
+        version?: string
+        progress?: number
+        error?: string
+      }) => void
+    ) => () => void
+  }
 }
 
 declare global {

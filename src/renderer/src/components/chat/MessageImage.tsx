@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Loader2 } from 'lucide-react'
-import type { AttachmentPreview } from '@shared/types/attachment'
+import type { AttachmentPreview } from '~shared/types/attachment'
 
 interface MessageImageProps {
   attachment: AttachmentPreview

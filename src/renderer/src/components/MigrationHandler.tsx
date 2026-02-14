@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
-import { dbClient } from '@/services/dbClient'
-import { useConversationStore } from '@/stores/conversationStore'
-import { useSettingsStore } from '@/stores/settingsStore'
+import { dbClient } from '~/services/dbClient'
+import { useConversationStore } from '~/stores/conversationStore'
+import { useSettingsStore } from '~/stores/settingsStore'
 
 export function MigrationHandler() {
   const [migrationStatus, setMigrationStatus] = useState<
     'idle' | 'checking' | 'migrating' | 'done'
   >('idle')
   const conversations = useConversationStore(state => state.conversations)
-  const currentProvider = useSettingsStore(state => state.currentProvider)
+  const currentProviderId = useSettingsStore(
+    state => state.currentProviderId
+  )
   const providers = useSettingsStore(state => state.providers)
 
   useEffect(() => {
@@ -23,8 +25,7 @@ export function MigrationHandler() {
       const stats = await dbClient.migration.verify()
 
       // If database is empty but localStorage has data, migrate
-      const hasLocalStorageData =
-        conversations.length > 0 || Object.keys(providers).length > 0
+      const hasLocalStorageData = conversations.length > 0 || providers.length > 0
 
       if (stats.conversations === 0 && hasLocalStorageData) {
         console.log('📦 Detected localStorage data, starting migration...')
@@ -34,7 +35,7 @@ export function MigrationHandler() {
         const migrationData = {
           conversations: conversations,
           settings: {
-            currentProvider,
+            currentProvider: currentProviderId,
             providers,
           },
         }

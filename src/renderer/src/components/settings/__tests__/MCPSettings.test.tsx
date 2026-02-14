@@ -23,21 +23,21 @@ vi.mock('@lobehub/ui', () => ({
   ScrollArea: ({ children }: any) => <div>{children}</div>,
 }))
 
-vi.mock('@/components/ui/button', () => ({
+vi.mock('~/components/ui/button', () => ({
   Button: ({ children, ...props }: any) => (
     <button {...props}>{children}</button>
   ),
 }))
 
-vi.mock('@/components/ui/input', () => ({
+vi.mock('~/components/ui/input', () => ({
   Input: (props: any) => <input {...props} />,
 }))
 
-vi.mock('@/utils/notify', () => ({
+vi.mock('~/utils/notify', () => ({
   notify: { error: vi.fn(), success: vi.fn() },
 }))
 
-vi.mock('@/utils/cn', () => ({
+vi.mock('~/utils/cn', () => ({
   cn: (...args: any[]) => args.filter(Boolean).join(' '),
 }))
 
@@ -47,7 +47,7 @@ const mockCreate = vi.fn()
 const mockDelete = vi.fn()
 const mockToggleEnabled = vi.fn()
 
-vi.mock('@/services/dbClient', () => ({
+vi.mock('~/services/dbClient', () => ({
   dbClient: {
     mcp: {
       getAll: (...args: any[]) => mockGetAll(...args),
@@ -60,7 +60,7 @@ vi.mock('@/services/dbClient', () => ({
 }))
 
 import { MCPSettings } from '../MCPSettings'
-import { notify } from '@/utils/notify'
+import { notify } from '~/utils/notify'
 
 function makeServer(
   id: string,

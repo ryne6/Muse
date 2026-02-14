@@ -5,7 +5,6 @@ import type {
   AIConfig,
   AIStreamChunk,
   MessageContent,
-  isMultimodalContent,
   AIRequestOptions,
 } from '../../../../shared/types/ai'
 import { getAllTools } from '../tools/definitions'
@@ -139,7 +138,9 @@ export class ClaudeProvider extends BaseAIProvider {
         requestParams.temperature = config.temperature || 1
       }
 
-      const stream = await client.messages.create(requestParams)
+      const stream = (await client.messages.create(
+        requestParams
+      )) as unknown as AsyncIterable<any>
       console.log(
         '[Claude] Request with thinking:',
         config.thinkingEnabled,

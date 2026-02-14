@@ -3,7 +3,7 @@ import { getDatabase, schema } from '../index'
 import type { NewAttachment } from '../schema'
 import { generateId } from '../utils/idGenerator'
 
-const { attachments, messages } = schema
+const { attachments } = schema
 
 export class AttachmentService {
   /**

@@ -42,13 +42,6 @@ export class GeminiProvider extends BaseAIProvider {
     'gemini-2.0-flash-thinking-exp',
   ]
 
-  /**
-   * Check if model is a thinking model
-   */
-  private isThinkingModel(model: string): boolean {
-    return model.includes('thinking')
-  }
-
   getDefaultModel(): string {
     return 'gemini-pro'
   }

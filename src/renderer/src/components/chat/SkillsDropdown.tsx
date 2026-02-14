@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Sparkles } from 'lucide-react'
 import { Dropdown } from '@lobehub/ui'
-import { dbClient } from '@/services/dbClient'
-import { useSettingsStore } from '@/stores/settingsStore'
+import { dbClient } from '~/services/dbClient'
+import { useSettingsStore } from '~/stores/settingsStore'
 
 interface Skill {
   name: string

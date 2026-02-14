@@ -11,14 +11,14 @@ vi.mock('lucide-react', () => {
   return { Link }
 })
 
-vi.mock('@/utils/notify', () => ({
+vi.mock('~/utils/notify', () => ({
   notify: {
     error: vi.fn(),
   },
 }))
 
 // Import after mock so we get the mocked version
-import { notify } from '@/utils/notify'
+import { notify } from '~/utils/notify'
 
 beforeEach(() => {
   vi.clearAllMocks()

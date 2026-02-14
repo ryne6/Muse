@@ -1,4 +1,4 @@
-import { useConversationStore } from '@/stores/conversationStore'
+import { useConversationStore } from '~/stores/conversationStore'
 
 export function ChatHeader() {
   const { getCurrentConversation } = useConversationStore()

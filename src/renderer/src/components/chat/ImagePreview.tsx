@@ -1,6 +1,6 @@
 import { X } from 'lucide-react'
 import { Button } from '../ui/button'
-import type { PendingAttachment } from '@shared/types/attachment'
+import type { PendingAttachment } from '~shared/types/attachment'
 
 interface ImagePreviewProps {
   attachment: PendingAttachment

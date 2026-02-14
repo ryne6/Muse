@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Modal, Dropdown } from '@lobehub/ui'
-import { Button } from '@/components/ui/button'
-import type { Conversation } from '@shared/types/conversation'
-import { useConversationStore } from '@/stores/conversationStore'
-import { notify } from '@/utils/notify'
+import { Button } from '~/components/ui/button'
+import type { Conversation } from '~shared/types/conversation'
+import { useConversationStore } from '~/stores/conversationStore'
+import { notify } from '~/utils/notify'
 
 interface PromptPreset {
   id: string

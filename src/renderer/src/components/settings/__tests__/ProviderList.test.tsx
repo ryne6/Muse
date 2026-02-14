@@ -41,7 +41,7 @@ const mockDbClient = vi.hoisted(() => {
   }
 })
 
-vi.mock('@/services/dbClient', () => ({
+vi.mock('~/services/dbClient', () => ({
   dbClient: mockDbClient,
 }))
 

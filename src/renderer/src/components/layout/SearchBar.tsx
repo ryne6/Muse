@@ -1,12 +1,13 @@
 import { useEffect, useRef, useCallback } from 'react'
+import type { ElementRef } from 'react'
 import { Search, X } from 'lucide-react'
-import { useSearchStore } from '@/stores/searchStore'
+import { useSearchStore } from '~/stores/searchStore'
 import { Input } from '../ui/input'
 import { Button } from '../ui/button'
 
 export function SearchBar() {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const debounceRef = useRef<NodeJS.Timeout>()
+  const inputRef = useRef<ElementRef<typeof Input> | null>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const {
     isOpen,

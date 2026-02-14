@@ -3,8 +3,8 @@ import { ImagePlus } from 'lucide-react'
 import {
   SUPPORTED_IMAGE_TYPES,
   MAX_ATTACHMENT_SIZE,
-} from '@shared/types/attachment'
-import { notify } from '@/utils/notify'
+} from '~shared/types/attachment'
+import { notify } from '~/utils/notify'
 
 interface ImageDropZoneProps {
   children: ReactNode

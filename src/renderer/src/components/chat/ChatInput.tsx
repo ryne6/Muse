@@ -2,10 +2,10 @@ import { useState, KeyboardEvent, useEffect, useCallback } from 'react'
 import { Send, Square, Maximize2, Brain } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { Button } from '../ui/button'
-import { useChatStore } from '@/stores/chatStore'
-import { useConversationStore } from '@/stores/conversationStore'
-import { useSettingsStore } from '@/stores/settingsStore'
-import { notify } from '@/utils/notify'
+import { useChatStore } from '~/stores/chatStore'
+import { useConversationStore } from '~/stores/conversationStore'
+import { useSettingsStore } from '~/stores/settingsStore'
+import { notify } from '~/utils/notify'
 import { ImageUploadButton } from './ImageUploadButton'
 import { ImagePreview } from './ImagePreview'
 import { ImageDropZone } from './ImageDropZone'
@@ -15,8 +15,8 @@ import { SkillsDropdown } from './SkillsDropdown'
 import { WorkspaceDropdown } from './WorkspaceDropdown'
 import { ModelSelector } from './ModelSelector'
 import { ContextIndicator } from './ContextIndicator'
-import type { AIConfig } from '@shared/types/ai'
-import type { PendingAttachment } from '@shared/types/attachment'
+import type { AIConfig } from '~shared/types/ai'
+import type { PendingAttachment } from '~shared/types/attachment'
 
 export function ChatInput() {
   const [input, setInput] = useState('')
@@ -106,7 +106,7 @@ export function ChatInput() {
         .getState()
         .getEffectiveWorkspace()
 
-      if (message === '/memories') {
+      if (message === '~main/memories') {
         if (!memoryEnabled) {
           notify.info('记忆功能未开启，请在设置中开启')
           return true
@@ -128,12 +128,12 @@ export function ChatInput() {
         return true
       }
 
-      if (message.startsWith('/remember-project ')) {
+      if (message.startsWith('~main/remember-project ')) {
         if (!memoryEnabled) {
           notify.info('记忆功能未开启，请在设置中开启')
           return true
         }
-        const content = message.slice('/remember-project '.length).trim()
+        const content = message.slice('~main/remember-project '.length).trim()
         if (!content) return true
         try {
           await window.api.memory.remember(
@@ -148,12 +148,12 @@ export function ChatInput() {
         return true
       }
 
-      if (message.startsWith('/remember ')) {
+      if (message.startsWith('~main/remember ')) {
         if (!memoryEnabled) {
           notify.info('记忆功能未开启，请在设置中开启')
           return true
         }
-        const content = message.slice('/remember '.length).trim()
+        const content = message.slice('~main/remember '.length).trim()
         if (!content) return true
         try {
           await window.api.memory.remember(content, 'user')
@@ -164,12 +164,12 @@ export function ChatInput() {
         return true
       }
 
-      if (message.startsWith('/forget ')) {
+      if (message.startsWith('~main/forget ')) {
         if (!memoryEnabled) {
           notify.info('记忆功能未开启，请在设置中开启')
           return true
         }
-        const keyword = message.slice('/forget '.length).trim()
+        const keyword = message.slice('~main/forget '.length).trim()
         if (!keyword) return true
         try {
           const result = await window.api.memory.forget(

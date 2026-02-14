@@ -6,7 +6,7 @@ import os from 'os'
 import type {
   PermissionConfig,
   PermissionRule,
-} from '@shared/types/toolPermissions'
+} from '~shared/types/toolPermissions'
 
 const GLOBAL_DIR = path.join(os.homedir(), '.muse')
 const GLOBAL_FILE = path.join(GLOBAL_DIR, 'permissions.json')

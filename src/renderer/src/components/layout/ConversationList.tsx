@@ -1,12 +1,12 @@
 import { Plus, MessageSquare } from 'lucide-react'
-import { useConversationStore } from '@/stores/conversationStore'
-import { useSearchStore } from '@/stores/searchStore'
+import { useConversationStore } from '~/stores/conversationStore'
+import { useSearchStore } from '~/stores/searchStore'
 import { Button } from '../ui/button'
 import { ConversationGroup } from './ConversationGroup'
 import { SearchBar } from './SearchBar'
 import { SearchResults } from './SearchResults'
-import { cn } from '@/utils/cn'
-import type { Conversation } from '@shared/types/conversation'
+import { cn } from '~/utils/cn'
+import type { Conversation } from '~shared/types/conversation'
 
 function ConversationIconItem({
   conversation,

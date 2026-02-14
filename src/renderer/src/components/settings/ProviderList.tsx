@@ -3,9 +3,9 @@ import { Loader2 } from 'lucide-react'
 import { ProviderCard } from './ProviderCard'
 import { AddProviderDialog } from './AddProviderDialog'
 import { ManageModelsDialog } from './ManageModelsDialog'
-import { dbClient } from '@/services/dbClient'
-import { fadeInUpClass } from '@/utils/animations'
-import { useSettingsStore } from '@/stores/settingsStore'
+import { dbClient } from '~/services/dbClient'
+import { fadeInUpClass } from '~/utils/animations'
+import { useSettingsStore } from '~/stores/settingsStore'
 
 interface Provider {
   id: string

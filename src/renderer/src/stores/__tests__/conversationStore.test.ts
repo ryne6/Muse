@@ -18,11 +18,11 @@ const mockDbClient = vi.hoisted(() => ({
   },
 }))
 
-vi.mock('@/services/dbClient', () => ({
+vi.mock('~/services/dbClient', () => ({
   dbClient: mockDbClient,
 }))
 
-const mockWorkspacePath = vi.hoisted(() => ({ value: '/global/workspace' }))
+const mockWorkspacePath = vi.hoisted(() => ({ value: '~main/global/workspace' }))
 
 vi.mock('../workspaceStore', () => ({
   useWorkspaceStore: {
@@ -123,7 +123,7 @@ describe('ConversationStore', () => {
         workspace: {
           createDefault: vi
             .fn()
-            .mockResolvedValue({ path: '/muse/workspaces/mock-uuid-123' }),
+            .mockResolvedValue({ path: '~main/muse/workspaces/mock-uuid-123' }),
         },
       } as any
     })
@@ -137,7 +137,7 @@ describe('ConversationStore', () => {
 
       expect(result.title).toBe('Test Chat')
       expect(result.messages).toEqual([])
-      expect(result.workspace).toBe('/muse/workspaces/mock-uuid-123')
+      expect(result.workspace).toBe('~main/muse/workspaces/mock-uuid-123')
       expect(window.api.workspace.createDefault).toHaveBeenCalledWith(
         'mock-uuid-123'
       )
@@ -442,7 +442,7 @@ describe('ConversationStore', () => {
             createdAt: 0,
             updatedAt: 0,
             messages: [],
-            workspace: '/conv/workspace',
+            workspace: '~main/conv/workspace',
           },
         ],
         currentConversationId: 'conv-1',
@@ -450,7 +450,7 @@ describe('ConversationStore', () => {
 
       const result = useConversationStore.getState().getEffectiveWorkspace()
 
-      expect(result).toBe('/conv/workspace')
+      expect(result).toBe('~main/conv/workspace')
     })
 
     it('should fallback to global workspace when conversation has no workspace', () => {
@@ -470,7 +470,7 @@ describe('ConversationStore', () => {
 
       const result = useConversationStore.getState().getEffectiveWorkspace()
 
-      expect(result).toBe('/global/workspace')
+      expect(result).toBe('~main/global/workspace')
     })
 
     it('should fallback to global workspace when no current conversation', () => {
@@ -481,7 +481,7 @@ describe('ConversationStore', () => {
 
       const result = useConversationStore.getState().getEffectiveWorkspace()
 
-      expect(result).toBe('/global/workspace')
+      expect(result).toBe('~main/global/workspace')
     })
 
     it('should return null when neither conversation nor global workspace set', () => {
@@ -503,7 +503,7 @@ describe('ConversationStore', () => {
       const result = useConversationStore.getState().getEffectiveWorkspace()
 
       expect(result).toBeNull()
-      mockWorkspacePath.value = '/global/workspace'
+      mockWorkspacePath.value = '~main/global/workspace'
     })
   })
 
@@ -532,15 +532,15 @@ describe('ConversationStore', () => {
     it('should call IPC and update conversation workspace', async () => {
       await useConversationStore
         .getState()
-        .setWorkspace('conv-1', '/new/workspace')
+        .setWorkspace('conv-1', '~main/new/workspace')
 
       expect(window.api.ipc.invoke).toHaveBeenCalledWith(
         'db:conversations:updateWorkspace',
-        { id: 'conv-1', workspace: '/new/workspace' }
+        { id: 'conv-1', workspace: '~main/new/workspace' }
       )
       expect(
         useConversationStore.getState().conversations[0].workspace
-      ).toBe('/new/workspace')
+      ).toBe('~main/new/workspace')
     })
 
     it('should set workspace to null', async () => {
@@ -552,7 +552,7 @@ describe('ConversationStore', () => {
             createdAt: 0,
             updatedAt: 0,
             messages: [],
-            workspace: '/old/workspace',
+            workspace: '~main/old/workspace',
           },
         ],
       })
@@ -733,7 +733,7 @@ describe('ConversationStore', () => {
             createdAt: 0,
             updatedAt: 0,
             messages: [],
-            workspace: '/muse/workspaces/conv-1',
+            workspace: '~main/muse/workspaces/conv-1',
           },
         ],
         currentConversationId: 'conv-1',
@@ -743,7 +743,7 @@ describe('ConversationStore', () => {
       await useConversationStore.getState().deleteConversation('conv-1')
 
       expect(window.api.workspace.cleanup).toHaveBeenCalledWith(
-        '/muse/workspaces/conv-1'
+        '~main/muse/workspaces/conv-1'
       )
     })
 
@@ -784,7 +784,7 @@ describe('ConversationStore', () => {
             createdAt: 0,
             updatedAt: 0,
             messages: [],
-            workspace: '/muse/workspaces/conv-1',
+            workspace: '~main/muse/workspaces/conv-1',
           },
         ],
         currentConversationId: 'conv-1',
@@ -819,7 +819,7 @@ describe('ConversationStore', () => {
             createdAt: 0,
             updatedAt: 0,
             messages: [],
-            workspace: '/muse/workspaces/conv-1',
+            workspace: '~main/muse/workspaces/conv-1',
           },
         ],
         currentConversationId: 'conv-1',

@@ -2,15 +2,15 @@ import { useEffect, useState } from 'react'
 import { Modal } from '@lobehub/ui'
 import { Button } from '../ui/button'
 import { Settings as SettingsIcon } from 'lucide-react'
-import { cn } from '@/utils/cn'
+import { cn } from '~/utils/cn'
 import { ProviderList } from '../settings/ProviderList'
 import { ProviderConfigDialog } from '../settings/ProviderConfigDialog'
 import { MCPSettings } from '../settings/MCPSettings'
 import { SkillsSettings } from '../settings/SkillsSettings'
 import { PromptsSettings } from '../settings/PromptsSettings'
 import { MemorySettings } from '../settings/MemorySettings'
-import { dbClient } from '@/services/dbClient'
-import { applyUIFont } from '@/services/fontService'
+import { dbClient } from '~/services/dbClient'
+import { applyUIFont } from '~/services/fontService'
 
 interface Provider {
   id: string

@@ -1,6 +1,6 @@
 import { toast } from '@lobehub/ui'
-import type { APIError } from '@shared/types/error'
-import { ErrorCode, getErrorMessage } from '@shared/types/error'
+import type { APIError } from '~shared/types/error'
+import { ErrorCode, getErrorMessage } from '~shared/types/error'
 
 export interface NotifyAction {
   label: string
@@ -51,7 +51,9 @@ export const notify = {
   },
 
   dismiss: (toastId?: string | number) => {
-    toast.dismiss(toastId)
+    toast.dismiss(
+      toastId === undefined ? undefined : typeof toastId === 'number' ? String(toastId) : toastId
+    )
   },
 
   /**

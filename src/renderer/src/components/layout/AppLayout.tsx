@@ -1,12 +1,13 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { DraggableSideNav } from '@lobehub/ui'
+import type { NumberSize } from 're-resizable'
 import { SidebarHeader } from './Sidebar'
 import { ConversationList } from './ConversationList'
 import { Settings } from './Settings'
 import { ChatView } from '../chat/ChatView'
-import { LoadingOverlay } from '@/components/ui/loading'
-import { dbClient } from '@/services/dbClient'
-import { applyUIFont } from '@/services/fontService'
+import { LoadingOverlay } from '~/components/ui/loading'
+import { dbClient } from '~/services/dbClient'
+import { applyUIFont } from '~/services/fontService'
 
 /** Width threshold below which text is hidden and icon-only layout is used */
 const SIDEBAR_TEXT_THRESHOLD = 140
@@ -25,7 +26,7 @@ export function AppLayout() {
   const [liveWidth, setLiveWidth] = useState<number | null>(null)
   // Delayed showText state for smooth expand animation
   const [expandShowText, setExpandShowText] = useState(!isCollapsed)
-  const expandTimerRef = useRef<ReturnType<typeof setTimeout>>()
+  const expandTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     localStorage.setItem('sidebar-width', String(sidebarWidth))
@@ -55,19 +56,27 @@ export function AppLayout() {
   // Final showText: drag takes priority, then delayed expand state
   const showText = dragShowText ?? expandShowText
 
-  const handleWidthDragging = useCallback((_delta: number, width: number) => {
-    setLiveWidth(width)
-  }, [])
+  const handleWidthDragging = useCallback(
+    (_delta: NumberSize, width: number) => {
+      setLiveWidth(width)
+    },
+    []
+  )
 
-  const handleWidthChange = useCallback((_delta: number, width: number) => {
-    setLiveWidth(null)
-    setSidebarWidth(width)
-  }, [])
+  const handleWidthChange = useCallback(
+    (_delta: NumberSize, width: number) => {
+      setLiveWidth(null)
+      setSidebarWidth(width)
+    },
+    []
+  )
 
   const handleExpandChange = useCallback((expand: boolean) => {
     setLiveWidth(null)
     setIsCollapsed(!expand)
-    clearTimeout(expandTimerRef.current)
+    if (expandTimerRef.current) {
+      clearTimeout(expandTimerRef.current)
+    }
     if (expand) {
       // Expanding: delay showing text so width animation has time to grow
       expandTimerRef.current = setTimeout(
@@ -81,7 +90,14 @@ export function AppLayout() {
   }, [])
 
   // Cleanup timer on unmount
-  useEffect(() => () => clearTimeout(expandTimerRef.current), [])
+  useEffect(
+    () => () => {
+      if (expandTimerRef.current) {
+        clearTimeout(expandTimerRef.current)
+      }
+    },
+    []
+  )
 
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[hsl(var(--bg-sidebar))]">

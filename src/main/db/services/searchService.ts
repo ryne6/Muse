@@ -5,9 +5,7 @@ import type {
   SearchResult,
   SearchResponse,
   SearchContentType,
-  DEFAULT_SEARCH_LIMIT,
-  DEFAULT_SEARCH_OFFSET,
-} from '../../../../shared/types/search'
+} from '../../../shared/types/search'
 
 const { conversations, messages } = schema
 

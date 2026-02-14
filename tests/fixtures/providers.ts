@@ -1,4 +1,4 @@
-import type { NewProvider } from '@main/db/schema'
+import type { NewProvider } from '~main/db/schema'
 
 /**
  * Provider 测试数据 fixtures

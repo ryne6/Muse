@@ -20,14 +20,14 @@ vi.mock('lucide-react', () => {
   }
 })
 
-vi.mock('@/components/ui/button', () => ({
+vi.mock('~/components/ui/button', () => ({
   Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
 }))
 
 const notifySuccess = vi.fn()
 const notifyError = vi.fn()
 
-vi.mock('@/utils/notify', () => ({
+vi.mock('~/utils/notify', () => ({
   notify: {
     success: (...args: any[]) => notifySuccess(...args),
     error: (...args: any[]) => notifyError(...args),
@@ -40,7 +40,7 @@ const addDirectoryMock = vi.fn()
 const toggleDirectoryMock = vi.fn()
 const removeDirectoryMock = vi.fn()
 
-vi.mock('@/services/dbClient', () => ({
+vi.mock('~/services/dbClient', () => ({
   dbClient: {
     skills: {
       getDirectories: (...args: any[]) => getDirectoriesMock(...args),
@@ -56,13 +56,13 @@ describe('SkillsSettings', () => {
   const directories = [
     {
       id: 'dir-1',
-      path: '/Users/x/.codex/skills',
+      path: '~main/Users/x/.codex/skills',
       enabled: true,
       createdAt: new Date(),
     },
     {
       id: 'dir-2',
-      path: '/tmp/disabled-skills',
+      path: '~main/tmp/disabled-skills',
       enabled: false,
       createdAt: new Date(),
     },
@@ -76,7 +76,7 @@ describe('SkillsSettings', () => {
     toggleDirectoryMock.mockResolvedValue({ success: true })
     removeDirectoryMock.mockResolvedValue({ success: true })
     ;(window as any).api.dialog = {
-      selectDirectory: vi.fn(async () => '/new/skills/dir'),
+      selectDirectory: vi.fn(async () => '~main/new/skills/dir'),
     }
     vi.stubGlobal('confirm', vi.fn(() => true))
     vi.spyOn(window, 'dispatchEvent')
@@ -106,8 +106,8 @@ describe('SkillsSettings', () => {
     render(<SkillsSettings />)
 
     await waitFor(() => {
-      expect(screen.getByText('/Users/x/.codex/skills')).toBeInTheDocument()
-      expect(screen.getByText('/tmp/disabled-skills')).toBeInTheDocument()
+      expect(screen.getByText('~main/Users/x/.codex/skills')).toBeInTheDocument()
+      expect(screen.getByText('~main/tmp/disabled-skills')).toBeInTheDocument()
     })
 
     expect(screen.getByText('(5 skills)')).toBeInTheDocument()
@@ -137,7 +137,7 @@ describe('SkillsSettings', () => {
     fireEvent.click(screen.getByRole('button', { name: /add directory/i }))
 
     await waitFor(() => {
-      expect(addDirectoryMock).toHaveBeenCalledWith('/new/skills/dir')
+      expect(addDirectoryMock).toHaveBeenCalledWith('~main/new/skills/dir')
     })
     expect(notifySuccess).toHaveBeenCalledWith(
       'Skills directory added: /new/skills/dir'
@@ -175,7 +175,7 @@ describe('SkillsSettings', () => {
     render(<SkillsSettings />)
 
     await waitFor(() => {
-      expect(screen.getByText('/Users/x/.codex/skills')).toBeInTheDocument()
+      expect(screen.getByText('~main/Users/x/.codex/skills')).toBeInTheDocument()
     })
 
     fireEvent.click(screen.getByRole('button', { name: /on/i }))
@@ -183,7 +183,7 @@ describe('SkillsSettings', () => {
     await waitFor(() => {
       expect(toggleDirectoryMock).toHaveBeenCalledWith('dir-1')
     })
-    expect(notifySuccess).toHaveBeenCalledWith('/Users/x/.codex/skills disabled')
+    expect(notifySuccess).toHaveBeenCalledWith('~main/Users/x/.codex/skills disabled')
     expect(window.dispatchEvent).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'skills-updated' })
     )
@@ -195,7 +195,7 @@ describe('SkillsSettings', () => {
     render(<SkillsSettings />)
 
     await waitFor(() => {
-      expect(screen.getByText('/Users/x/.codex/skills')).toBeInTheDocument()
+      expect(screen.getByText('~main/Users/x/.codex/skills')).toBeInTheDocument()
     })
 
     fireEvent.click(screen.getByRole('button', { name: /on/i }))
@@ -211,7 +211,7 @@ describe('SkillsSettings', () => {
     render(<SkillsSettings />)
 
     await waitFor(() => {
-      expect(screen.getByText('/Users/x/.codex/skills')).toBeInTheDocument()
+      expect(screen.getByText('~main/Users/x/.codex/skills')).toBeInTheDocument()
     })
 
     fireEvent.click(screen.getByTestId('Trash2').closest('button')!)
@@ -223,7 +223,7 @@ describe('SkillsSettings', () => {
     render(<SkillsSettings />)
 
     await waitFor(() => {
-      expect(screen.getByText('/Users/x/.codex/skills')).toBeInTheDocument()
+      expect(screen.getByText('~main/Users/x/.codex/skills')).toBeInTheDocument()
     })
 
     fireEvent.click(screen.getByTestId('Trash2').closest('button')!)
@@ -242,7 +242,7 @@ describe('SkillsSettings', () => {
     render(<SkillsSettings />)
 
     await waitFor(() => {
-      expect(screen.getByText('/Users/x/.codex/skills')).toBeInTheDocument()
+      expect(screen.getByText('~main/Users/x/.codex/skills')).toBeInTheDocument()
     })
 
     fireEvent.click(screen.getByTestId('Trash2').closest('button')!)

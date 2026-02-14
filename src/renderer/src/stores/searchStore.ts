@@ -2,10 +2,8 @@ import { create } from 'zustand'
 import type {
   SearchQuery,
   SearchResult,
-  SearchResponse,
   SearchFilters,
-  DEFAULT_SEARCH_LIMIT,
-} from '@shared/types/search'
+} from '~shared/types/search'
 
 interface SearchStore {
   // State

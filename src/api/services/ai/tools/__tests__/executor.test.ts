@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ToolExecutor } from '../executor'
 import axios from 'axios'
-import { TOOL_PERMISSION_PREFIX } from '@shared/types/toolPermissions'
+import { TOOL_PERMISSION_PREFIX } from '~shared/types/toolPermissions'
 
 // Mock axios
 vi.mock('axios')
@@ -49,11 +49,11 @@ describe('ToolExecutor', () => {
         data: { content: 'file content' },
       })
 
-      const result = await executor.execute('Read', { path: '/test/file.txt' })
+      const result = await executor.execute('Read', { path: '~main/test/file.txt' })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/fs:readFile',
-        { path: '/test/file.txt' }
+        { path: '~main/test/file.txt' }
       )
       expect(result).toBe('file content')
     })
@@ -66,7 +66,7 @@ describe('ToolExecutor', () => {
       const result = await executor.execute(
         'Write',
         {
-          path: '/test/file.txt',
+          path: '~main/test/file.txt',
           content: 'new content',
         },
         { toolPermissions: { allowAll: true } }
@@ -74,7 +74,7 @@ describe('ToolExecutor', () => {
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/fs:writeFile',
-        { path: '/test/file.txt', content: 'new content' }
+        { path: '~main/test/file.txt', content: 'new content' }
       )
       expect(result).toContain('Successfully wrote')
     })
@@ -89,11 +89,11 @@ describe('ToolExecutor', () => {
         },
       })
 
-      const result = await executor.execute('LS', { path: '/test' })
+      const result = await executor.execute('LS', { path: '~main/test' })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/fs:listFiles',
-        { path: '/test', pattern: undefined }
+        { path: '~main/test', pattern: undefined }
       )
       expect(result).toContain('Contents of /test')
     })
@@ -107,14 +107,14 @@ describe('ToolExecutor', () => {
         'Bash',
         {
           command: 'npm test',
-          cwd: '/test',
+          cwd: '~main/test',
         },
         { toolPermissions: { allowAll: true } }
       )
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/exec:command',
-        { command: 'npm test', cwd: '/test' }
+        { command: 'npm test', cwd: '~main/test' }
       )
       expect(result).toContain('Command: npm test')
     })
@@ -127,7 +127,7 @@ describe('ToolExecutor', () => {
       const result = await executor.execute(
         'Edit',
         {
-          path: '/test/file.txt',
+          path: '~main/test/file.txt',
           old_text: 'old',
           new_text: 'new',
           replace_all: true,
@@ -138,7 +138,7 @@ describe('ToolExecutor', () => {
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/fs:editFile',
         {
-          path: '/test/file.txt',
+          path: '~main/test/file.txt',
           oldText: 'old',
           newText: 'new',
           replaceAll: true,
@@ -169,45 +169,45 @@ describe('ToolExecutor', () => {
 
     it('should route to fs:glob for Glob tool', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { files: ['/test/a.ts', '/test/b.ts'] },
+        data: { files: ['~main/test/a.ts', '~main/test/b.ts'] },
       })
 
       const result = await executor.execute('Glob', {
         pattern: '**/*.ts',
-        path: '/test',
+        path: '~main/test',
       })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/fs:glob',
-        { pattern: '**/*.ts', path: '/test' }
+        { pattern: '**/*.ts', path: '~main/test' }
       )
-      expect(result).toContain('/test/a.ts')
-      expect(result).toContain('/test/b.ts')
+      expect(result).toContain('~main/test/a.ts')
+      expect(result).toContain('~main/test/b.ts')
     })
 
     it('should route to fs:grep for Grep tool', async () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: {
-          results: [{ file: '/test/a.ts', line: 12, content: 'const a = 1' }],
+          results: [{ file: '~main/test/a.ts', line: 12, content: 'const a = 1' }],
         },
       })
 
       const result = await executor.execute('Grep', {
         pattern: 'const',
-        path: '/test',
+        path: '~main/test',
       })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/fs:grep',
         {
           pattern: 'const',
-          path: '/test',
+          path: '~main/test',
           glob: undefined,
           ignoreCase: undefined,
           maxResults: undefined,
         }
       )
-      expect(result).toContain('/test/a.ts:12 const a = 1')
+      expect(result).toContain('~main/test/a.ts:12 const a = 1')
     })
 
     it('should route to git:status for GitStatus tool', async () => {
@@ -215,11 +215,11 @@ describe('ToolExecutor', () => {
         data: { output: 'On branch main' },
       })
 
-      const result = await executor.execute('GitStatus', { path: '/repo' })
+      const result = await executor.execute('GitStatus', { path: '~main/repo' })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/git:status',
-        { path: '/repo' }
+        { path: '~main/repo' }
       )
       expect(result).toContain('On branch main')
     })
@@ -286,7 +286,7 @@ describe('ToolExecutor', () => {
       })
 
       const result = await executor.execute('Read', {
-        path: '/nonexistent.txt',
+        path: '~main/nonexistent.txt',
       })
       expect(result).toContain('Error: Failed to read file')
     })
@@ -298,14 +298,14 @@ describe('ToolExecutor', () => {
         data: { content: 'const x = 1;' },
       })
 
-      const result = await executor.execute('Read', { path: '/src/index.ts' })
+      const result = await executor.execute('Read', { path: '~main/src/index.ts' })
       expect(result).toBe('const x = 1;')
     })
 
     it('should handle network errors', async () => {
       vi.mocked(axios.post).mockRejectedValue(new Error('Network error'))
 
-      const result = await executor.execute('Read', { path: '/test.txt' })
+      const result = await executor.execute('Read', { path: '~main/test.txt' })
       expect(result).toContain('Error: Failed to read file')
       expect(result).toContain('Network error')
     })
@@ -315,7 +315,7 @@ describe('ToolExecutor', () => {
         response: { data: { error: 'Permission denied' } },
       })
 
-      const result = await executor.execute('Read', { path: '/etc/passwd' })
+      const result = await executor.execute('Read', { path: '~main/etc/passwd' })
       expect(result).toContain('Permission denied')
     })
   })
@@ -330,7 +330,7 @@ describe('ToolExecutor', () => {
       const result = await executor.execute(
         'Write',
         {
-          path: '/test/output.txt',
+          path: '~main/test/output.txt',
           content,
         },
         { toolPermissions: { allowAll: true } }
@@ -339,7 +339,7 @@ describe('ToolExecutor', () => {
       expect(result).toContain(
         `Successfully wrote ${content.length} characters`
       )
-      expect(result).toContain('/test/output.txt')
+      expect(result).toContain('~main/test/output.txt')
     })
 
     it('should handle write failure', async () => {
@@ -350,7 +350,7 @@ describe('ToolExecutor', () => {
       const result = await executor.execute(
         'Write',
         {
-          path: '/readonly/file.txt',
+          path: '~main/readonly/file.txt',
           content: 'test',
         },
         { toolPermissions: { allowAll: true } }
@@ -365,7 +365,7 @@ describe('ToolExecutor', () => {
       const result = await executor.execute(
         'Write',
         {
-          path: '/test.txt',
+          path: '~main/test.txt',
           content: 'test',
         },
         { toolPermissions: { allowAll: true } }
@@ -387,7 +387,7 @@ describe('ToolExecutor', () => {
         },
       })
 
-      const result = await executor.execute('LS', { path: '/project' })
+      const result = await executor.execute('LS', { path: '~main/project' })
 
       expect(result).toContain('[FILE] file1.txt')
       expect(result).toContain('[FILE] file2.js')
@@ -401,7 +401,7 @@ describe('ToolExecutor', () => {
         data: { files: [] },
       })
 
-      const result = await executor.execute('LS', { path: '/empty' })
+      const result = await executor.execute('LS', { path: '~main/empty' })
 
       expect(result).toContain('is empty')
     })
@@ -411,11 +411,11 @@ describe('ToolExecutor', () => {
         data: { files: [{ name: 'test.ts', isDirectory: false, size: 100 }] },
       })
 
-      await executor.execute('LS', { path: '/src', pattern: '*.ts' })
+      await executor.execute('LS', { path: '~main/src', pattern: '*.ts' })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/fs:listFiles',
-        { path: '/src', pattern: '*.ts' }
+        { path: '~main/src', pattern: '*.ts' }
       )
     })
 
@@ -430,7 +430,7 @@ describe('ToolExecutor', () => {
         },
       })
 
-      const result = await executor.execute('LS', { path: '/test' })
+      const result = await executor.execute('LS', { path: '~main/test' })
 
       expect(result).toContain('100B')
       expect(result).toContain('10.0KB')
@@ -451,7 +451,7 @@ describe('ToolExecutor', () => {
         'Bash',
         {
           command: 'npm test',
-          cwd: '/project',
+          cwd: '~main/project',
         },
         { toolPermissions: { allowAll: true } }
       )
@@ -518,7 +518,7 @@ describe('ToolExecutor', () => {
     it('should return generic error message for non-Error throws', async () => {
       vi.mocked(axios.post).mockRejectedValue('string error')
 
-      const result = await executor.execute('Read', { path: '/test.txt' })
+      const result = await executor.execute('Read', { path: '~main/test.txt' })
       expect(result).toContain('Error:')
     })
 
@@ -598,7 +598,7 @@ describe('ToolExecutor', () => {
         },
       })
 
-      const result = await executor.execute('LS', { path: '/test' })
+      const result = await executor.execute('LS', { path: '~main/test' })
       expect(result).toContain('1023B')
     })
 
@@ -609,7 +609,7 @@ describe('ToolExecutor', () => {
         },
       })
 
-      const result = await executor.execute('LS', { path: '/test' })
+      const result = await executor.execute('LS', { path: '~main/test' })
       expect(result).toContain('1.0KB')
     })
 
@@ -622,7 +622,7 @@ describe('ToolExecutor', () => {
         },
       })
 
-      const result = await executor.execute('LS', { path: '/test' })
+      const result = await executor.execute('LS', { path: '~main/test' })
       expect(result).toContain('KB')
       expect(result).not.toContain('MB')
     })
@@ -636,7 +636,7 @@ describe('ToolExecutor', () => {
         },
       })
 
-      const result = await executor.execute('LS', { path: '/test' })
+      const result = await executor.execute('LS', { path: '~main/test' })
       expect(result).toContain('1.0MB')
     })
 
@@ -647,7 +647,7 @@ describe('ToolExecutor', () => {
         },
       })
 
-      const result = await executor.execute('LS', { path: '/test' })
+      const result = await executor.execute('LS', { path: '~main/test' })
       expect(result).toContain('0B')
     })
   })
@@ -660,7 +660,7 @@ describe('ToolExecutor', () => {
 
       const result = await executor.execute(
         'Edit',
-        { path: '/f.txt', old_text: 'a', new_text: 'b' },
+        { path: '~main/f.txt', old_text: 'a', new_text: 'b' },
         { toolPermissions: { allowAll: true } }
       )
 
@@ -674,7 +674,7 @@ describe('ToolExecutor', () => {
 
       const result = await executor.execute(
         'Edit',
-        { path: '/f.txt', old_text: 'a', new_text: 'b', replace_all: true },
+        { path: '~main/f.txt', old_text: 'a', new_text: 'b', replace_all: true },
         { toolPermissions: { allowAll: true } }
       )
 
@@ -690,7 +690,7 @@ describe('ToolExecutor', () => {
 
       const result = await executor.execute('Glob', {
         pattern: '**/*.xyz',
-        path: '/test',
+        path: '~main/test',
       })
       expect(result).toBe('No matches found.')
     })
@@ -702,7 +702,7 @@ describe('ToolExecutor', () => {
 
       const result = await executor.execute('Grep', {
         pattern: 'nonexistent',
-        path: '/test',
+        path: '~main/test',
       })
       expect(result).toBe('No matches found.')
     })
@@ -724,14 +724,14 @@ describe('ToolExecutor', () => {
       })
 
       const result = await executor.execute('GitDiff', {
-        path: '/repo',
+        path: '~main/repo',
         staged: true,
         file: 'src/index.ts',
       })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/git:diff',
-        { path: '/repo', staged: true, file: 'src/index.ts' }
+        { path: '~main/repo', staged: true, file: 'src/index.ts' }
       )
       expect(result).toBe('diff output')
     })
@@ -742,13 +742,13 @@ describe('ToolExecutor', () => {
       })
 
       const result = await executor.execute('GitLog', {
-        path: '/repo',
+        path: '~main/repo',
         maxCount: 5,
       })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/git:log',
-        { path: '/repo', maxCount: 5 }
+        { path: '~main/repo', maxCount: 5 }
       )
       expect(result).toBe('commit abc123')
     })
@@ -761,7 +761,7 @@ describe('ToolExecutor', () => {
       const result = await executor.execute(
         'GitCommit',
         {
-          path: '/repo',
+          path: '~main/repo',
           message: 'feat: add feature',
           files: ['src/index.ts'],
         },
@@ -771,7 +771,7 @@ describe('ToolExecutor', () => {
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/git:commit',
         {
-          path: '/repo',
+          path: '~main/repo',
           message: 'feat: add feature',
           files: ['src/index.ts'],
         }
@@ -786,13 +786,13 @@ describe('ToolExecutor', () => {
 
       const result = await executor.execute(
         'GitPush',
-        { path: '/repo', remote: 'origin', branch: 'main' },
+        { path: '~main/repo', remote: 'origin', branch: 'main' },
         { toolPermissions: { allowAll: true } }
       )
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/git:push',
-        { path: '/repo', remote: 'origin', branch: 'main' }
+        { path: '~main/repo', remote: 'origin', branch: 'main' }
       )
       expect(result).toBe('pushed to origin/main')
     })
@@ -804,13 +804,13 @@ describe('ToolExecutor', () => {
 
       const result = await executor.execute(
         'GitCheckout',
-        { path: '/repo', branch: 'feature', create: true },
+        { path: '~main/repo', branch: 'feature', create: true },
         { toolPermissions: { allowAll: true } }
       )
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/git:checkout',
-        { path: '/repo', branch: 'feature', create: true }
+        { path: '~main/repo', branch: 'feature', create: true }
       )
       expect(result).toContain('feature')
     })
@@ -820,7 +820,7 @@ describe('ToolExecutor', () => {
         data: { output: 'partial output', error: 'warning message' },
       })
 
-      const result = await executor.execute('GitStatus', { path: '/repo' })
+      const result = await executor.execute('GitStatus', { path: '~main/repo' })
       expect(result).toBe('partial output\nwarning message')
     })
 
@@ -829,7 +829,7 @@ describe('ToolExecutor', () => {
         data: { output: '', error: 'fatal: not a git repo' },
       })
 
-      const result = await executor.execute('GitStatus', { path: '/nope' })
+      const result = await executor.execute('GitStatus', { path: '~main/nope' })
       expect(result).toBe('fatal: not a git repo')
     })
   })
@@ -842,7 +842,7 @@ describe('ToolExecutor', () => {
 
       const result = await executor.execute(
         'Write',
-        { path: '/f.txt', content: 'hi' },
+        { path: '~main/f.txt', content: 'hi' },
         { sessionApprovedTools: new Set(['Write']) }
       )
 
@@ -855,7 +855,7 @@ describe('ToolExecutor', () => {
     it('should deny tool when permission rule denies it', async () => {
       const result = await executor.execute(
         'Write',
-        { path: '/secret.txt', content: 'x' },
+        { path: '~main/secret.txt', content: 'x' },
         {
           permissionRules: [
             {

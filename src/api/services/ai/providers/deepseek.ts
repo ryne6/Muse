@@ -14,13 +14,6 @@ export class DeepSeekProvider extends BaseAIProvider {
     'deepseek-reasoner',
   ]
 
-  /**
-   * Check if model is a reasoning model
-   */
-  private isReasonerModel(model: string): boolean {
-    return model === 'deepseek-reasoner'
-  }
-
   getDefaultModel(): string {
     return 'deepseek-chat'
   }

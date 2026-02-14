@@ -3,9 +3,9 @@ import type {
   AIConfig,
   AIStreamChunk,
   AIRequestOptions,
-} from '@shared/types/ai'
-import type { APIError } from '@shared/types/error'
-import { ErrorCode } from '@shared/types/error'
+} from '~shared/types/ai'
+import type { APIError } from '~shared/types/error'
+import { ErrorCode } from '~shared/types/error'
 
 // Dynamic API base URL - will be set on initialization
 let API_BASE_URL = 'http://localhost:2323/api'

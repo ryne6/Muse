@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { FileText, MessageSquare, Wrench, Image } from 'lucide-react'
-import { useSearchStore } from '@/stores/searchStore'
-import { useConversationStore } from '@/stores/conversationStore'
-import type { SearchResult, SearchContentType } from '@shared/types/search'
-import { LoadingInline } from '@/components/ui/loading'
+import { useSearchStore } from '~/stores/searchStore'
+import { useConversationStore } from '~/stores/conversationStore'
+import type { SearchResult, SearchContentType } from '~shared/types/search'
+import { LoadingInline } from '~/components/ui/loading'
 
 const contentTypeIcons: Record<SearchContentType, typeof FileText> = {
   conversation_title: FileText,
@@ -25,7 +25,7 @@ export function SearchResults() {
   const containerRef = useRef<HTMLDivElement>(null)
   const { results, total, hasMore, isLoading, error, loadMore } =
     useSearchStore()
-  const { selectConversation } = useConversationStore()
+  const { loadConversation } = useConversationStore()
 
   // Infinite scroll
   useEffect(() => {
@@ -48,7 +48,7 @@ export function SearchResults() {
   }, [hasMore, isLoading, loadMore])
 
   const handleResultClick = (result: SearchResult) => {
-    selectConversation(result.conversationId)
+    void loadConversation(result.conversationId)
     useSearchStore.getState().closeSearch()
   }
 

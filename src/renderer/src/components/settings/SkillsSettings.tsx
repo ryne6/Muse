@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Plus, Power, Trash2, FolderOpen, RefreshCw } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { dbClient } from '@/services/dbClient'
-import { notify } from '@/utils/notify'
-import { cn } from '@/utils/cn'
+import { Button } from '~/components/ui/button'
+import { dbClient } from '~/services/dbClient'
+import { notify } from '~/utils/notify'
+import { cn } from '~/utils/cn'
 
 interface SkillsDirectory {
   id: string

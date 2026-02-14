@@ -20,7 +20,9 @@ export default mergeConfig(
     },
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src/renderer/src')
+        '~': path.resolve(__dirname, './src/renderer/src'),
+        '~renderer': path.resolve(__dirname, './src/renderer/src'),
+        '~shared': path.resolve(__dirname, './src/shared')
       }
     }
   })

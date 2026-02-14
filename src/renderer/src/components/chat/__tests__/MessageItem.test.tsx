@@ -5,7 +5,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { MessageItem } from '../MessageItem'
 
-vi.mock('@/assets/providers/logo.png', () => ({
+vi.mock('~/assets/providers/logo.png', () => ({
   default: 'logo.png',
 }))
 
@@ -41,7 +41,7 @@ const mockConversationStore = vi.hoisted(() => ({
   ],
 }))
 
-vi.mock('@/stores/conversationStore', () => ({
+vi.mock('~/stores/conversationStore', () => ({
   useConversationStore: (selector?: (state: typeof mockConversationStore) => unknown) =>
     selector ? selector(mockConversationStore) : mockConversationStore,
 }))

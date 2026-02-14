@@ -45,7 +45,8 @@ interface ConversationStore {
 
 export const useConversationStore = create<ConversationStore>((set, get) => ({
   conversations: [],
-  currentConversationId: null,
+  currentConversationId:
+    localStorage.getItem('currentConversationId') || null,
   isLoading: false,
   loadedConversationIds: new Set<string>(),
   loadingConversationId: null,
@@ -342,3 +343,12 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
     return useWorkspaceStore.getState().workspacePath
   },
 }))
+
+// HMR 时保持当前对话选中状态
+useConversationStore.subscribe(state => {
+  if (state.currentConversationId) {
+    localStorage.setItem('currentConversationId', state.currentConversationId)
+  } else {
+    localStorage.removeItem('currentConversationId')
+  }
+})

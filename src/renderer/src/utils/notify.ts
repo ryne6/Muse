@@ -52,7 +52,11 @@ export const notify = {
 
   dismiss: (toastId?: string | number) => {
     toast.dismiss(
-      toastId === undefined ? undefined : typeof toastId === 'number' ? String(toastId) : toastId
+      toastId === undefined
+        ? undefined
+        : typeof toastId === 'number'
+          ? String(toastId)
+          : toastId
     )
   },
 

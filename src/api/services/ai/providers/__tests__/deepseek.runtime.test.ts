@@ -94,15 +94,12 @@ describe('DeepSeekProvider runtime', () => {
       })
     )
 
-    await provider.sendMessage(
-      [{ role: 'user', content: 'hi' }],
-      {
-        ...baseConfig,
-        baseURL: 'http://localhost:11434/v1',
-        temperature: 0.3,
-        maxTokens: 512,
-      }
-    )
+    await provider.sendMessage([{ role: 'user', content: 'hi' }], {
+      ...baseConfig,
+      baseURL: 'http://localhost:11434/v1',
+      temperature: 0.3,
+      maxTokens: 512,
+    })
 
     expect(fetchMock.mock.calls[0][0]).toBe(
       'http://localhost:11434/v1/chat/completions'

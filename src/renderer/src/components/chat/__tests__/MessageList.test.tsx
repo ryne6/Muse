@@ -40,9 +40,7 @@ vi.mock('~/stores/conversationStore', () => ({
     selector?: (state: typeof mockConversationStore) => unknown
   ) => (selector ? selector(mockConversationStore) : mockConversationStore),
   selectCurrentMessageIds: (s: typeof mockConversationStore) => {
-    const conv = s.conversations.find(
-      c => c.id === s.currentConversationId
-    )
+    const conv = s.conversations.find(c => c.id === s.currentConversationId)
     return conv?.messages.map(m => m.id) ?? []
   },
 }))

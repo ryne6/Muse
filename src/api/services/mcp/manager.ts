@@ -1,9 +1,5 @@
 import { MCPClient } from './client'
-import type {
-  MCPServerConfig,
-  MCPTool,
-  MCPServerState,
-} from './types'
+import type { MCPServerConfig, MCPTool, MCPServerState } from './types'
 import { createMCPToolName, parseMCPToolName } from './types'
 
 class MCPManager {

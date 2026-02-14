@@ -12,9 +12,16 @@ import {
 describe('classifyTool', () => {
   describe('static safe tools', () => {
     const safeTools = [
-      'Read', 'LS', 'Glob', 'Grep',
-      'GitStatus', 'GitDiff', 'GitLog',
-      'WebFetch', 'WebSearch', 'TodoWrite',
+      'Read',
+      'LS',
+      'Glob',
+      'Grep',
+      'GitStatus',
+      'GitDiff',
+      'GitLog',
+      'WebFetch',
+      'WebSearch',
+      'TodoWrite',
     ]
     it.each(safeTools)('%s → safe', tool => {
       expect(classifyTool(tool)).toBe('safe')
@@ -28,12 +35,9 @@ describe('classifyTool', () => {
   })
 
   describe('static dangerous tools', () => {
-    it.each(['GitCommit', 'GitPush', 'GitCheckout'])(
-      '%s → dangerous',
-      tool => {
-        expect(classifyTool(tool)).toBe('dangerous')
-      }
-    )
+    it.each(['GitCommit', 'GitPush', 'GitCheckout'])('%s → dangerous', tool => {
+      expect(classifyTool(tool)).toBe('dangerous')
+    })
   })
 
   it('unknown tool defaults to moderate', () => {
@@ -94,15 +98,15 @@ describe('classifyBashCommand', () => {
 
     it('early exits on dangerous', () => {
       // Once dangerous is found, no need to check further
-      expect(
-        classifyBashCommand('rm -rf / && ls && pwd && echo hi')
-      ).toBe('dangerous')
+      expect(classifyBashCommand('rm -rf / && ls && pwd && echo hi')).toBe(
+        'dangerous'
+      )
     })
 
     it('multiple safe commands stay safe', () => {
-      expect(
-        classifyBashCommand('ls && pwd && git status && whoami')
-      ).toBe('safe')
+      expect(classifyBashCommand('ls && pwd && git status && whoami')).toBe(
+        'safe'
+      )
     })
   })
 })
@@ -228,9 +232,7 @@ describe('classifySingleCommand (via classifyBashCommand)', () => {
     })
 
     it('sed -n with -i (in-place edit) → moderate', () => {
-      expect(classifyBashCommand('sed -n -i "1,10p" file.txt')).toBe(
-        'moderate'
-      )
+      expect(classifyBashCommand('sed -n -i "1,10p" file.txt')).toBe('moderate')
     })
   })
 
@@ -278,9 +280,9 @@ describe('classifySingleCommand (via classifyBashCommand)', () => {
     })
 
     it('curl -X GET is not dangerous', () => {
-      expect(
-        classifyBashCommand('curl http://example.com -X GET')
-      ).toBe('moderate')
+      expect(classifyBashCommand('curl http://example.com -X GET')).toBe(
+        'moderate'
+      )
     })
   })
 })

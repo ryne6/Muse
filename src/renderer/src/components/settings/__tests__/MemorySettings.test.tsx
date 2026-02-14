@@ -27,7 +27,9 @@ vi.mock('lucide-react', () => {
 })
 
 vi.mock('~/components/ui/button', () => ({
-  Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+  Button: ({ children, ...props }: any) => (
+    <button {...props}>{children}</button>
+  ),
 }))
 
 vi.mock('~/components/ui/input', () => ({
@@ -121,7 +123,6 @@ describe('MemorySettings', () => {
     deleteByTypeMock.mockResolvedValue({ success: true })
     exportMock.mockResolvedValue([{ id: 'u1' }])
     importMock.mockResolvedValue({ imported: 1, skipped: 0 })
-
     ;(window as any).api.memory = {
       getByType: getByTypeMock,
       search: searchMock,
@@ -368,7 +369,10 @@ describe('MemorySettings', () => {
     })
 
     const tooMany = Array.from({ length: 501 }, (_, i) => ({ id: i }))
-    const tooManyFile = createImportFile('too-many.json', JSON.stringify(tooMany))
+    const tooManyFile = createImportFile(
+      'too-many.json',
+      JSON.stringify(tooMany)
+    )
     fireFileChange(fileInput, [tooManyFile])
     await waitFor(() => {
       expect(notifyError).toHaveBeenCalledWith(

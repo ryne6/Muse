@@ -4,8 +4,9 @@ import { cn } from '~/utils/cn'
 
 type LobeInputRef = React.ElementRef<typeof LobeInput>
 
-export interface InputProps
-  extends React.ComponentPropsWithoutRef<typeof LobeInput> {}
+export interface InputProps extends React.ComponentPropsWithoutRef<
+  typeof LobeInput
+> {}
 
 const Input = React.forwardRef<LobeInputRef, InputProps>(
   ({ className, type, ...props }, ref) => {

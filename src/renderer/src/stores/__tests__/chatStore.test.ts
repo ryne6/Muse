@@ -726,9 +726,7 @@ describe('ChatStore', () => {
       mockGetCurrentProvider.mockReturnValue(null)
       mockGetCurrentModel.mockReturnValue(mockModel)
 
-      await useChatStore
-        .getState()
-        .denyToolCall('conv-1', 'Bash', 'tc-1')
+      await useChatStore.getState().denyToolCall('conv-1', 'Bash', 'tc-1')
 
       expect(useChatStore.getState().error).toBe(
         'No provider or model selected'
@@ -740,9 +738,7 @@ describe('ChatStore', () => {
       mockGetCurrentProvider.mockReturnValue(mockProvider)
       mockGetCurrentModel.mockReturnValue(null)
 
-      await useChatStore
-        .getState()
-        .denyToolCall('conv-1', 'Bash', 'tc-1')
+      await useChatStore.getState().denyToolCall('conv-1', 'Bash', 'tc-1')
 
       expect(useChatStore.getState().error).toBe(
         'No provider or model selected'
@@ -755,9 +751,7 @@ describe('ChatStore', () => {
       mockGetCurrentProvider.mockReturnValue(providerWithoutKey)
       mockGetCurrentModel.mockReturnValue(mockModel)
 
-      await useChatStore
-        .getState()
-        .denyToolCall('conv-1', 'Bash', 'tc-1')
+      await useChatStore.getState().denyToolCall('conv-1', 'Bash', 'tc-1')
 
       expect(useChatStore.getState().error).toBe('Provider API key missing')
       expect(mockSendMessageStream).not.toHaveBeenCalled()
@@ -773,9 +767,7 @@ describe('ChatStore', () => {
       mockGetCurrentModel.mockReturnValue(mockModel)
       mockSendMessageStream.mockResolvedValue(undefined)
 
-      await useChatStore
-        .getState()
-        .denyToolCall('conv-1', 'Bash', 'tc-1')
+      await useChatStore.getState().denyToolCall('conv-1', 'Bash', 'tc-1')
 
       expect(mockAddMessage).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -785,7 +777,8 @@ describe('ChatStore', () => {
       )
       // Should contain the tool name and ID
       const userMsg = mockAddMessage.mock.calls.find(
-        (c: any) => c[0].role === 'user' && c[0].content.includes('[Tool Denied]')
+        (c: any) =>
+          c[0].role === 'user' && c[0].content.includes('[Tool Denied]')
       )
       expect(userMsg[0].content).toContain('Bash')
       expect(userMsg[0].content).toContain('tc-1')
@@ -809,7 +802,8 @@ describe('ChatStore', () => {
         .denyToolCall('conv-1', 'Write', 'tc-2', 'Too dangerous')
 
       const userMsg = mockAddMessage.mock.calls.find(
-        (c: any) => c[0].role === 'user' && c[0].content.includes('[Tool Denied]')
+        (c: any) =>
+          c[0].role === 'user' && c[0].content.includes('[Tool Denied]')
       )
       expect(userMsg[0].content).toContain('Write')
       expect(userMsg[0].content).toContain('tc-2')
@@ -849,13 +843,11 @@ describe('ChatStore', () => {
       mockGetCurrentModel.mockReturnValue(mockModel)
       mockSendMessageStream.mockResolvedValue(undefined)
 
-      await useChatStore
-        .getState()
-        .approveToolCall('conv-1', 'Bash', 'session')
+      await useChatStore.getState().approveToolCall('conv-1', 'Bash', 'session')
 
-      expect(
-        useChatStore.getState().sessionApprovals['conv-1']
-      ).toContain('Bash')
+      expect(useChatStore.getState().sessionApprovals['conv-1']).toContain(
+        'Bash'
+      )
     })
 
     it('should not duplicate tool in sessionApprovals', async () => {
@@ -871,13 +863,11 @@ describe('ChatStore', () => {
       mockGetCurrentModel.mockReturnValue(mockModel)
       mockSendMessageStream.mockResolvedValue(undefined)
 
-      await useChatStore
-        .getState()
-        .approveToolCall('conv-1', 'Bash', 'session')
+      await useChatStore.getState().approveToolCall('conv-1', 'Bash', 'session')
 
-      expect(
-        useChatStore.getState().sessionApprovals['conv-1']
-      ).toEqual(['Bash'])
+      expect(useChatStore.getState().sessionApprovals['conv-1']).toEqual([
+        'Bash',
+      ])
     })
 
     it('should store tool in sessionApprovals for project scope (fallback)', async () => {
@@ -894,9 +884,9 @@ describe('ChatStore', () => {
         .getState()
         .approveToolCall('conv-1', 'Write', 'project')
 
-      expect(
-        useChatStore.getState().sessionApprovals['conv-1']
-      ).toContain('Write')
+      expect(useChatStore.getState().sessionApprovals['conv-1']).toContain(
+        'Write'
+      )
     })
 
     it('should return session approved tools via getSessionApprovedTools', () => {
@@ -904,9 +894,7 @@ describe('ChatStore', () => {
         sessionApprovals: { 'conv-1': ['Bash', 'Write'] },
       })
 
-      const tools = useChatStore
-        .getState()
-        .getSessionApprovedTools('conv-1')
+      const tools = useChatStore.getState().getSessionApprovedTools('conv-1')
 
       expect(tools).toEqual(['Bash', 'Write'])
     })
@@ -946,9 +934,7 @@ describe('ChatStore', () => {
     })
 
     it('should return early when conversation has no messages', async () => {
-      mockConversations.value = [
-        { id: 'conv-1', messages: [] },
-      ]
+      mockConversations.value = [{ id: 'conv-1', messages: [] }]
 
       const { triggerMemoryExtraction } = await import('../chatStore')
       await triggerMemoryExtraction('conv-1', 'p1', 'm1')
@@ -974,9 +960,11 @@ describe('ChatStore', () => {
 
       const extractCall = mockExtract.mock.calls[0][0]
       expect(extractCall.messages).toHaveLength(3)
-      expect(extractCall.messages.every(
-        (m: any) => m.role === 'user' || m.role === 'assistant'
-      )).toBe(true)
+      expect(
+        extractCall.messages.every(
+          (m: any) => m.role === 'user' || m.role === 'assistant'
+        )
+      ).toBe(true)
     })
 
     it('should take only last 10 messages', async () => {
@@ -984,9 +972,7 @@ describe('ChatStore', () => {
         role: i % 2 === 0 ? 'user' : 'assistant',
         content: `Message ${i}`,
       }))
-      mockConversations.value = [
-        { id: 'conv-1', messages },
-      ]
+      mockConversations.value = [{ id: 'conv-1', messages }]
 
       const { triggerMemoryExtraction } = await import('../chatStore')
       await triggerMemoryExtraction('conv-1', 'p1', 'm1')

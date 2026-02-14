@@ -97,7 +97,11 @@ describe('MessageStats', () => {
 
     it('renders all stats together', () => {
       render(
-        <MessageStats inputTokens={1500} outputTokens={3000} durationMs={5000} />
+        <MessageStats
+          inputTokens={1500}
+          outputTokens={3000}
+          durationMs={5000}
+        />
       )
       expect(screen.getByText(/1\.5k/)).toBeInTheDocument()
       expect(screen.getByText(/3\.0k/)).toBeInTheDocument()

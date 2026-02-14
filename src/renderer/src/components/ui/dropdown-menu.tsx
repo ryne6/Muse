@@ -42,13 +42,8 @@ function DropdownMenuContent({
 
   return (
     <DropdownMenuPortal>
-      <DropdownMenuPositioner
-        placement={placement}
-        sideOffset={sideOffset}
-      >
-        <DropdownMenuPopup className={className}>
-          {children}
-        </DropdownMenuPopup>
+      <DropdownMenuPositioner placement={placement} sideOffset={sideOffset}>
+        <DropdownMenuPopup className={className}>{children}</DropdownMenuPopup>
       </DropdownMenuPositioner>
     </DropdownMenuPortal>
   )

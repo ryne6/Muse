@@ -181,13 +181,10 @@ describe('ClaudeProvider runtime', () => {
       content: [{ type: 'text', text: 'thinking answer' }],
     })
 
-    await provider.sendMessage(
-      [{ role: 'user', content: 'think harder' }],
-      {
-        ...baseConfig,
-        thinkingEnabled: true,
-      }
-    )
+    await provider.sendMessage([{ role: 'user', content: 'think harder' }], {
+      ...baseConfig,
+      thinkingEnabled: true,
+    })
 
     const params = createMock.mock.calls[0][0]
     expect(params.thinking).toEqual({

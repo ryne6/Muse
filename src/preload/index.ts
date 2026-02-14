@@ -54,11 +54,8 @@ const api: IpcApi = {
       ipcRenderer.invoke('git:commit', { path, message, files }),
     push: (path?: string, remote?: string, branch?: string) =>
       ipcRenderer.invoke('git:push', { path, remote, branch }),
-    checkout: (
-      path: string | undefined,
-      branch: string,
-      create?: boolean
-    ) => ipcRenderer.invoke('git:checkout', { path, branch, create }),
+    checkout: (path: string | undefined, branch: string, create?: boolean) =>
+      ipcRenderer.invoke('git:checkout', { path, branch, create }),
   },
   web: {
     fetch: (url: string, maxLength?: number) =>

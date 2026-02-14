@@ -36,8 +36,7 @@ vi.mock('@lobehub/ui', () => ({
 }))
 
 vi.mock('~/stores/chatStore', () => ({
-  useChatStore: (selector: any) =>
-    selector({ approveToolCall: vi.fn() }),
+  useChatStore: (selector: any) => selector({ approveToolCall: vi.fn() }),
 }))
 
 vi.mock('~/stores/conversationStore', () => ({
@@ -82,9 +81,7 @@ describe('ToolCallsList', () => {
         { toolCallId: 'tc-1', output: 'file content' },
         { toolCallId: 'tc-2', output: 'dir listing' },
       ]
-      render(
-        <ToolCallsList toolCalls={toolCalls} toolResults={toolResults} />
-      )
+      render(<ToolCallsList toolCalls={toolCalls} toolResults={toolResults} />)
       expect(screen.getByTestId('FileText')).toBeTruthy()
       expect(screen.getByTestId('Terminal')).toBeTruthy()
     })

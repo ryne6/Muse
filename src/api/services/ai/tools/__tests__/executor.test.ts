@@ -49,7 +49,9 @@ describe('ToolExecutor', () => {
         data: { content: 'file content' },
       })
 
-      const result = await executor.execute('Read', { path: '~main/test/file.txt' })
+      const result = await executor.execute('Read', {
+        path: '~main/test/file.txt',
+      })
 
       expect(axios.post).toHaveBeenCalledWith(
         'http://localhost:3001/ipc/fs:readFile',
@@ -188,7 +190,9 @@ describe('ToolExecutor', () => {
     it('should route to fs:grep for Grep tool', async () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: {
-          results: [{ file: '~main/test/a.ts', line: 12, content: 'const a = 1' }],
+          results: [
+            { file: '~main/test/a.ts', line: 12, content: 'const a = 1' },
+          ],
         },
       })
 
@@ -298,7 +302,9 @@ describe('ToolExecutor', () => {
         data: { content: 'const x = 1;' },
       })
 
-      const result = await executor.execute('Read', { path: '~main/src/index.ts' })
+      const result = await executor.execute('Read', {
+        path: '~main/src/index.ts',
+      })
       expect(result).toBe('const x = 1;')
     })
 
@@ -315,7 +321,9 @@ describe('ToolExecutor', () => {
         response: { data: { error: 'Permission denied' } },
       })
 
-      const result = await executor.execute('Read', { path: '~main/etc/passwd' })
+      const result = await executor.execute('Read', {
+        path: '~main/etc/passwd',
+      })
       expect(result).toContain('Permission denied')
     })
   })
@@ -616,9 +624,7 @@ describe('ToolExecutor', () => {
     it('should show KB for 1024*1024 - 1', async () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: {
-          files: [
-            { name: 'f.txt', isDirectory: false, size: 1024 * 1024 - 1 },
-          ],
+          files: [{ name: 'f.txt', isDirectory: false, size: 1024 * 1024 - 1 }],
         },
       })
 
@@ -630,9 +636,7 @@ describe('ToolExecutor', () => {
     it('should show MB for exactly 1MB', async () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: {
-          files: [
-            { name: 'f.txt', isDirectory: false, size: 1024 * 1024 },
-          ],
+          files: [{ name: 'f.txt', isDirectory: false, size: 1024 * 1024 }],
         },
       })
 
@@ -674,7 +678,12 @@ describe('ToolExecutor', () => {
 
       const result = await executor.execute(
         'Edit',
-        { path: '~main/f.txt', old_text: 'a', new_text: 'b', replace_all: true },
+        {
+          path: '~main/f.txt',
+          old_text: 'a',
+          new_text: 'b',
+          replace_all: true,
+        },
         { toolPermissions: { allowAll: true } }
       )
 

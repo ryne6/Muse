@@ -407,9 +407,7 @@ describe('MCPClient', () => {
       await client.connect()
 
       stderrCallback?.(Buffer.from('URL: https://example.com/oauth;'))
-      expect(mockOpenExternal).toHaveBeenCalledWith(
-        'https://example.com/oauth'
-      )
+      expect(mockOpenExternal).toHaveBeenCalledWith('https://example.com/oauth')
     })
 
     it('should clean trailing parenthesis from URLs', async () => {

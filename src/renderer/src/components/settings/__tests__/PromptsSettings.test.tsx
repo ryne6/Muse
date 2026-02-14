@@ -42,7 +42,9 @@ vi.mock('@lobehub/ui', () => ({
 }))
 
 vi.mock('~/components/ui/button', () => ({
-  Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+  Button: ({ children, ...props }: any) => (
+    <button {...props}>{children}</button>
+  ),
 }))
 
 vi.mock('~/components/ui/input', () => ({
@@ -94,7 +96,6 @@ describe('PromptsSettings', () => {
     createMock.mockResolvedValue(preset)
     updateMock.mockResolvedValue(preset)
     deleteMock.mockResolvedValue({ success: true })
-
     ;(window as any).api.promptPresets = {
       getAll: getAllMock,
       create: createMock,
@@ -102,7 +103,10 @@ describe('PromptsSettings', () => {
       delete: deleteMock,
     }
 
-    vi.stubGlobal('confirm', vi.fn(() => true))
+    vi.stubGlobal(
+      'confirm',
+      vi.fn(() => true)
+    )
   })
 
   afterEach(() => {
@@ -115,7 +119,9 @@ describe('PromptsSettings', () => {
     await waitFor(() => {
       expect(screen.getByText('No presets yet')).toBeInTheDocument()
     })
-    expect(screen.getByText('Create presets for quick access')).toBeInTheDocument()
+    expect(
+      screen.getByText('Create presets for quick access')
+    ).toBeInTheDocument()
   })
 
   it('selects preset and updates global system prompt', async () => {
@@ -213,7 +219,10 @@ describe('PromptsSettings', () => {
   })
 
   it('does not delete preset when confirm is cancelled', async () => {
-    vi.stubGlobal('confirm', vi.fn(() => false))
+    vi.stubGlobal(
+      'confirm',
+      vi.fn(() => false)
+    )
     getAllMock.mockResolvedValue([preset])
     render(<PromptsSettings />)
 

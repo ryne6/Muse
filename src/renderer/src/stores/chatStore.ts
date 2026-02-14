@@ -254,9 +254,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
           })
         )
         const validImageBlocks = imageBlocks.filter(
-          (
-            block
-          ): block is NonNullable<(typeof imageBlocks)[number]> => block !== null
+          (block): block is NonNullable<(typeof imageBlocks)[number]> =>
+            block !== null
         )
         contentBlocks.push(...validImageBlocks)
       }

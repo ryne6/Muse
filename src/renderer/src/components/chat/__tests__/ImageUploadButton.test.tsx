@@ -24,11 +24,7 @@ beforeEach(() => {
   vi.clearAllMocks()
 })
 
-function createFile(
-  name: string,
-  type: string,
-  sizeBytes: number
-): File {
+function createFile(name: string, type: string, sizeBytes: number): File {
   const content = new Uint8Array(sizeBytes)
   return new File([content], name, { type })
 }
@@ -100,11 +96,7 @@ describe('ImageUploadButton', () => {
       render(<ImageUploadButton onImagesSelected={onImagesSelected} />)
       const input = getFileInput()
 
-      const bigFile = createFile(
-        'huge.png',
-        'image/png',
-        10 * 1024 * 1024 + 1
-      )
+      const bigFile = createFile('huge.png', 'image/png', 10 * 1024 * 1024 + 1)
       fireFileChange(input, [bigFile])
 
       expect(notify.error).toHaveBeenCalledWith(
@@ -118,11 +110,7 @@ describe('ImageUploadButton', () => {
       render(<ImageUploadButton onImagesSelected={onImagesSelected} />)
       const input = getFileInput()
 
-      const exactFile = createFile(
-        'exact.png',
-        'image/png',
-        10 * 1024 * 1024
-      )
+      const exactFile = createFile('exact.png', 'image/png', 10 * 1024 * 1024)
       fireFileChange(input, [exactFile])
 
       expect(onImagesSelected).toHaveBeenCalledWith([exactFile])
@@ -138,11 +126,7 @@ describe('ImageUploadButton', () => {
 
       const validFile = createFile('ok.png', 'image/png', 1000)
       const badType = createFile('doc.bmp', 'image/bmp', 1000)
-      const tooBig = createFile(
-        'big.jpg',
-        'image/jpeg',
-        11 * 1024 * 1024
-      )
+      const tooBig = createFile('big.jpg', 'image/jpeg', 11 * 1024 * 1024)
 
       fireFileChange(input, [validFile, badType, tooBig])
 

@@ -101,7 +101,9 @@ describe('openAIStrategy', () => {
   })
 
   it('should parse stream chunk tool calls', () => {
-    const toolCalls = [{ index: 0, function: { name: 'Read', arguments: '{}' } }]
+    const toolCalls = [
+      { index: 0, function: { name: 'Read', arguments: '{}' } },
+    ]
     expect(
       openAIStrategy.parseStreamChunk({
         choices: [{ delta: { tool_calls: toolCalls } }],
@@ -110,7 +112,9 @@ describe('openAIStrategy', () => {
   })
 
   it('should prefer content when chunk has both content and tool calls', () => {
-    const toolCalls = [{ index: 0, function: { name: 'Read', arguments: '{}' } }]
+    const toolCalls = [
+      { index: 0, function: { name: 'Read', arguments: '{}' } },
+    ]
     expect(
       openAIStrategy.parseStreamChunk({
         choices: [{ delta: { content: 'x', tool_calls: toolCalls } }],

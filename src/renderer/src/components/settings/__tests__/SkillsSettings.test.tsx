@@ -21,7 +21,9 @@ vi.mock('lucide-react', () => {
 })
 
 vi.mock('~/components/ui/button', () => ({
-  Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+  Button: ({ children, ...props }: any) => (
+    <button {...props}>{children}</button>
+  ),
 }))
 
 const notifySuccess = vi.fn()
@@ -78,7 +80,10 @@ describe('SkillsSettings', () => {
     ;(window as any).api.dialog = {
       selectDirectory: vi.fn(async () => '~main/new/skills/dir'),
     }
-    vi.stubGlobal('confirm', vi.fn(() => true))
+    vi.stubGlobal(
+      'confirm',
+      vi.fn(() => true)
+    )
     vi.spyOn(window, 'dispatchEvent')
   })
 
@@ -106,7 +111,9 @@ describe('SkillsSettings', () => {
     render(<SkillsSettings />)
 
     await waitFor(() => {
-      expect(screen.getByText('~main/Users/x/.codex/skills')).toBeInTheDocument()
+      expect(
+        screen.getByText('~main/Users/x/.codex/skills')
+      ).toBeInTheDocument()
       expect(screen.getByText('~main/tmp/disabled-skills')).toBeInTheDocument()
     })
 
@@ -175,7 +182,9 @@ describe('SkillsSettings', () => {
     render(<SkillsSettings />)
 
     await waitFor(() => {
-      expect(screen.getByText('~main/Users/x/.codex/skills')).toBeInTheDocument()
+      expect(
+        screen.getByText('~main/Users/x/.codex/skills')
+      ).toBeInTheDocument()
     })
 
     fireEvent.click(screen.getByRole('button', { name: /on/i }))
@@ -183,7 +192,9 @@ describe('SkillsSettings', () => {
     await waitFor(() => {
       expect(toggleDirectoryMock).toHaveBeenCalledWith('dir-1')
     })
-    expect(notifySuccess).toHaveBeenCalledWith('~main/Users/x/.codex/skills disabled')
+    expect(notifySuccess).toHaveBeenCalledWith(
+      '~main/Users/x/.codex/skills disabled'
+    )
     expect(window.dispatchEvent).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'skills-updated' })
     )
@@ -195,7 +206,9 @@ describe('SkillsSettings', () => {
     render(<SkillsSettings />)
 
     await waitFor(() => {
-      expect(screen.getByText('~main/Users/x/.codex/skills')).toBeInTheDocument()
+      expect(
+        screen.getByText('~main/Users/x/.codex/skills')
+      ).toBeInTheDocument()
     })
 
     fireEvent.click(screen.getByRole('button', { name: /on/i }))
@@ -206,12 +219,17 @@ describe('SkillsSettings', () => {
   })
 
   it('does not delete when confirmation is cancelled', async () => {
-    vi.stubGlobal('confirm', vi.fn(() => false))
+    vi.stubGlobal(
+      'confirm',
+      vi.fn(() => false)
+    )
     getDirectoriesMock.mockResolvedValue([directories[0]])
     render(<SkillsSettings />)
 
     await waitFor(() => {
-      expect(screen.getByText('~main/Users/x/.codex/skills')).toBeInTheDocument()
+      expect(
+        screen.getByText('~main/Users/x/.codex/skills')
+      ).toBeInTheDocument()
     })
 
     fireEvent.click(screen.getByTestId('Trash2').closest('button')!)
@@ -223,7 +241,9 @@ describe('SkillsSettings', () => {
     render(<SkillsSettings />)
 
     await waitFor(() => {
-      expect(screen.getByText('~main/Users/x/.codex/skills')).toBeInTheDocument()
+      expect(
+        screen.getByText('~main/Users/x/.codex/skills')
+      ).toBeInTheDocument()
     })
 
     fireEvent.click(screen.getByTestId('Trash2').closest('button')!)
@@ -242,7 +262,9 @@ describe('SkillsSettings', () => {
     render(<SkillsSettings />)
 
     await waitFor(() => {
-      expect(screen.getByText('~main/Users/x/.codex/skills')).toBeInTheDocument()
+      expect(
+        screen.getByText('~main/Users/x/.codex/skills')
+      ).toBeInTheDocument()
     })
 
     fireEvent.click(screen.getByTestId('Trash2').closest('button')!)

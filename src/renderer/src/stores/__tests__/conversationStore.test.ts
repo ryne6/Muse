@@ -22,7 +22,9 @@ vi.mock('~/services/dbClient', () => ({
   dbClient: mockDbClient,
 }))
 
-const mockWorkspacePath = vi.hoisted(() => ({ value: '~main/global/workspace' }))
+const mockWorkspacePath = vi.hoisted(() => ({
+  value: '~main/global/workspace',
+}))
 
 vi.mock('../workspaceStore', () => ({
   useWorkspaceStore: {
@@ -538,9 +540,9 @@ describe('ConversationStore', () => {
         'db:conversations:updateWorkspace',
         { id: 'conv-1', workspace: '~main/new/workspace' }
       )
-      expect(
-        useConversationStore.getState().conversations[0].workspace
-      ).toBe('~main/new/workspace')
+      expect(useConversationStore.getState().conversations[0].workspace).toBe(
+        '~main/new/workspace'
+      )
     })
 
     it('should set workspace to null', async () => {
@@ -557,9 +559,7 @@ describe('ConversationStore', () => {
         ],
       })
 
-      await useConversationStore
-        .getState()
-        .setWorkspace('conv-1', null)
+      await useConversationStore.getState().setWorkspace('conv-1', null)
 
       expect(window.api.ipc.invoke).toHaveBeenCalledWith(
         'db:conversations:updateWorkspace',
@@ -674,12 +674,10 @@ describe('ConversationStore', () => {
     })
 
     it('should update only the target message via updater function', () => {
-      useConversationStore
-        .getState()
-        .updateMessage('conv-1', 'msg-1', m => ({
-          ...m,
-          content: m.content + ' World',
-        }))
+      useConversationStore.getState().updateMessage('conv-1', 'msg-1', m => ({
+        ...m,
+        content: m.content + ' World',
+      }))
 
       const conv = useConversationStore.getState().conversations[0]
       expect(conv.messages[0].content).toBe('Hello World')
@@ -687,24 +685,20 @@ describe('ConversationStore', () => {
     })
 
     it('should not affect other conversations', () => {
-      useConversationStore
-        .getState()
-        .updateMessage('conv-1', 'msg-1', m => ({
-          ...m,
-          content: 'Changed',
-        }))
+      useConversationStore.getState().updateMessage('conv-1', 'msg-1', m => ({
+        ...m,
+        content: 'Changed',
+      }))
 
       const otherConv = useConversationStore.getState().conversations[1]
       expect(otherConv.messages[0].content).toBe('Untouched')
     })
 
     it('should leave non-matching messages unchanged', () => {
-      useConversationStore
-        .getState()
-        .updateMessage('conv-1', 'msg-1', m => ({
-          ...m,
-          thinking: 'some thought',
-        }))
+      useConversationStore.getState().updateMessage('conv-1', 'msg-1', m => ({
+        ...m,
+        thinking: 'some thought',
+      }))
 
       const conv = useConversationStore.getState().conversations[0]
       expect(conv.messages[0].thinking).toBe('some thought')
@@ -769,9 +763,7 @@ describe('ConversationStore', () => {
     })
 
     it('should handle cleanup failure gracefully', async () => {
-      const consoleSpy = vi
-        .spyOn(console, 'error')
-        .mockImplementation(() => {})
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       ;(window.api.workspace.cleanup as any).mockRejectedValue(
         new Error('cleanup failed')
       )
@@ -803,9 +795,7 @@ describe('ConversationStore', () => {
     })
 
     it('should log when workspace is not empty', async () => {
-      const consoleSpy = vi
-        .spyOn(console, 'log')
-        .mockImplementation(() => {})
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
       ;(window.api.workspace.cleanup as any).mockResolvedValue({
         deleted: false,
         reason: 'not_empty',

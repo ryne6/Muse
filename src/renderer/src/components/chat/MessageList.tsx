@@ -94,7 +94,9 @@ export function MessageList() {
       <div className="flex-1 min-h-0 flex items-center justify-center text-muted-foreground">
         <div className="text-center">
           <p className="text-lg mb-2">Start a new conversation</p>
-          <p className="text-sm">Click &quot;New Chat&quot; or start typing below</p>
+          <p className="text-sm">
+            Click &quot;New Chat&quot; or start typing below
+          </p>
         </div>
       </div>
     )
@@ -121,9 +123,7 @@ export function MessageList() {
         key={currentConversationId}
         ref={virtuaRef}
         data={messageIds}
-        bufferSize={
-          typeof window !== 'undefined' ? window.innerHeight : 800
-        }
+        bufferSize={typeof window !== 'undefined' ? window.innerHeight : 800}
         style={{ height: '100%', overflowAnchor: 'none' }}
         onScroll={handleScroll}
       >

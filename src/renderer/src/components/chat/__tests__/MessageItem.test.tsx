@@ -42,8 +42,9 @@ const mockConversationStore = vi.hoisted(() => ({
 }))
 
 vi.mock('~/stores/conversationStore', () => ({
-  useConversationStore: (selector?: (state: typeof mockConversationStore) => unknown) =>
-    selector ? selector(mockConversationStore) : mockConversationStore,
+  useConversationStore: (
+    selector?: (state: typeof mockConversationStore) => unknown
+  ) => (selector ? selector(mockConversationStore) : mockConversationStore),
 }))
 
 describe('MessageItem', () => {

@@ -273,9 +273,7 @@ export class MemoryFileService {
   /**
    * Read a single .md memory file, parsing frontmatter and content
    */
-  static async readMemoryFile(
-    filePath: string
-  ): Promise<{
+  static async readMemoryFile(filePath: string): Promise<{
     filePath: string
     filename: string
     frontmatter: MemoryFrontmatter
@@ -300,9 +298,7 @@ export class MemoryFileService {
   /**
    * Read all .md memory files from a directory
    */
-  static async readAllMemoryFiles(
-    dirPath: string
-  ): Promise<
+  static async readAllMemoryFiles(dirPath: string): Promise<
     Array<{
       filePath: string
       filename: string

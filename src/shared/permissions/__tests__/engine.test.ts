@@ -34,9 +34,13 @@ describe('PermissionEngine.evaluate', () => {
         source: 'project',
         description: 'Deny everything',
       }
-      const result = engine.evaluate('Read', { path: '/foo' }, {
-        permissionRules: [denyAll],
-      })
+      const result = engine.evaluate(
+        'Read',
+        { path: '/foo' },
+        {
+          permissionRules: [denyAll],
+        }
+      )
       expect(result.action).toBe('allow')
       expect(result.reason).toBe('Tool classified as safe')
     })
@@ -52,9 +56,13 @@ describe('PermissionEngine.evaluate', () => {
     }
 
     it('deny rule blocks tool', () => {
-      const result = engine.evaluate('Write', { path: '/foo' }, {
-        permissionRules: [denyWrite],
-      })
+      const result = engine.evaluate(
+        'Write',
+        { path: '/foo' },
+        {
+          permissionRules: [denyWrite],
+        }
+      )
       expect(result.action).toBe('deny')
       expect(result.reason).toBe('No writes allowed')
       expect(result.matchedRule).toBe(denyWrite)
@@ -67,9 +75,13 @@ describe('PermissionEngine.evaluate', () => {
         tool: 'Write',
         source: 'project',
       }
-      const result = engine.evaluate('Write', { path: '/foo' }, {
-        permissionRules: [allowWrite, denyWrite],
-      })
+      const result = engine.evaluate(
+        'Write',
+        { path: '/foo' },
+        {
+          permissionRules: [allowWrite, denyWrite],
+        }
+      )
       expect(result.action).toBe('deny')
     })
 
@@ -80,9 +92,13 @@ describe('PermissionEngine.evaluate', () => {
         tool: 'Write',
         source: 'project',
       }
-      const result = engine.evaluate('Write', { path: '/foo' }, {
-        permissionRules: [allowWrite, denyWrite],
-      })
+      const result = engine.evaluate(
+        'Write',
+        { path: '/foo' },
+        {
+          permissionRules: [allowWrite, denyWrite],
+        }
+      )
       expect(result.action).toBe('deny')
     })
 
@@ -94,9 +110,13 @@ describe('PermissionEngine.evaluate', () => {
         source: 'project',
         description: 'Writes OK',
       }
-      const result = engine.evaluate('Write', { path: '/foo' }, {
-        permissionRules: [allowWrite],
-      })
+      const result = engine.evaluate(
+        'Write',
+        { path: '/foo' },
+        {
+          permissionRules: [allowWrite],
+        }
+      )
       expect(result.action).toBe('allow')
       expect(result.reason).toBe('Writes OK')
       expect(result.matchedRule).toBe(allowWrite)
@@ -109,9 +129,13 @@ describe('PermissionEngine.evaluate', () => {
         tool: 'Edit',
         source: 'project',
       }
-      const result = engine.evaluate('Write', { path: '/foo' }, {
-        permissionRules: [ruleForOtherTool],
-      })
+      const result = engine.evaluate(
+        'Write',
+        { path: '/foo' },
+        {
+          permissionRules: [ruleForOtherTool],
+        }
+      )
       // Falls through to step 6 (ask)
       expect(result.action).toBe('ask')
     })
@@ -119,51 +143,75 @@ describe('PermissionEngine.evaluate', () => {
 
   describe('Step 3: allowOnce', () => {
     it('tool in allowOnceTools → allow', () => {
-      const result = engine.evaluate('Write', { path: '/foo' }, {
-        allowOnceTools: ['Write'],
-      })
+      const result = engine.evaluate(
+        'Write',
+        { path: '/foo' },
+        {
+          allowOnceTools: ['Write'],
+        }
+      )
       expect(result.action).toBe('allow')
       expect(result.reason).toBe('Allowed once by user')
     })
 
     it('other tool not in allowOnceTools → falls through', () => {
-      const result = engine.evaluate('Edit', { path: '/foo' }, {
-        allowOnceTools: ['Write'],
-      })
+      const result = engine.evaluate(
+        'Edit',
+        { path: '/foo' },
+        {
+          allowOnceTools: ['Write'],
+        }
+      )
       expect(result.action).toBe('ask')
     })
   })
 
   describe('Step 4: session approved', () => {
     it('tool in sessionApprovedTools → allow', () => {
-      const result = engine.evaluate('Write', { path: '/foo' }, {
-        sessionApprovedTools: new Set(['Write']),
-      })
+      const result = engine.evaluate(
+        'Write',
+        { path: '/foo' },
+        {
+          sessionApprovedTools: new Set(['Write']),
+        }
+      )
       expect(result.action).toBe('allow')
       expect(result.reason).toBe('Allowed for this session')
     })
 
     it('other tool not in session set → falls through', () => {
-      const result = engine.evaluate('Edit', { path: '/foo' }, {
-        sessionApprovedTools: new Set(['Write']),
-      })
+      const result = engine.evaluate(
+        'Edit',
+        { path: '/foo' },
+        {
+          sessionApprovedTools: new Set(['Write']),
+        }
+      )
       expect(result.action).toBe('ask')
     })
   })
 
   describe('Step 5: allowAll (backward compat)', () => {
     it('allowAll=true → allow', () => {
-      const result = engine.evaluate('Write', { path: '/foo' }, {
-        allowAll: true,
-      })
+      const result = engine.evaluate(
+        'Write',
+        { path: '/foo' },
+        {
+          allowAll: true,
+        }
+      )
       expect(result.action).toBe('allow')
       expect(result.reason).toBe('All tools allowed (allowAll)')
     })
 
     it('allowAll=false → falls through to ask', () => {
-      const result = engine.evaluate('Write', { path: '/foo' }, {
-        allowAll: false,
-      })
+      const result = engine.evaluate(
+        'Write',
+        { path: '/foo' },
+        {
+          allowAll: false,
+        }
+      )
       expect(result.action).toBe('ask')
     })
   })
@@ -199,12 +247,16 @@ describe('PermissionEngine.evaluate', () => {
         tool: 'Write',
         source: 'project',
       }
-      const result = engine.evaluate('Write', {}, {
-        permissionRules: [denyRule],
-        allowOnceTools: ['Write'],
-        sessionApprovedTools: new Set(['Write']),
-        allowAll: true,
-      })
+      const result = engine.evaluate(
+        'Write',
+        {},
+        {
+          permissionRules: [denyRule],
+          allowOnceTools: ['Write'],
+          sessionApprovedTools: new Set(['Write']),
+          allowAll: true,
+        }
+      )
       expect(result.action).toBe('deny')
     })
 
@@ -216,28 +268,40 @@ describe('PermissionEngine.evaluate', () => {
         source: 'project',
         description: 'Rule allow',
       }
-      const result = engine.evaluate('Write', {}, {
-        permissionRules: [allowRule],
-      })
+      const result = engine.evaluate(
+        'Write',
+        {},
+        {
+          permissionRules: [allowRule],
+        }
+      )
       expect(result.action).toBe('allow')
       expect(result.reason).toBe('Rule allow')
     })
 
     it('allowOnce beats session and allowAll', () => {
-      const result = engine.evaluate('Write', {}, {
-        allowOnceTools: ['Write'],
-        sessionApprovedTools: new Set(['Write']),
-        allowAll: true,
-      })
+      const result = engine.evaluate(
+        'Write',
+        {},
+        {
+          allowOnceTools: ['Write'],
+          sessionApprovedTools: new Set(['Write']),
+          allowAll: true,
+        }
+      )
       expect(result.action).toBe('allow')
       expect(result.reason).toBe('Allowed once by user')
     })
 
     it('session beats allowAll', () => {
-      const result = engine.evaluate('Write', {}, {
-        sessionApprovedTools: new Set(['Write']),
-        allowAll: true,
-      })
+      const result = engine.evaluate(
+        'Write',
+        {},
+        {
+          sessionApprovedTools: new Set(['Write']),
+          allowAll: true,
+        }
+      )
       expect(result.action).toBe('allow')
       expect(result.reason).toBe('Allowed for this session')
     })
@@ -255,9 +319,13 @@ describe('PermissionEngine.matchRules (via evaluate)', () => {
         tool: 'Write',
         source: 'project',
       }
-      const result = engine.evaluate('Write', {}, {
-        permissionRules: [rule],
-      })
+      const result = engine.evaluate(
+        'Write',
+        {},
+        {
+          permissionRules: [rule],
+        }
+      )
       expect(result.action).toBe('allow')
     })
 
@@ -269,9 +337,13 @@ describe('PermissionEngine.matchRules (via evaluate)', () => {
         source: 'project',
         description: 'Allow all',
       }
-      const result = engine.evaluate('Edit', {}, {
-        permissionRules: [rule],
-      })
+      const result = engine.evaluate(
+        'Edit',
+        {},
+        {
+          permissionRules: [rule],
+        }
+      )
       expect(result.action).toBe('allow')
       expect(result.reason).toBe('Allow all')
     })
@@ -283,9 +355,13 @@ describe('PermissionEngine.matchRules (via evaluate)', () => {
         tool: 'Edit',
         source: 'project',
       }
-      const result = engine.evaluate('Write', {}, {
-        permissionRules: [rule],
-      })
+      const result = engine.evaluate(
+        'Write',
+        {},
+        {
+          permissionRules: [rule],
+        }
+      )
       expect(result.action).toBe('ask')
     })
   })
@@ -348,11 +424,7 @@ describe('PermissionEngine.matchRules (via evaluate)', () => {
         match: { commandPrefix: 'npm' },
         source: 'project',
       }
-      const result = engine.evaluate(
-        'Bash',
-        {},
-        { permissionRules: [rule] }
-      )
+      const result = engine.evaluate('Bash', {}, { permissionRules: [rule] })
       // empty command → moderate, rule doesn't match → ask
       expect(result.action).toBe('ask')
     })
@@ -470,11 +542,7 @@ describe('PermissionEngine.matchRules (via evaluate)', () => {
         match: { pathGlob: 'src/*.ts' },
         source: 'project',
       }
-      const result = engine.evaluate(
-        'Write',
-        {},
-        { permissionRules: [rule] }
-      )
+      const result = engine.evaluate('Write', {}, { permissionRules: [rule] })
       expect(result.action).toBe('ask')
     })
 
@@ -570,11 +638,7 @@ describe('PermissionEngine.matchRules (via evaluate)', () => {
           description: 'Deny all',
         },
       ]
-      const result = engine.evaluate(
-        'Write',
-        {},
-        { permissionRules: rules }
-      )
+      const result = engine.evaluate('Write', {}, { permissionRules: rules })
       expect(result.action).toBe('deny')
     })
   })
@@ -587,11 +651,7 @@ describe('PermissionEngine.matchRules (via evaluate)', () => {
         tool: 'Write',
         source: 'project',
       }
-      const result = engine.evaluate(
-        'Write',
-        {},
-        { permissionRules: [rule] }
-      )
+      const result = engine.evaluate('Write', {}, { permissionRules: [rule] })
       expect(result.action).toBe('deny')
       expect(result.reason).toContain('my-deny-rule')
     })
@@ -603,11 +663,7 @@ describe('PermissionEngine.matchRules (via evaluate)', () => {
         tool: 'Write',
         source: 'project',
       }
-      const result = engine.evaluate(
-        'Write',
-        {},
-        { permissionRules: [rule] }
-      )
+      const result = engine.evaluate('Write', {}, { permissionRules: [rule] })
       expect(result.action).toBe('allow')
       expect(result.reason).toContain('my-allow-rule')
     })
@@ -615,9 +671,13 @@ describe('PermissionEngine.matchRules (via evaluate)', () => {
 
   describe('empty/no rules', () => {
     it('empty rules array falls through', () => {
-      const result = engine.evaluate('Write', {}, {
-        permissionRules: [],
-      })
+      const result = engine.evaluate(
+        'Write',
+        {},
+        {
+          permissionRules: [],
+        }
+      )
       expect(result.action).toBe('ask')
     })
 

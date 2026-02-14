@@ -1,4 +1,7 @@
-import { Button as LobeButton, type ButtonProps as LobeButtonProps } from '@lobehub/ui'
+import {
+  Button as LobeButton,
+  type ButtonProps as LobeButtonProps,
+} from '@lobehub/ui'
 import { cn } from '~/utils/cn'
 
 type ShadcnVariant =
@@ -17,7 +20,9 @@ export interface ButtonProps extends Omit<LobeButtonProps, 'variant' | 'size'> {
 }
 
 function Button({ variant, size, className, ...rest }: ButtonProps) {
-  const lobeProps: Omit<LobeButtonProps, 'size'> & { size?: LobeButtonProps['size'] } = { ...rest }
+  const lobeProps: Omit<LobeButtonProps, 'size'> & {
+    size?: LobeButtonProps['size']
+  } = { ...rest }
 
   // Map variant
   switch (variant) {
@@ -53,12 +58,7 @@ function Button({ variant, size, className, ...rest }: ButtonProps) {
       break
   }
 
-  return (
-    <LobeButton
-      className={cn(extraClass, className)}
-      {...lobeProps}
-    />
-  )
+  return <LobeButton className={cn(extraClass, className)} {...lobeProps} />
 }
 
 export { Button }

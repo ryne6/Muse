@@ -23,16 +23,12 @@ describe('ContextIndicator', () => {
     })
 
     it('formats counts >= 1_000_000 with M suffix', () => {
-      render(
-        <ContextIndicator usedTokens={1500000} contextLength={2000000} />
-      )
+      render(<ContextIndicator usedTokens={1500000} contextLength={2000000} />)
       expect(screen.getByText(/1\.5M/)).toBeInTheDocument()
     })
 
     it('formats contextLength with M suffix too', () => {
-      render(
-        <ContextIndicator usedTokens={500000} contextLength={2000000} />
-      )
+      render(<ContextIndicator usedTokens={500000} contextLength={2000000} />)
       expect(screen.getByText(/2\.0M/)).toBeInTheDocument()
     })
   })

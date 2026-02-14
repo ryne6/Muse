@@ -18,7 +18,9 @@ vi.mock('lucide-react', () => {
 })
 
 vi.mock('@lobehub/ui', () => ({
-  ScrollArea: ({ children }: any) => <div data-testid="ScrollArea">{children}</div>,
+  ScrollArea: ({ children }: any) => (
+    <div data-testid="ScrollArea">{children}</div>
+  ),
 }))
 
 describe('ThinkingBlock', () => {

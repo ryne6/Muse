@@ -89,7 +89,9 @@ describe('MCPSettings — parseArgs', () => {
     await waitFor(() => {
       expect(screen.getByText(/npx/)).toBeInTheDocument()
     })
-    expect(screen.getByText(/npx -y @anthropic\/mcp-server/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/npx -y @anthropic\/mcp-server/)
+    ).toBeInTheDocument()
   })
 
   it('handles args as a legacy JSON string', async () => {
@@ -105,9 +107,7 @@ describe('MCPSettings — parseArgs', () => {
   })
 
   it('handles null args gracefully (empty)', async () => {
-    mockGetAll.mockResolvedValue([
-      makeServer('s3', 'no-args', null),
-    ])
+    mockGetAll.mockResolvedValue([makeServer('s3', 'no-args', null)])
 
     render(<MCPSettings />)
 
@@ -116,17 +116,17 @@ describe('MCPSettings — parseArgs', () => {
     })
     // Should render just the command with no trailing args
     const commandEl = screen.getByText((content, element) => {
-      return element?.tagName === 'DIV' &&
+      return (
+        element?.tagName === 'DIV' &&
         element.classList.contains('text-xs') &&
         content.trim() === 'npx'
+      )
     })
     expect(commandEl).toBeInTheDocument()
   })
 
   it('handles undefined args gracefully (empty)', async () => {
-    mockGetAll.mockResolvedValue([
-      makeServer('s4', 'undef-args', undefined),
-    ])
+    mockGetAll.mockResolvedValue([makeServer('s4', 'undef-args', undefined)])
 
     render(<MCPSettings />)
 
@@ -147,17 +147,17 @@ describe('MCPSettings — parseArgs', () => {
     })
     // Invalid JSON should result in just the command, no args
     const commandEl = screen.getByText((content, element) => {
-      return element?.tagName === 'DIV' &&
+      return (
+        element?.tagName === 'DIV' &&
         element.classList.contains('text-xs') &&
         content.trim() === 'npx'
+      )
     })
     expect(commandEl).toBeInTheDocument()
   })
 
   it('handles empty string args', async () => {
-    mockGetAll.mockResolvedValue([
-      makeServer('s6', 'empty-str', ''),
-    ])
+    mockGetAll.mockResolvedValue([makeServer('s6', 'empty-str', '')])
 
     render(<MCPSettings />)
 
@@ -167,9 +167,7 @@ describe('MCPSettings — parseArgs', () => {
   })
 
   it('handles empty array args', async () => {
-    mockGetAll.mockResolvedValue([
-      makeServer('s7', 'empty-arr', []),
-    ])
+    mockGetAll.mockResolvedValue([makeServer('s7', 'empty-arr', [])])
 
     render(<MCPSettings />)
 
@@ -183,7 +181,10 @@ describe('MCPSettings — interactions', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.useRealTimers()
-    vi.stubGlobal('confirm', vi.fn(() => true))
+    vi.stubGlobal(
+      'confirm',
+      vi.fn(() => true)
+    )
     mockGetAll.mockResolvedValue([])
     mockGetServerStates.mockResolvedValue([])
     mockCreate.mockResolvedValue(undefined)
@@ -326,7 +327,10 @@ describe('MCPSettings — interactions', () => {
   })
 
   it('does not delete when user cancels confirmation', async () => {
-    vi.stubGlobal('confirm', vi.fn(() => false))
+    vi.stubGlobal(
+      'confirm',
+      vi.fn(() => false)
+    )
     mockGetAll.mockResolvedValue([makeServer('s1', 'fs-server', [])])
     render(<MCPSettings />)
 
@@ -340,7 +344,10 @@ describe('MCPSettings — interactions', () => {
   })
 
   it('deletes server after confirmation', async () => {
-    vi.stubGlobal('confirm', vi.fn(() => true))
+    vi.stubGlobal(
+      'confirm',
+      vi.fn(() => true)
+    )
     mockGetAll.mockResolvedValue([makeServer('s1', 'fs-server', [])])
     render(<MCPSettings />)
 

@@ -46,7 +46,7 @@ export function ConversationList({ showText = true }: ConversationListProps) {
           <Plus className="w-4 h-4 flex-shrink-0" />
           <span
             className={cn(
-              'ml-2 whitespace-nowrap overflow-hidden transition-all duration-200',
+              'whitespace-nowrap overflow-hidden transition-all duration-200',
               isCollapsed ? 'opacity-0 max-w-0' : 'opacity-100 max-w-[120px]'
             )}
           >

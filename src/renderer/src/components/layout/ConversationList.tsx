@@ -36,12 +36,11 @@ export function ConversationList({ showText = true }: ConversationListProps) {
         <Button
           onClick={handleNewChat}
           variant="ghost"
-          size="sm"
           className={cn(
             'bg-[hsl(var(--bg-main)/0.6)] text-foreground/80 backdrop-blur-sm',
             'rounded-lg hover:bg-[hsl(var(--bg-main)/0.8)] hover:text-foreground',
             'transition-colors duration-150',
-            'w-full justify-start'
+            'h-9 w-full justify-start px-3 text-sm'
           )}
         >
           <Plus className="w-4 h-4 flex-shrink-0" />

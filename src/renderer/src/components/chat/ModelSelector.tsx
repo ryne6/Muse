@@ -9,6 +9,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuGroup,
 } from '~/components/ui/dropdown-menu'
 import { Button } from '~/components/ui/button'
 
@@ -106,27 +107,29 @@ export function ModelSelector() {
           ([providerName, providerModels], index) => (
             <div key={providerName}>
               {index > 0 && <DropdownMenuSeparator />}
-              <DropdownMenuLabel className="text-xs uppercase text-muted-foreground">
-                {providerName}
-              </DropdownMenuLabel>
-              {providerModels.map(model => (
-                <DropdownMenuItem
-                  key={model.id}
-                  onClick={() => handleModelSelect(model.id)}
-                  className="flex items-center justify-between font-mono text-xs cursor-pointer"
-                >
-                  <span
-                    className={
-                      model.id === currentModel?.id ? 'font-semibold' : ''
-                    }
+              <DropdownMenuGroup>
+                <DropdownMenuLabel className="text-xs uppercase text-muted-foreground">
+                  {providerName}
+                </DropdownMenuLabel>
+                {providerModels.map(model => (
+                  <DropdownMenuItem
+                    key={model.id}
+                    onClick={() => handleModelSelect(model.id)}
+                    className="flex items-center justify-between font-mono text-xs cursor-pointer"
                   >
-                    {model.name}
-                  </span>
-                  {model.id === currentModel?.id && (
-                    <span className="text-primary">✓</span>
-                  )}
-                </DropdownMenuItem>
-              ))}
+                    <span
+                      className={
+                        model.id === currentModel?.id ? 'font-semibold' : ''
+                      }
+                    >
+                      {model.name}
+                    </span>
+                    {model.id === currentModel?.id && (
+                      <span className="text-primary">✓</span>
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuGroup>
             </div>
           )
         )}

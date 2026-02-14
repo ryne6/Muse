@@ -49,13 +49,15 @@
     "axios": "^1.13.2",
     "better-sqlite3": "^9.3.0",
     "drizzle-orm": "^0.45.1",
-    "electron-liquid-glass": "^1.1.1",
     "electron-updater": "^6.7.3",
     "execa": "^8.0.1",
     "fast-glob": "^3.3.2",
     "hono": "^4.0.0",
     "openai": "^6.16.0",
     "virtua": "^0.48.5"
+  },
+  "optionalDependencies": {
+    "electron-liquid-glass": "^1.1.1"
   },
   "build": {
     "appId": "com.muse.app",

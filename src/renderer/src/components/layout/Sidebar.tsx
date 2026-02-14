@@ -1,34 +1,13 @@
-import logoImage from '~/assets/providers/logo.png'
-
 interface SidebarHeaderProps {
   showText: boolean
 }
 
-export function SidebarHeader({ showText }: SidebarHeaderProps) {
+// traffic lights 拖拽区域，不显示 logo 和标题
+export function SidebarHeader({ showText: _showText }: SidebarHeaderProps) {
   return (
     <div
-      className="flex items-center px-4 h-12 mt-6 overflow-hidden"
+      className="h-10 mt-2 flex-shrink-0"
       style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
-    >
-      <img
-        src={logoImage}
-        alt="Muse"
-        className="w-6 h-6 rounded flex-shrink-0"
-        style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-      />
-      <span
-        className="ml-2 text-[17px] font-semibold text-foreground whitespace-nowrap transition-opacity duration-200"
-        style={
-          {
-            opacity: showText ? 1 : 0,
-            width: showText ? 'auto' : 0,
-            overflow: 'hidden',
-            WebkitAppRegion: 'no-drag',
-          } as React.CSSProperties
-        }
-      >
-        Muse
-      </span>
-    </div>
+    />
   )
 }

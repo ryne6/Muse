@@ -38,7 +38,9 @@ export function ConversationList({ showText = true }: ConversationListProps) {
           variant="ghost"
           size="sm"
           className={cn(
-            'bg-white text-foreground border border-[hsl(var(--border))] shadow-sm hover:bg-white/90',
+            'bg-[hsl(var(--bg-main)/0.6)] text-foreground/80 backdrop-blur-sm',
+            'rounded-lg hover:bg-[hsl(var(--bg-main)/0.8)] hover:text-foreground',
+            'transition-colors duration-150',
             'w-full justify-start'
           )}
         >

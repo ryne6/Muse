@@ -11,30 +11,19 @@ import { applyUIFont } from '~/services/fontService'
 
 /** Width threshold below which text is hidden and icon-only layout is used */
 const SIDEBAR_TEXT_THRESHOLD = 140
-/** Delay before showing text on expand, so width animation has time to grow */
-const EXPAND_TEXT_DELAY = 200
 
 export function AppLayout() {
   const [sidebarWidth, setSidebarWidth] = useState(() => {
     const saved = localStorage.getItem('sidebar-width')
     return saved ? Number(saved) : 280
   })
-  const [isCollapsed, setIsCollapsed] = useState(() => {
-    return localStorage.getItem('sidebar-collapsed') === 'true'
-  })
-  // Track the live width during drag resize
-  const [liveWidth, setLiveWidth] = useState<number | null>(null)
-  // Delayed showText state for smooth expand animation
-  const [expandShowText, setExpandShowText] = useState(!isCollapsed)
-  const expandTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const defaultExpandRef = useRef(
+    localStorage.getItem('sidebar-collapsed') !== 'true'
+  )
 
   useEffect(() => {
     localStorage.setItem('sidebar-width', String(sidebarWidth))
   }, [sidebarWidth])
-
-  useEffect(() => {
-    localStorage.setItem('sidebar-collapsed', String(isCollapsed))
-  }, [isCollapsed])
 
   useEffect(() => {
     const loadUIFont = async () => {
@@ -50,53 +39,38 @@ export function AppLayout() {
     loadUIFont()
   }, [])
 
-  // During drag: use live width to determine text visibility
-  const dragShowText =
-    liveWidth !== null ? liveWidth >= SIDEBAR_TEXT_THRESHOLD : null
-  // Final showText: drag takes priority, then delayed expand state
-  const showText = dragShowText ?? expandShowText
-
-  const handleWidthDragging = useCallback(
-    (_delta: NumberSize, width: number) => {
-      setLiveWidth(width)
-    },
-    []
-  )
-
   const handleWidthChange = useCallback(
     (_delta: NumberSize, width: number) => {
-      setLiveWidth(null)
       setSidebarWidth(width)
     },
     []
   )
 
   const handleExpandChange = useCallback((expand: boolean) => {
-    setLiveWidth(null)
-    setIsCollapsed(!expand)
-    if (expandTimerRef.current) {
-      clearTimeout(expandTimerRef.current)
-    }
-    if (expand) {
-      // Expanding: delay showing text so width animation has time to grow
-      expandTimerRef.current = setTimeout(
-        () => setExpandShowText(true),
-        EXPAND_TEXT_DELAY
-      )
-    } else {
-      // Collapsing: hide text immediately so it disappears before width shrinks
-      setExpandShowText(false)
-    }
+    localStorage.setItem('sidebar-collapsed', String(!expand))
   }, [])
 
-  // Cleanup timer on unmount
-  useEffect(
-    () => () => {
-      if (expandTimerRef.current) {
-        clearTimeout(expandTimerRef.current)
-      }
-    },
-    []
+  const renderHeader = useCallback(
+    (expand: boolean) => (
+      <SidebarHeader
+        showText={expand && sidebarWidth >= SIDEBAR_TEXT_THRESHOLD}
+      />
+    ),
+    [sidebarWidth]
+  )
+  const renderBody = useCallback(
+    (expand: boolean) => (
+      <ConversationList
+        showText={expand && sidebarWidth >= SIDEBAR_TEXT_THRESHOLD}
+      />
+    ),
+    [sidebarWidth]
+  )
+  const renderFooter = useCallback(
+    (expand: boolean) => (
+      <Settings showText={expand && sidebarWidth >= SIDEBAR_TEXT_THRESHOLD} />
+    ),
+    [sidebarWidth]
   )
 
   return (
@@ -110,7 +84,7 @@ export function AppLayout() {
       <div className="flex flex-1 overflow-hidden">
         <DraggableSideNav
           placement="left"
-          defaultExpand={!isCollapsed}
+          defaultExpand={defaultExpandRef.current}
           defaultWidth={sidebarWidth}
           minWidth={64}
           maxWidth={400}
@@ -118,11 +92,10 @@ export function AppLayout() {
           resizable
           onExpandChange={handleExpandChange}
           onWidthChange={handleWidthChange}
-          onWidthDragging={handleWidthDragging}
           backgroundColor="hsl(var(--bg-sidebar))"
-          header={() => <SidebarHeader showText={showText} />}
-          body={() => <ConversationList showText={showText} />}
-          footer={() => <Settings showText={showText} />}
+          header={renderHeader}
+          body={renderBody}
+          footer={renderFooter}
         />
         <ChatView />
       </div>

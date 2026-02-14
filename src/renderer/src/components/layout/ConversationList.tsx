@@ -6,31 +6,6 @@ import { ConversationGroup } from './ConversationGroup'
 import { SearchBar } from './SearchBar'
 import { SearchResults } from './SearchResults'
 import { cn } from '~/utils/cn'
-import type { Conversation } from '~shared/types/conversation'
-
-function ConversationIconItem({
-  conversation,
-}: {
-  conversation: Conversation
-}) {
-  const { currentConversationId, loadConversation } = useConversationStore()
-  const isActive = currentConversationId === conversation.id
-
-  return (
-    <button
-      className={cn(
-        'w-9 h-9 rounded-lg flex items-center justify-center transition-colors',
-        isActive
-          ? 'bg-[hsl(var(--border))] text-foreground'
-          : 'hover:bg-black/5 text-[hsl(var(--text-muted))]'
-      )}
-      onClick={() => loadConversation(conversation.id)}
-      title={conversation.title}
-    >
-      <MessageSquare className="w-4 h-4" />
-    </button>
-  )
-}
 
 interface ConversationListProps {
   showText?: boolean
@@ -55,9 +30,7 @@ export function ConversationList({ showText = true }: ConversationListProps) {
       <div
         className={cn(
           'border-b border-[hsl(var(--border))]',
-          isCollapsed
-            ? 'px-2 py-2 flex flex-col items-center'
-            : 'px-3 pb-3 pt-1 space-y-2'
+          isCollapsed ? 'px-2 py-2 flex flex-col' : 'px-3 pb-3 pt-1 space-y-2'
         )}
       >
         <Button
@@ -66,58 +39,82 @@ export function ConversationList({ showText = true }: ConversationListProps) {
           size="sm"
           className={cn(
             'bg-white text-foreground border border-[hsl(var(--border))] shadow-sm hover:bg-white/90',
-            isCollapsed ? 'w-9 h-9 p-0 justify-center' : 'w-full justify-start'
+            'w-full justify-start'
           )}
         >
           <Plus className="w-4 h-4 flex-shrink-0" />
-          {!isCollapsed && <span className="ml-2">开启新话题</span>}
+          <span
+            className={cn(
+              'ml-2 whitespace-nowrap overflow-hidden transition-all duration-200',
+              isCollapsed ? 'opacity-0 max-w-0' : 'opacity-100 max-w-[120px]'
+            )}
+          >
+            开启新话题
+          </span>
         </Button>
-        {!isCollapsed && <SearchBar />}
+        <div
+          className={cn(
+            'w-full overflow-hidden transition-all duration-200',
+            isCollapsed
+              ? 'max-h-0 opacity-0 pointer-events-none'
+              : 'max-h-16 opacity-100'
+          )}
+        >
+          <SearchBar />
+        </div>
       </div>
 
       {/* Search Results */}
-      {!isCollapsed && isSearchOpen && searchResults.length > 0 && (
-        <SearchResults />
+      {isSearchOpen && searchResults.length > 0 && (
+        <div
+          className={cn(
+            'overflow-hidden transition-all duration-200',
+            isCollapsed
+              ? 'max-h-0 opacity-0 pointer-events-none'
+              : 'max-h-[320px] opacity-100'
+          )}
+        >
+          <SearchResults />
+        </div>
       )}
 
       {/* Conversation List */}
       <div className="flex-1 overflow-y-auto">
-        {isCollapsed ? (
-          <div className="flex flex-col items-center gap-1 py-2">
-            {conversations.slice(0, 10).map(conv => (
-              <ConversationIconItem key={conv.id} conversation={conv} />
-            ))}
-          </div>
-        ) : hasConversations ? (
-          <div className="p-2 space-y-4">
+        {hasConversations ? (
+          <div className={cn('p-2', isCollapsed ? 'space-y-1' : 'space-y-4')}>
             {conversationGroups.today.length > 0 && (
               <ConversationGroup
                 label="# 今天"
                 conversations={conversationGroups.today}
+                showText={!isCollapsed}
               />
             )}
             {conversationGroups.yesterday.length > 0 && (
               <ConversationGroup
                 label="# 昨天"
                 conversations={conversationGroups.yesterday}
+                showText={!isCollapsed}
               />
             )}
             {conversationGroups.lastWeek.length > 0 && (
               <ConversationGroup
                 label="# 本周"
                 conversations={conversationGroups.lastWeek}
+                showText={!isCollapsed}
               />
             )}
             {conversationGroups.lastMonth.length > 0 && (
               <ConversationGroup
                 label="# 本月"
                 conversations={conversationGroups.lastMonth}
+                showText={!isCollapsed}
               />
             )}
             {conversationGroups.older.length > 0 && (
               <ConversationGroup
                 label="# 更早"
                 conversations={conversationGroups.older}
+                showText={!isCollapsed}
               />
             )}
           </div>

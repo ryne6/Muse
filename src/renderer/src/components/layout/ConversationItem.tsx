@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Star, MoreVertical, Trash2, Edit2, Settings } from 'lucide-react'
 import { Dropdown } from '@lobehub/ui'
 import type { MenuInfo } from '@lobehub/ui'
@@ -8,9 +8,13 @@ import { ConversationSettingsDialog } from './ConversationSettingsDialog'
 
 interface ConversationItemProps {
   conversation: Conversation
+  showText?: boolean
 }
 
-export function ConversationItem({ conversation }: ConversationItemProps) {
+export function ConversationItem({
+  conversation,
+  showText = true,
+}: ConversationItemProps) {
   const {
     currentConversationId,
     loadConversation,
@@ -22,6 +26,13 @@ export function ConversationItem({ conversation }: ConversationItemProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
 
   const isActive = currentConversationId === conversation.id
+
+  useEffect(() => {
+    if (!showText && isEditing) {
+      setEditTitle(conversation.title)
+      setIsEditing(false)
+    }
+  }, [showText, isEditing, conversation.title])
 
   const handleClick = () => {
     loadConversation(conversation.id)
@@ -71,7 +82,7 @@ export function ConversationItem({ conversation }: ConversationItemProps) {
     <div
       role="button"
       tabIndex={0}
-      className={`group relative flex items-center gap-2 px-3 h-9 rounded-lg cursor-pointer transition-colors text-sm ${
+      className={`group relative flex items-center h-9 rounded-lg cursor-pointer transition-colors text-sm gap-2 px-3 justify-start ${
         isActive
           ? 'bg-[hsl(var(--border))] text-foreground font-medium'
           : 'hover:bg-black/5 text-[hsl(var(--text))]'
@@ -95,7 +106,13 @@ export function ConversationItem({ conversation }: ConversationItemProps) {
           onClick={e => e.stopPropagation()}
         />
       ) : (
-        <div className="flex-1 min-w-0">
+        <div
+          className={`min-w-0 overflow-hidden transition-all duration-200 ${
+            showText
+              ? 'flex-1 opacity-100 max-w-full'
+              : 'w-0 flex-none opacity-0 max-w-0 pointer-events-none'
+          }`}
+        >
           <div className="truncate">{conversation.title}</div>
         </div>
       )}
@@ -126,7 +143,9 @@ export function ConversationItem({ conversation }: ConversationItemProps) {
         }}
       >
         <button
-          className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-[hsl(var(--text-muted))] flex items-center justify-center rounded hover:bg-[hsl(var(--surface-2))]"
+          className={`h-6 w-6 shrink-0 transition-opacity text-[hsl(var(--text-muted))] items-center justify-center rounded hover:bg-[hsl(var(--surface-2))] ${
+            showText ? 'hidden group-hover:flex' : 'hidden'
+          }`}
           onClick={e => e.stopPropagation()}
           aria-label="Conversation actions"
         >

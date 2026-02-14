@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { DraggableSideNav } from '@lobehub/ui'
 import type { NumberSize } from 're-resizable'
@@ -70,6 +71,24 @@ export function AppLayout() {
     [sidebarWidth]
   )
 
+  // Tahoe 上原生液态玻璃替代 CSS 毛玻璃
+  const isTahoe = (window as any).electron?.isMacTahoe ?? false
+
+  const sidebarGlassStyle: CSSProperties = isTahoe
+    ? {
+        borderRadius: 28,
+        overflow: 'hidden',
+      }
+    : {
+        borderRadius: 28,
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        background: 'var(--glass-bg)',
+        border: '1px solid var(--glass-border)',
+        boxShadow: 'var(--glass-shadow)',
+        overflow: 'hidden',
+      }
+
   return (
     <div className="flex flex-col h-screen overflow-hidden bg-[hsl(var(--bg-layout))] rounded-[28px]">
       {/* 主内容区 */}
@@ -87,21 +106,17 @@ export function AppLayout() {
           onWidthChange={handleWidthChange}
           backgroundColor="transparent"
           styles={{
-            content: {
-              borderRadius: 28,
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              background: 'var(--glass-bg)',
-              border: '1px solid var(--glass-border)',
-              boxShadow: 'var(--glass-shadow)',
-              overflow: 'hidden',
-            },
+            content: sidebarGlassStyle,
           }}
           header={renderHeader}
           body={renderBody}
           footer={renderFooter}
         />
-        <div className="flex-1 flex flex-col min-w-0 rounded-[28px] bg-[hsl(var(--bg-main))] border border-[hsl(var(--border))] shadow-[var(--card-shadow)] overflow-hidden">
+        <div className={`flex-1 flex flex-col min-w-0 rounded-[28px] overflow-hidden ${
+          isTahoe
+            ? 'bg-[hsl(var(--bg-main))]'
+            : 'bg-[hsl(var(--bg-main))] border border-[hsl(var(--border))] shadow-[var(--card-shadow)]'
+        }`}>
           <ChatView />
         </div>
       </div>

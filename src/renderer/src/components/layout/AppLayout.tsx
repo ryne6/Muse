@@ -39,12 +39,9 @@ export function AppLayout() {
     loadUIFont()
   }, [])
 
-  const handleWidthChange = useCallback(
-    (_delta: NumberSize, width: number) => {
-      setSidebarWidth(width)
-    },
-    []
-  )
+  const handleWidthChange = useCallback((_delta: NumberSize, width: number) => {
+    setSidebarWidth(width)
+  }, [])
 
   const handleExpandChange = useCallback((expand: boolean) => {
     localStorage.setItem('sidebar-collapsed', String(!expand))
@@ -74,14 +71,9 @@ export function AppLayout() {
   )
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[hsl(var(--bg-sidebar))]">
-      {/* Draggable title bar for macOS */}
-      <div
-        className="h-8 flex-shrink-0 bg-[hsl(var(--bg-sidebar))]"
-        style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
-      />
-      {/* Main content */}
-      <div className="flex flex-1 overflow-hidden">
+    <div className="flex flex-col h-screen overflow-hidden bg-[hsl(var(--bg-layout))] rounded-[28px]">
+      {/* 主内容区 */}
+      <div className="flex flex-1 overflow-hidden p-2 gap-3">
         <DraggableSideNav
           placement="left"
           defaultExpand={defaultExpandRef.current}
@@ -90,14 +82,28 @@ export function AppLayout() {
           maxWidth={400}
           expandable
           resizable
+          showBorder={false}
           onExpandChange={handleExpandChange}
           onWidthChange={handleWidthChange}
-          backgroundColor="hsl(var(--bg-sidebar))"
+          backgroundColor="transparent"
+          styles={{
+            content: {
+              borderRadius: 28,
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              background: 'var(--glass-bg)',
+              border: '1px solid var(--glass-border)',
+              boxShadow: 'var(--glass-shadow)',
+              overflow: 'hidden',
+            },
+          }}
           header={renderHeader}
           body={renderBody}
           footer={renderFooter}
         />
-        <ChatView />
+        <div className="flex-1 flex flex-col min-w-0 rounded-[28px] bg-[hsl(var(--bg-main))] border border-[hsl(var(--border))] shadow-[var(--card-shadow)] overflow-hidden">
+          <ChatView />
+        </div>
       </div>
       <LoadingOverlay />
     </div>

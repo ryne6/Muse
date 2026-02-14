@@ -275,7 +275,7 @@ export function ChatInput() {
           disabled={isLoading}
         >
           <div className="px-6 py-4">
-            <div className="rounded-xl border border-[hsl(var(--border))] bg-[hsl(var(--bg-main))] shadow-[0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
+            <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--bg-main))] shadow-[0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
               {/* Text Input Area with Fullscreen Button */}
               <div className="relative p-3 pb-2">
                 <textarea
@@ -298,7 +298,7 @@ export function ChatInput() {
               </div>
 
               {/* Toolbar */}
-              <div className="flex items-center justify-between px-3 py-2 border-t border-[hsl(var(--border))]">
+              <div className="flex items-center justify-between px-3 py-2">
                 <div className="flex items-center gap-3">
                   {/* Image Upload */}
                   <ImageUploadButton

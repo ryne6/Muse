@@ -102,6 +102,9 @@ function createWindow(): BrowserWindow {
       sandbox: true,
     },
     titleBarStyle: 'hiddenInset',
+    trafficLightPosition: { x: 24, y: 22 },
+    transparent: true,
+    hasShadow: true,
     title: 'Muse',
   })
 

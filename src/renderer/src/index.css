@@ -51,6 +51,13 @@
 
     /* Interaction states */
     --accent-hover: 0 0% 0%;
+
+    /* 卡片布局 */
+    --bg-layout: 0 0% 95%;
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.4);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
   }
 
   .dark {
@@ -87,6 +94,14 @@
 
     /* Interaction states (dark) */
     --accent-hover: 24 90% 48%;
+
+    /* 卡片布局 (dark) */
+    --bg-layout: 240 10% 6%;
+    --bg-sidebar: 240 6% 10%;
+    --glass-bg: rgba(30, 30, 30, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   }
 }
 
@@ -94,8 +109,10 @@
   * {
     @apply border-border;
   }
+  html,
   body {
-    @apply bg-background text-foreground;
+    background: transparent !important;
+    @apply text-foreground;
     font-family: var(
       --font-ui,
       system-ui,

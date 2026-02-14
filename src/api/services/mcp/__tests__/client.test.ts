@@ -267,6 +267,25 @@ describe('MCPClient', () => {
 
       expect(client.status).toBe('disconnected')
     })
+
+    it('should not throw when transport close logging fails with EIO', async () => {
+      await client.connect()
+
+      const logSpy = vi.spyOn(console, 'log').mockImplementation(message => {
+        if (
+          typeof message === 'string' &&
+          message.includes('[MCP:test-server] Transport closed')
+        ) {
+          const eioError = new Error('write EIO') as NodeJS.ErrnoException
+          eioError.code = 'EIO'
+          throw eioError
+        }
+      })
+
+      expect(() => transportInstance?.onclose?.()).not.toThrow()
+      expect(client.status).toBe('disconnected')
+      logSpy.mockRestore()
+    })
   })
 
   describe('Disconnect 错误处理', () => {

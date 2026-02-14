@@ -68,8 +68,15 @@ export class MCPClient {
       }
 
       this.transport.onclose = () => {
-        console.log(`[MCP:${this.config.name}] Transport closed`)
         this._status = 'disconnected'
+        try {
+          console.log(`[MCP:${this.config.name}] Transport closed`)
+        } catch (error) {
+          const ioError = error as NodeJS.ErrnoException
+          if (ioError.code !== 'EIO' && ioError.code !== 'EPIPE') {
+            throw error
+          }
+        }
       }
 
       await this.client.connect(this.transport)
@@ -140,22 +147,29 @@ export class MCPClient {
     })
 
     // Convert MCP result to our format
-    const content = 'content' in result ? result.content : []
+    const maybeContent = (result as { content?: unknown }).content
+    const content = Array.isArray(maybeContent)
+      ? (maybeContent as Array<Record<string, unknown>>)
+      : []
+    const maybeIsError = (result as { isError?: unknown }).isError
     return {
       content: content.map(item => {
         if (item.type === 'text') {
-          return { type: 'text' as const, text: item.text }
+          return {
+            type: 'text' as const,
+            text: String(item.text ?? ''),
+          }
         }
         if (item.type === 'image') {
           return {
             type: 'image' as const,
-            data: item.data,
-            mimeType: item.mimeType,
+            data: String(item.data ?? ''),
+            mimeType: String(item.mimeType ?? ''),
           }
         }
         return { type: 'resource' as const }
       }),
-      isError: 'isError' in result ? result.isError : false,
+      isError: typeof maybeIsError === 'boolean' ? maybeIsError : false,
     }
   }
 

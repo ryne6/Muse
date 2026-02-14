@@ -168,12 +168,17 @@ vi.mock('~/stores/settingsStore', () => {
   return { useSettingsStore: hook }
 })
 
-vi.mock('../ToolsDropdown', () => ({
-  ToolsDropdown: () => null,
+vi.mock('../ToolsSkillsPanel', () => ({
+  ToolsSkillsPanel: () => null,
 }))
 
-vi.mock('../SkillsDropdown', () => ({
-  SkillsDropdown: () => null,
+vi.mock('../SkillMention', () => ({
+  useSkillMention: () => ({
+    handleInputChange: (v: string) => v,
+    handleKeyDown: () => false,
+    mentionMenu: null,
+    isOpen: false,
+  }),
 }))
 
 // Mock notify utility

@@ -1,5 +1,5 @@
-import { useState, KeyboardEvent, useEffect, useCallback } from 'react'
-import { Send, Square, Maximize2, Brain } from 'lucide-react'
+import { useState, useRef, KeyboardEvent, useEffect, useCallback } from 'react'
+import { Send, Square, Maximize2, Brain, X } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { Button } from '../ui/button'
 import { useChatStore } from '~/stores/chatStore'
@@ -10,8 +10,8 @@ import { ImageUploadButton } from './ImageUploadButton'
 import { ImagePreview } from './ImagePreview'
 import { ImageDropZone } from './ImageDropZone'
 import { FullscreenEditor } from './FullscreenEditor'
-import { ToolsDropdown } from './ToolsDropdown'
-import { SkillsDropdown } from './SkillsDropdown'
+import { ToolsSkillsPanel } from './ToolsSkillsPanel'
+import { useSkillMention } from './SkillMention'
 import { WorkspaceDropdown } from './WorkspaceDropdown'
 import { ModelSelector } from './ModelSelector'
 import { ContextIndicator } from './ContextIndicator'
@@ -24,6 +24,7 @@ export function ChatInput() {
     PendingAttachment[]
   >([])
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const { sendMessage, isLoading, abortMessage } = useChatStore()
   const { getCurrentConversation, createConversation } = useConversationStore()
   const {
@@ -32,8 +33,20 @@ export function ChatInput() {
     temperature,
     thinkingEnabled,
     setThinkingEnabled,
+    selectedSkill,
+    setSelectedSkill,
     loadData,
   } = useSettingsStore()
+
+  const {
+    handleInputChange: handleMentionChange,
+    handleKeyDown: handleMentionKeyDown,
+    mentionMenu,
+  } = useSkillMention({
+    inputValue: input,
+    onInputChange: setInput,
+    textareaRef,
+  })
 
   const conversation = getCurrentConversation()
   const currentModel = getCurrentModel()
@@ -246,6 +259,8 @@ export function ChatInput() {
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    // @ mention 键盘导航优先
+    if (handleMentionKeyDown(e)) return
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSend()
@@ -278,11 +293,29 @@ export function ChatInput() {
             <div className="rounded-2xl border border-[hsl(var(--border))] bg-[hsl(var(--bg-main))] shadow-[0_4px_12px_rgba(0,0,0,0.05)] overflow-hidden">
               {/* Text Input Area with Fullscreen Button */}
               <div className="relative p-3 pb-2">
+                {/* 选中 Skill badge */}
+                {selectedSkill && (
+                  <div className="flex items-center gap-1 mb-2">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-[hsl(var(--surface-2))] text-[hsl(var(--text-muted))]">
+                      Skill:{' '}
+                      {selectedSkill.split('/').pop()?.replace('.md', '') ||
+                        'Active'}
+                      <button
+                        onClick={() => setSelectedSkill(null)}
+                        className="hover:text-[hsl(var(--text))] transition-colors"
+                        aria-label="Clear skill selection"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  </div>
+                )}
                 <textarea
+                  ref={textareaRef}
                   value={input}
-                  onChange={e => setInput(e.target.value)}
+                  onChange={e => handleMentionChange(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="从任何想法开始…"
+                  placeholder="从任何想法开始… (输入 @ 选择 Skill)"
                   aria-label="Message input"
                   className="w-full resize-none bg-transparent text-[15px] min-h-[60px] max-h-[200px] focus:outline-none"
                   rows={3}
@@ -299,7 +332,7 @@ export function ChatInput() {
 
               {/* Toolbar */}
               <div className="flex items-center justify-between px-3 py-2">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   {/* Image Upload */}
                   <ImageUploadButton
                     onImagesSelected={handleImagesSelected}
@@ -309,14 +342,13 @@ export function ChatInput() {
                   {/* Model Selector */}
                   <ModelSelector />
 
-                  {/* Workspace Dropdown */}
-                  <WorkspaceDropdown />
+                  <div className='flex items-center'>
+                    {/* Workspace Dropdown */}
+                    <WorkspaceDropdown />
 
-                  {/* Tools Dropdown */}
-                  <ToolsDropdown />
-
-                  {/* Skills Dropdown */}
-                  <SkillsDropdown />
+                    {/* Tools & Skills Panel */}
+                    <ToolsSkillsPanel />
+                  </div>
 
                   {/* Thinking Toggle */}
                   <button
@@ -376,6 +408,9 @@ export function ChatInput() {
           isLoading={isLoading}
         />
       )}
+
+      {/* @ Skill Mention 浮层 */}
+      {mentionMenu}
     </>
   )
 }

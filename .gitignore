@@ -9,6 +9,7 @@ dist
 *.js
 !tailwind.config.js
 !postcss.config.js
+!scripts/afterPack.js
 *.d.ts
 *.js.map
 *.d.ts.map

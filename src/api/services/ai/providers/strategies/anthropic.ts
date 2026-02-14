@@ -46,6 +46,13 @@ export const anthropicStrategy: ProviderStrategy = {
     const systemMessage = messages.find(m => m.role === 'system')
     const conversationMessages = messages.filter(m => m.role !== 'system')
 
+    const thinkingBudget = config.thinkingBudget ?? 10000
+    const responseTokens = config.maxTokens ?? 8192
+    // thinking 开启时 max_tokens 是总预算（thinking + 回复），必须 > budget_tokens
+    const maxTokens = config.thinkingEnabled
+      ? thinkingBudget + responseTokens
+      : responseTokens
+
     const body: Record<string, unknown> = {
       model: config.model,
       messages: conversationMessages.map(msg => ({
@@ -53,7 +60,7 @@ export const anthropicStrategy: ProviderStrategy = {
         content: convertContent(msg.content),
       })),
       tools: getAllTools(),
-      max_tokens: config.maxTokens ?? 10000000,
+      max_tokens: maxTokens,
       stream: options.stream,
     }
 
@@ -70,13 +77,9 @@ export const anthropicStrategy: ProviderStrategy = {
     if (config.thinkingEnabled) {
       body.thinking = {
         type: 'enabled',
-        budget_tokens: config.thinkingBudget ?? 10000,
+        budget_tokens: thinkingBudget,
       }
       body.temperature = 1
-      console.log(
-        '[anthropic-strategy] Thinking enabled, budget:',
-        config.thinkingBudget ?? 10000
-      )
     }
 
     console.log(

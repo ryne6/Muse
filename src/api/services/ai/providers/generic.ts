@@ -148,6 +148,16 @@ export class GenericProvider extends BaseAIProvider {
                     }
                   }
                 }
+                if (
+                  parsed.type === 'message_start' &&
+                  parsed.message?.usage?.input_tokens
+                ) {
+                  totalInputTokens += parsed.message.usage.input_tokens
+                }
+                if (parsed.type === 'message_delta' && parsed.usage) {
+                  totalInputTokens += parsed.usage.input_tokens || 0
+                  totalOutputTokens += parsed.usage.output_tokens || 0
+                }
                 if (parsed.usage) {
                   totalInputTokens += parsed.usage.prompt_tokens || 0
                   totalOutputTokens += parsed.usage.completion_tokens || 0
@@ -214,7 +224,10 @@ export class GenericProvider extends BaseAIProvider {
     onChunk({
       content: '',
       done: true,
-      usage: { inputTokens: totalInputTokens, outputTokens: totalOutputTokens },
+      usage:
+        totalInputTokens > 0 || totalOutputTokens > 0
+          ? { inputTokens: totalInputTokens, outputTokens: totalOutputTokens }
+          : undefined,
     })
     return fullContent
   }

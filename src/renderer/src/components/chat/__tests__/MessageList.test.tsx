@@ -54,18 +54,18 @@ interface MockChatState {
   scrollToBottom: ReturnType<typeof vi.fn>
 }
 
+const mockChatStore = vi.hoisted<MockChatState>(() => ({
+  isLoading: false,
+  atBottom: true,
+  isScrolling: false,
+  setScrollState: vi.fn(),
+  registerScrollMethods: vi.fn(),
+  scrollToBottom: vi.fn(),
+}))
+
 vi.mock('~/stores/chatStore', () => ({
-  useChatStore: (selector?: (state: MockChatState) => unknown) => {
-    const state: MockChatState = {
-      isLoading: false,
-      atBottom: true,
-      isScrolling: false,
-      setScrollState: vi.fn(),
-      registerScrollMethods: vi.fn(),
-      scrollToBottom: vi.fn(),
-    }
-    return selector ? selector(state) : state
-  },
+  useChatStore: (selector?: (state: MockChatState) => unknown) =>
+    selector ? selector(mockChatStore) : mockChatStore,
 }))
 
 vi.mock('zustand/react/shallow', () => ({
@@ -112,6 +112,7 @@ describe('MessageList', () => {
     mockConversationStore.loadingConversationId = null
     mockConversationStore.currentConversationId = null
     mockConversationStore.conversations = []
+    mockChatStore.isLoading = false
   })
 
   describe('空状态测试', () => {
@@ -199,6 +200,36 @@ describe('MessageList', () => {
 
       const messages = screen.getAllByTestId(/^message-/)
       expect(messages).toHaveLength(3)
+    })
+
+    it('should render generating indicator inside message list while streaming', () => {
+      mockConversationStore.currentConversationId = 'conv-1'
+      mockConversationStore.conversations = [
+        {
+          id: 'conv-1',
+          title: 'Test',
+          messages: [
+            {
+              id: 'msg-1',
+              role: 'user',
+              content: 'Hello',
+              timestamp: Date.now(),
+            },
+            {
+              id: 'msg-2',
+              role: 'assistant',
+              content: 'partial response',
+              timestamp: Date.now(),
+            },
+          ],
+        },
+      ]
+      mockChatStore.isLoading = true
+
+      render(<MessageList />)
+
+      const vlist = screen.getByTestId('vlist')
+      expect(vlist).toHaveTextContent('正在生成 ...')
     })
   })
 })

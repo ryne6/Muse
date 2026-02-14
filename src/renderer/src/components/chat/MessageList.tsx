@@ -114,9 +114,6 @@ export function MessageList() {
     )
   }
 
-  // 状态指示器数据
-  const lastMessageId = messageIds[messageIds.length - 1]
-
   return (
     <div className="flex-1 min-h-0 relative">
       <VList
@@ -132,6 +129,12 @@ export function MessageList() {
           return (
             <div key={messageId} className="px-6 py-3">
               <MessageItem id={messageId} />
+              {isLast && (
+                <StreamingStatusIndicator
+                  messageId={messageId}
+                  isLoading={isLoading}
+                />
+              )}
               {isLast && <AutoScroll />}
               {isLast && <div className="h-6" />}
             </div>
@@ -139,30 +142,27 @@ export function MessageList() {
         }}
       </VList>
 
-      {/* 状态指示器：VList 外部绝对定位 */}
-      <StatusIndicator lastMessageId={lastMessageId} isLoading={isLoading} />
-
       {/* 回到底部按钮 */}
       <BackBottom />
     </div>
   )
 }
 
-// 准备响应中 / 正在生成 指示器
-function StatusIndicator({
-  lastMessageId,
+// 准备响应中 / 正在生成 指示器（跟随消息流，不固定在输入框上方）
+function StreamingStatusIndicator({
+  messageId,
   isLoading,
 }: {
-  lastMessageId: string
+  messageId: string
   isLoading: boolean
 }) {
   const lastMessage = useConversationStore(
     useCallback(
       s => {
         const conv = s.conversations.find(c => c.id === s.currentConversationId)
-        return conv?.messages.find(m => m.id === lastMessageId)
+        return conv?.messages.find(m => m.id === messageId)
       },
-      [lastMessageId]
+      [messageId]
     )
   )
 
@@ -174,7 +174,7 @@ function StatusIndicator({
 
   if (showPreparing) {
     return (
-      <div className="absolute bottom-2 left-0 right-0 flex items-center gap-2 animate-breathing ml-17 px-6">
+      <div className="flex items-center gap-2 animate-breathing mt-2 pl-11">
         <span className="w-2 h-2 rounded-full bg-gray-400" />
         <span className="text-sm text-muted-foreground">准备响应中 ...</span>
       </div>
@@ -183,7 +183,7 @@ function StatusIndicator({
 
   if (showGenerating) {
     return (
-      <div className="absolute bottom-2 left-0 right-0 flex items-center gap-2 animate-breathing ml-17 px-6">
+      <div className="flex items-center gap-2 animate-breathing mt-2 pl-11">
         <span className="w-2 h-2 rounded-full bg-blue-400" />
         <span className="text-sm text-muted-foreground">正在生成 ...</span>
       </div>

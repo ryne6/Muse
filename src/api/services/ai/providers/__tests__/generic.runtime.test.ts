@@ -182,6 +182,36 @@ describe('GenericProvider runtime behavior', () => {
     })
   })
 
+  it('should parse anthropic messages usage fields in stream mode', async () => {
+    fetchMock.mockResolvedValueOnce(
+      createStreamResponse([
+        'data: {"type":"message_start","message":{"usage":{"input_tokens":7}}}\n',
+        'data: {"type":"content_block_delta","delta":{"type":"text_delta","text":"Hi"}}\n',
+        'data: {"type":"message_delta","usage":{"output_tokens":5}}\n',
+        'data: [DONE]\n',
+      ])
+    )
+
+    const onChunk = vi.fn()
+    const result = await provider.sendMessage(
+      [{ role: 'user', content: 'hello' }],
+      { ...baseConfig, apiFormat: 'anthropic-messages' },
+      onChunk
+    )
+
+    expect(result).toBe('Hi')
+
+    const lastChunk = onChunk.mock.calls[onChunk.mock.calls.length - 1][0]
+    expect(lastChunk).toEqual({
+      content: '',
+      done: true,
+      usage: {
+        inputTokens: 7,
+        outputTokens: 5,
+      },
+    })
+  })
+
   it('should warn when thinking is enabled without anthropic format in stream mode', async () => {
     fetchMock.mockResolvedValueOnce(createStreamResponse(['data: [DONE]\n']))
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})

@@ -22,8 +22,10 @@ import { PermissionFileService } from './services/permissionFileService'
 import { MemoryService } from './db/services/memoryService'
 import { MemoryFileService } from './services/memoryFileService'
 import { MemoryManager } from './services/memoryManager'
+import { WindowThemeManager } from './services/windowThemeManager'
 
 const permissionFileService = new PermissionFileService()
+const themeManager = new WindowThemeManager()
 
 // Memory input validation helpers
 const VALID_MEMORY_TYPES = ['user', 'project', 'conversation'] as const
@@ -103,10 +105,11 @@ function createWindow(): BrowserWindow {
     },
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 24, y: 22 },
-    transparent: true,
-    hasShadow: true,
     title: 'Muse',
+    ...themeManager.getPlatformConfig(),
   })
+
+  themeManager.attach(mainWindow)
 
   // Load the renderer
   if (process.env.ELECTRON_RENDERER_URL) {

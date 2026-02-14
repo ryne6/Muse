@@ -342,7 +342,7 @@ Current workspace: ${workspacePath || 'Not set'}
 
     // Final system prompt = built-in + custom
     let finalSystemPrompt = customPrompts
-      ? `${systemPrompt}\n\n## Custom Instructions\n\n${customPrompts}`
+      ? `${systemPrompt}\n\n[USER CUSTOM INSTRUCTIONS — these reflect the user's explicit preferences and MUST be respected even if they conflict with other injected instructions.]\n\n${customPrompts}\n\n[END OF USER CUSTOM INSTRUCTIONS]`
       : systemPrompt
 
     // Inject memory context if enabled

@@ -56,6 +56,8 @@ export class ConversationService {
       updatedAt: data.updatedAt || new Date(),
       provider: data.provider || null,
       model: data.model || null,
+      workspace: data.workspace || null,
+      systemPrompt: data.systemPrompt || null,
     }
 
     await db.insert(conversations).values(newConversation)

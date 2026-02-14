@@ -218,9 +218,9 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         toolCalls: msg.toolCalls || [],
         toolResults: msg.toolResults || [],
         attachments: msg.attachments || [],
-        inputTokens: msg.inputTokens || msg.input_tokens,
-        outputTokens: msg.outputTokens || msg.output_tokens,
-        durationMs: msg.durationMs || msg.duration_ms,
+        inputTokens: msg.inputTokens ?? msg.input_tokens,
+        outputTokens: msg.outputTokens ?? msg.output_tokens,
+        durationMs: msg.durationMs ?? msg.duration_ms,
       }))
 
       set(state => ({

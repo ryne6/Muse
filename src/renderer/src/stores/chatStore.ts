@@ -73,6 +73,7 @@ interface ScrollMethods {
     index: number,
     options?: { align?: string; smooth?: boolean }
   ) => void
+  scrollToEnd: () => void
 }
 
 interface ChatStore {
@@ -140,12 +141,18 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
   scrollToBottom: (smooth = false) => {
     if (!_scrollMethods) return
-    // 滚动到最后一项
-    const ids = useConversationStore.getState()
-    const conv = ids.conversations.find(c => c.id === ids.currentConversationId)
-    const len = conv?.messages.length ?? 0
-    if (len > 0) {
-      _scrollMethods.scrollToIndex(len - 1, { align: 'end', smooth })
+    if (smooth) {
+      const conv = useConversationStore
+        .getState()
+        .conversations.find(
+          c => c.id === useConversationStore.getState().currentConversationId
+        )
+      const len = conv?.messages.length ?? 0
+      if (len > 0) {
+        _scrollMethods.scrollToIndex(len - 1, { align: 'end', smooth: true })
+      }
+    } else {
+      _scrollMethods.scrollToEnd()
     }
   },
 
@@ -535,8 +542,9 @@ Current workspace: ${workspacePath || 'Not set'}`
       flushChunks()
 
       // Persist assistant message to database after streaming completes
-      const finalConv = useConversationStore.getState().getCurrentConversation()
-      const finalAssistantMessage = finalConv?.messages.find(
+      const conversations = useConversationStore.getState().conversations
+      const targetConv = conversations.find(c => c.id === conversationId)
+      const finalAssistantMessage = targetConv?.messages.find(
         m => m.id === assistantMessageId
       )
       if (finalAssistantMessage) {
@@ -556,7 +564,7 @@ Current workspace: ${workspacePath || 'Not set'}`
       // Update conversation title if it's the first user message
       const currentConv = useConversationStore
         .getState()
-        .getCurrentConversation()
+        .conversations.find(c => c.id === conversationId)
       if (
         currentConv &&
         currentConv.messages.filter(m => m.role === 'user').length === 1

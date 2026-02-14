@@ -47,6 +47,10 @@ export function MessageList() {
               smooth: options?.smooth,
             })
           },
+          scrollToEnd: () => {
+            const handle = virtuaRef.current
+            if (handle) handle.scrollTo(handle.scrollSize)
+          },
         })
       }
     })

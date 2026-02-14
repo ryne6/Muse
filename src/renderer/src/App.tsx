@@ -16,6 +16,13 @@ function App() {
   useEffect(() => {
     // Load conversations from database on app start
     loadConversations().then(async () => {
+      // 加载上次打开的对话消息
+      const currentId =
+        useConversationStore.getState().currentConversationId
+      if (currentId) {
+        await useConversationStore.getState().loadConversation(currentId)
+      }
+
       // 启动时清理孤立工作区
       try {
         const result = await window.api.workspace.cleanupOrphans()

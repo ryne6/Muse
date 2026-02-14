@@ -1,10 +1,17 @@
 import { contextBridge, ipcRenderer } from 'electron'
+import { release } from 'os'
 import type { IpcApi } from '../shared/types/ipc'
+
+// macOS Tahoe = Darwin 25+
+const isMacTahoe =
+  process.platform === 'darwin' &&
+  parseInt(release().split('.')[0], 10) >= 25
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object
 contextBridge.exposeInMainWorld('electron', {
   platform: process.platform,
+  isMacTahoe,
 })
 
 // Expose file system and workspace APIs

@@ -45,8 +45,7 @@ interface ConversationStore {
 
 export const useConversationStore = create<ConversationStore>((set, get) => ({
   conversations: [],
-  currentConversationId:
-    localStorage.getItem('currentConversationId') || null,
+  currentConversationId: localStorage.getItem('currentConversationId') || null,
   isLoading: false,
   loadedConversationIds: new Set<string>(),
   loadingConversationId: null,

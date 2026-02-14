@@ -17,8 +17,7 @@ function App() {
     // Load conversations from database on app start
     loadConversations().then(async () => {
       // 加载上次打开的对话消息
-      const currentId =
-        useConversationStore.getState().currentConversationId
+      const currentId = useConversationStore.getState().currentConversationId
       if (currentId) {
         await useConversationStore.getState().loadConversation(currentId)
       }

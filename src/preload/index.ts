@@ -1,11 +1,11 @@
 import { contextBridge, ipcRenderer } from 'electron'
-import { release } from 'os'
 import type { IpcApi } from '../shared/types/ipc'
 
-// macOS Tahoe = Darwin 25+
+// macOS Tahoe = macOS 16+（sandbox 模式下 os 模块不可用，用 Electron 的 getSystemVersion）
 const isMacTahoe =
   process.platform === 'darwin' &&
-  parseInt(release().split('.')[0], 10) >= 25
+  typeof process.getSystemVersion === 'function' &&
+  parseInt(process.getSystemVersion().split('.')[0], 10) >= 16
 
 // Expose protected methods that allow the renderer process to use
 // the ipcRenderer without exposing the entire object

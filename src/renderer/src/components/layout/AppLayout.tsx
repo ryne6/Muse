@@ -90,7 +90,9 @@ export function AppLayout() {
       }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[hsl(var(--bg-layout))] rounded-[28px]">
+    <div className={`flex flex-col h-screen overflow-hidden rounded-[28px] ${
+      isTahoe ? '' : 'bg-[hsl(var(--bg-layout))]'
+    }`}>
       {/* 主内容区 */}
       <div className="flex flex-1 overflow-hidden p-2 gap-3">
         <DraggableSideNav
@@ -114,7 +116,7 @@ export function AppLayout() {
         />
         <div className={`flex-1 flex flex-col min-w-0 rounded-[28px] overflow-hidden ${
           isTahoe
-            ? 'bg-[hsl(var(--bg-main))]'
+            ? 'bg-[hsl(var(--bg-main)/0.7)]'
             : 'bg-[hsl(var(--bg-main))] border border-[hsl(var(--border))] shadow-[var(--card-shadow)]'
         }`}>
           <ChatView />

@@ -93,7 +93,7 @@ export function AppLayout() {
     <div
       className={`flex flex-col h-screen overflow-hidden rounded-[28px] ${
         isTahoe
-          ? 'bg-[hsl(var(--bg-layout)/0.5)]'
+          ? 'bg-[var(--glass-layout)]'
           : 'bg-[hsl(var(--bg-layout))]'
       }`}
     >
@@ -121,7 +121,7 @@ export function AppLayout() {
         <div
           className={`flex-1 flex flex-col min-w-0 rounded-[28px] overflow-hidden ${
             isTahoe
-              ? 'bg-[hsl(var(--bg-main)/0.7)]'
+              ? 'bg-[var(--glass-main)]'
               : 'bg-[hsl(var(--bg-main))] border border-[hsl(var(--border))] shadow-[var(--card-shadow)]'
           }`}
         >

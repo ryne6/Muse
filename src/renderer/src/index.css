@@ -58,6 +58,12 @@
     --glass-border: rgba(255, 255, 255, 0.4);
     --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
     --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+
+    /* Tahoe 液态玻璃透明度 */
+    --glass-layout: hsla(0, 0%, 95%, 0.5);
+    --glass-main: hsla(0, 0%, 100%, 0.86);
+    --glass-item: hsla(0, 0%, 100%, 0.6);
+    --glass-item-hover: hsla(0, 0%, 100%, 0.8);
   }
 
   .dark {
@@ -102,6 +108,12 @@
     --glass-border: rgba(255, 255, 255, 0.08);
     --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+
+    /* Tahoe 液态玻璃透明度 (dark) */
+    --glass-layout: hsla(240, 10%, 6%, 0.5);
+    --glass-main: hsla(240, 10%, 4%, 0.86);
+    --glass-item: hsla(240, 10%, 4%, 0.6);
+    --glass-item-hover: hsla(240, 10%, 4%, 0.8);
   }
 }
 

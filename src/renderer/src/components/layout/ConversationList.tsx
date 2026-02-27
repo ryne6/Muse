@@ -37,8 +37,8 @@ export function ConversationList({ showText = true }: ConversationListProps) {
           onClick={handleNewChat}
           variant="ghost"
           className={cn(
-            'bg-[hsl(var(--bg-main)/0.6)] text-foreground/80 backdrop-blur-sm',
-            'rounded-lg hover:bg-[hsl(var(--bg-main)/0.8)] hover:text-foreground',
+            'bg-[var(--glass-item)] text-foreground/80 backdrop-blur-sm',
+            'rounded-lg hover:bg-[var(--glass-item-hover)] hover:text-foreground',
             'transition-colors duration-150',
             'h-9 w-full justify-start px-3 text-sm'
           )}

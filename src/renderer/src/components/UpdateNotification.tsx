@@ -55,38 +55,44 @@ export function UpdateNotification() {
 
   return (
     <div className="fixed bottom-4 right-4 z-50 max-w-sm">
-      <div className="bg-[hsl(var(--bg-main))] border border-[hsl(var(--border))] rounded-lg shadow-lg p-4">
+      <div className="bg-[var(--glass-bg)] backdrop-blur-xl border border-[hsl(var(--border))] rounded-2xl shadow-[var(--glass-shadow)] p-4">
         <div className="flex items-start gap-3">
-          <div className="flex-shrink-0">
+          <div className="flex-shrink-0 mt-0.5">
             {status.status === 'downloading' ? (
-              <RefreshCw className="w-5 h-5 text-blue-500 animate-spin" />
+              <RefreshCw className="w-5 h-5 text-[hsl(var(--primary))] animate-spin" />
+            ) : status.status === 'error' ? (
+              <Download className="w-5 h-5 text-[hsl(var(--destructive))]" />
             ) : (
-              <Download className="w-5 h-5 text-green-500" />
+              <Download className="w-5 h-5 text-[hsl(var(--primary))]" />
             )}
           </div>
 
           <div className="flex-1 min-w-0">
             {status.status === 'available' && (
               <>
-                <p className="text-sm font-medium">New version available</p>
+                <p className="text-sm font-medium text-[hsl(var(--foreground))]">
+                  发现新版本
+                </p>
                 <p className="text-xs text-[hsl(var(--text-muted))] mt-1">
-                  Version {status.version} is ready to download
+                  v{status.version} 已可下载
                 </p>
                 <button
                   onClick={handleDownload}
-                  className="mt-2 px-3 py-1.5 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                  className="mt-2 px-3 py-1.5 text-xs font-medium bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-lg hover:opacity-90 transition-opacity"
                 >
-                  Download Update
+                  下载更新
                 </button>
               </>
             )}
 
             {status.status === 'downloading' && (
               <>
-                <p className="text-sm font-medium">Downloading update...</p>
-                <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                <p className="text-sm font-medium text-[hsl(var(--foreground))]">
+                  正在下载更新...
+                </p>
+                <div className="mt-2 w-full bg-[hsl(var(--surface-2))] rounded-full h-1.5">
                   <div
-                    className="bg-blue-500 h-2 rounded-full transition-all"
+                    className="bg-[hsl(var(--primary))] h-1.5 rounded-full transition-all"
                     style={{ width: `${status.progress || 0}%` }}
                   />
                 </div>
@@ -98,23 +104,25 @@ export function UpdateNotification() {
 
             {status.status === 'downloaded' && (
               <>
-                <p className="text-sm font-medium">Update ready</p>
+                <p className="text-sm font-medium text-[hsl(var(--foreground))]">
+                  更新已就绪
+                </p>
                 <p className="text-xs text-[hsl(var(--text-muted))] mt-1">
-                  Restart to apply version {status.version}
+                  重启以应用 v{status.version}
                 </p>
                 <button
                   onClick={handleInstall}
-                  className="mt-2 px-3 py-1.5 text-xs bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                  className="mt-2 px-3 py-1.5 text-xs font-medium bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))] rounded-lg hover:opacity-90 transition-opacity"
                 >
-                  Restart Now
+                  立即重启
                 </button>
               </>
             )}
 
             {status.status === 'error' && (
               <>
-                <p className="text-sm font-medium text-red-500">
-                  Update failed
+                <p className="text-sm font-medium text-[hsl(var(--destructive))]">
+                  更新失败
                 </p>
                 <p className="text-xs text-[hsl(var(--text-muted))] mt-1">
                   {status.error}
@@ -125,7 +133,7 @@ export function UpdateNotification() {
 
           <button
             onClick={handleDismiss}
-            className="flex-shrink-0 p-1 hover:bg-[hsl(var(--surface-2))] rounded"
+            className="flex-shrink-0 p-1 hover:bg-[hsl(var(--surface-2))] rounded-lg transition-colors"
           >
             <X className="w-4 h-4 text-[hsl(var(--text-muted))]" />
           </button>

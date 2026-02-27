@@ -7,7 +7,7 @@ const isAnalyze = process.env.ANALYZE === 'true'
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()],
+    plugins: [externalizeDepsPlugin({ include: ['electron-liquid-glass'] })],
     resolve: {
       alias: {
         '~main': resolve('src/main'),

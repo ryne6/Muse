@@ -54,7 +54,7 @@
 
     /* 卡片布局 */
     --bg-layout: 0 0% 95%;
-    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-bg: rgba(255, 255, 255, 0.86);
     --glass-border: rgba(255, 255, 255, 0.4);
     --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
     --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
@@ -98,7 +98,7 @@
     /* 卡片布局 (dark) */
     --bg-layout: 240 10% 6%;
     --bg-sidebar: 240 6% 10%;
-    --glass-bg: rgba(30, 30, 30, 0.7);
+    --glass-bg: rgba(30, 30, 30, 0.86);
     --glass-border: rgba(255, 255, 255, 0.08);
     --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);

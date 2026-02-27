@@ -106,7 +106,7 @@ export const MessageItem = memo<MessageItemProps>(function MessageItem({ id }) {
       <div className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-[hsl(var(--surface-2))]">
         <img
           src={logoImage}
-          alt="Muse"
+          alt="Crow"
           className="w-full h-full object-cover rounded-full"
         />
       </div>
@@ -115,7 +115,7 @@ export const MessageItem = memo<MessageItemProps>(function MessageItem({ id }) {
       <div className="flex-1 min-w-0">
         {/* Header */}
         <div className="flex items-center gap-2 mb-2 text-xs text-[hsl(var(--text-muted))]">
-          <span className="text-sm font-semibold text-foreground">Muse</span>
+          <span className="text-sm font-semibold text-foreground">Crow</span>
           {timestamp ? (
             <span className="ml-auto text-[hsl(var(--text-muted))]">
               {timestamp}

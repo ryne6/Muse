@@ -29,7 +29,7 @@ export const mockPromptPresets = [
 export const mockSystemPrompts = {
   global: 'Always be concise and helpful. Prefer TypeScript over JavaScript.',
   conversation: 'Focus on React and Next.js development.',
-  builtIn: 'You are Muse, an AI coding assistant...'
+  builtIn: 'You are Crow, an AI coding assistant...'
 }
 
 export const mockConversationWithPrompt = {

@@ -22,7 +22,7 @@ const shouldFilterConsole = (args: unknown[]) => {
   return consoleFilters.some((pattern) => pattern.test(firstArg))
 }
 
-const consoleFilterKey = '__museConsoleFilters__'
+const consoleFilterKey = '__crowConsoleFilters__'
 const globalRef = globalThis as typeof globalThis & {
   [consoleFilterKey]?: { originalError: typeof console.error; originalWarn: typeof console.warn }
 }

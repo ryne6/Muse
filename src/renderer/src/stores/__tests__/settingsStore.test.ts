@@ -59,7 +59,7 @@ describe('SettingsStore', () => {
   })
 
   describe('persistence migration', () => {
-    it('should load legacy muse-settings-v2 data when muse-settings is missing', async () => {
+    it('should load legacy muse-settings-v2 data when crow-settings is missing', async () => {
       const legacyState = {
         state: {
           currentProviderId: 'p1',

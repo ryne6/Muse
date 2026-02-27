@@ -15,7 +15,7 @@ export const mockElectronApp = {
     return paths[name] || '/tmp'
   }),
   getVersion: vi.fn(() => '0.1.0-test'),
-  getName: vi.fn(() => 'Muse Test'),
+  getName: vi.fn(() => 'Crow Test'),
   quit: vi.fn(),
   exit: vi.fn()
 }

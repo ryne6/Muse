@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readdirSync, rmdirSync, rmSync } from 'fs'
 import { join, resolve } from 'path'
 import { homedir } from 'os'
 
-const MUSE_HOME = join(homedir(), '.Muse')
+const MUSE_HOME = join(homedir(), '.Crow')
 const WORKSPACES_DIR = join(MUSE_HOME, 'workspaces')
 
 export class WorkspaceService {
@@ -28,7 +28,7 @@ export class WorkspaceService {
   }
 
   /**
-   * 检查路径是否为 Muse 管理的工作区
+   * 检查路径是否为 Crow 管理的工作区
    */
   static isManagedWorkspace(path: string): boolean {
     return resolve(path).startsWith(WORKSPACES_DIR)

@@ -48,7 +48,7 @@ describe('Database Initialization', () => {
       const result = getDbPath()
 
       expect(app.getPath).toHaveBeenCalledWith('userData')
-      expect(result).toContain('muse.db')
+      expect(result).toContain('crow.db')
     })
   })
 

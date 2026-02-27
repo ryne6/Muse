@@ -57,7 +57,7 @@ export class MCPClient {
       }
 
       this.client = new Client(
-        { name: 'muse-client', version: '1.0.0' },
+        { name: 'crow-client', version: '1.0.0' },
         { capabilities: {} }
       )
 

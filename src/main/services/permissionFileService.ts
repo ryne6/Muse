@@ -8,9 +8,9 @@ import type {
   PermissionRule,
 } from '~shared/types/toolPermissions'
 
-const GLOBAL_DIR = path.join(os.homedir(), '.muse')
+const GLOBAL_DIR = path.join(os.homedir(), '.crow')
 const GLOBAL_FILE = path.join(GLOBAL_DIR, 'permissions.json')
-const PROJECT_DIR_NAME = '.muse'
+const PROJECT_DIR_NAME = '.crow'
 const PROJECT_FILE_NAME = 'permissions.json'
 
 export class PermissionFileService {

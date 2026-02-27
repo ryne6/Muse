@@ -125,7 +125,7 @@ describe('ConversationStore', () => {
         workspace: {
           createDefault: vi
             .fn()
-            .mockResolvedValue({ path: '~main/muse/workspaces/mock-uuid-123' }),
+            .mockResolvedValue({ path: '~main/crow/workspaces/mock-uuid-123' }),
         },
       } as any
     })
@@ -139,7 +139,7 @@ describe('ConversationStore', () => {
 
       expect(result.title).toBe('Test Chat')
       expect(result.messages).toEqual([])
-      expect(result.workspace).toBe('~main/muse/workspaces/mock-uuid-123')
+      expect(result.workspace).toBe('~main/crow/workspaces/mock-uuid-123')
       expect(window.api.workspace.createDefault).toHaveBeenCalledWith(
         'mock-uuid-123'
       )
@@ -727,7 +727,7 @@ describe('ConversationStore', () => {
             createdAt: 0,
             updatedAt: 0,
             messages: [],
-            workspace: '~main/muse/workspaces/conv-1',
+            workspace: '~main/crow/workspaces/conv-1',
           },
         ],
         currentConversationId: 'conv-1',
@@ -737,7 +737,7 @@ describe('ConversationStore', () => {
       await useConversationStore.getState().deleteConversation('conv-1')
 
       expect(window.api.workspace.cleanup).toHaveBeenCalledWith(
-        '~main/muse/workspaces/conv-1'
+        '~main/crow/workspaces/conv-1'
       )
     })
 
@@ -776,7 +776,7 @@ describe('ConversationStore', () => {
             createdAt: 0,
             updatedAt: 0,
             messages: [],
-            workspace: '~main/muse/workspaces/conv-1',
+            workspace: '~main/crow/workspaces/conv-1',
           },
         ],
         currentConversationId: 'conv-1',
@@ -809,7 +809,7 @@ describe('ConversationStore', () => {
             createdAt: 0,
             updatedAt: 0,
             messages: [],
-            workspace: '~main/muse/workspaces/conv-1',
+            workspace: '~main/crow/workspaces/conv-1',
           },
         ],
         currentConversationId: 'conv-1',

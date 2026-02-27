@@ -105,7 +105,7 @@ function createWindow(): BrowserWindow {
     },
     titleBarStyle: 'hiddenInset',
     trafficLightPosition: { x: 24, y: 22 },
-    title: 'Muse',
+    title: 'Crow',
     ...themeManager.getPlatformConfig(),
   })
 

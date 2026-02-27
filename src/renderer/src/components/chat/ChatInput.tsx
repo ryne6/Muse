@@ -342,7 +342,7 @@ export function ChatInput() {
                   {/* Model Selector */}
                   <ModelSelector />
 
-                  <div className='flex items-center'>
+                  <div className="flex items-center">
                     {/* Workspace Dropdown */}
                     <WorkspaceDropdown />
 

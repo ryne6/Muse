@@ -4,7 +4,7 @@ import { homedir } from 'os'
 import { existsSync, mkdirSync } from 'fs'
 
 // Default memory directory paths
-const USER_MEMORY_DIR = join(homedir(), '.muse', 'memory')
+const USER_MEMORY_DIR = join(homedir(), '.crow', 'memory')
 
 export interface MemoryFrontmatter {
   type?: string
@@ -48,8 +48,8 @@ export class MemoryFileService {
     const userDir = resolve(USER_MEMORY_DIR)
     // Allow paths under user memory dir
     if (resolved.startsWith(userDir + '/') || resolved === userDir) return true
-    // Allow paths that contain .muse/memory/ (project dirs)
-    if (resolved.includes(join('.muse', 'memory'))) return true
+    // Allow paths that contain .crow/memory/ (project dirs)
+    if (resolved.includes(join('.crow', 'memory'))) return true
     return false
   }
 
@@ -79,7 +79,7 @@ export class MemoryFileService {
    * Get the project-level memory directory path
    */
   static getProjectMemoryDir(workspacePath: string): string {
-    return join(workspacePath, '.muse', 'memory')
+    return join(workspacePath, '.crow', 'memory')
   }
 
   /**

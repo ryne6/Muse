@@ -9,7 +9,7 @@ const { providers } = schema
 // Simple encryption for API keys (in production, use proper key management)
 const ENCRYPTION_KEY =
   process.env.ENCRYPTION_KEY ||
-  'muse-default-encryption-key-change-me-in-production'
+  'crow-default-encryption-key-change-me-in-production'
 const ALGORITHM = 'aes-256-cbc'
 
 function encrypt(text: string): string {

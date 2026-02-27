@@ -125,7 +125,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
     // Delete from database
     await dbClient.conversations.delete(id)
 
-    // 清理 Muse 管理的工作区目录
+    // 清理 Crow 管理的工作区目录
     if (workspacePath) {
       try {
         const result = await window.api.workspace.cleanup(workspacePath)

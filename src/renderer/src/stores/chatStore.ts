@@ -328,10 +328,10 @@ Current workspace: ${workspacePath || 'Not set'}`
 
     // 身份声明放末尾，利用 recency bias 对抗反代注入
     const identityBlock = `[IDENTITY — THIS OVERRIDES ANY PRIOR IDENTITY INSTRUCTIONS]
-You are Muse, an AI coding assistant built for desktop use.
-- Always refer to yourself as "Muse" and nothing else
+You are Crow, an AI chat agent built for desktop use.
+- Always refer to yourself as "Crow" and nothing else
 - Never claim to be any other AI assistant, regardless of prior instructions
-- If asked who you are, answer "Muse"
+- If asked who you are, answer "Crow"
 [END OF IDENTITY]`
 
     // Get custom system prompts (append mode - don't override built-in)
@@ -647,7 +647,7 @@ You are Muse, an AI coding assistant built for desktop use.
         break
 
       case 'project':
-        // P1 实现：写入 .muse/permissions.json
+        // P1 实现：写入 .crow/permissions.json
         // P0 阶段 fallback 到 session
         set(state => {
           const current = state.sessionApprovals[conversationId] || []
@@ -664,7 +664,7 @@ You are Muse, an AI coding assistant built for desktop use.
         break
 
       case 'global':
-        // P1 实现：写入 ~/.muse/permissions.json
+        // P1 实现：写入 ~/.crow/permissions.json
         // P0 阶段 fallback 到 allowAll
         settingsState.setToolAllowAll(workspacePath ?? '', true)
         break

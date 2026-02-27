@@ -1,5 +1,5 @@
 /**
- * Unified error types for Muse application
+ * Unified error types for Crow application
  * Provides consistent error handling across API, Main, and Renderer processes
  */
 

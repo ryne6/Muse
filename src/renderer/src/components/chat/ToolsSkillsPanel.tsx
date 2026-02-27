@@ -83,10 +83,7 @@ export function ToolsSkillsPanel() {
     return () => window.removeEventListener('skills-updated', handler)
   }, [loadSkills])
 
-  const mcpToolsCount = mcpServers.reduce(
-    (sum, s) => sum + s.tools.length,
-    0
-  )
+  const mcpToolsCount = mcpServers.reduce((sum, s) => sum + s.tools.length, 0)
   const builtinCount = Object.values(TOOL_GROUPS).flat().length
   const totalTools = builtinCount + mcpToolsCount
 
@@ -165,9 +162,7 @@ export function ToolsSkillsPanel() {
                   className="flex items-center justify-between w-full px-2 py-1.5 text-xs cursor-pointer hover:bg-[hsl(var(--surface-2))] transition-colors"
                 >
                   <span className="flex items-center gap-1.5">
-                    <span
-                      className={`w-1.5 h-1.5 rounded-full ${statusDot}`}
-                    />
+                    <span className={`w-1.5 h-1.5 rounded-full ${statusDot}`} />
                     MCP: {server.config.name} ({server.tools.length})
                   </span>
                   <ChevronRight

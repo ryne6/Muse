@@ -51,7 +51,7 @@ describe('MessageItem', () => {
   it('renders assistant header with name and timestamp', () => {
     mockConversationStore.conversations[0].messages = mockMessages
     render(<MessageItem id="m1" />)
-    expect(screen.getByText('Muse')).toBeInTheDocument()
+    expect(screen.getByText('Crow')).toBeInTheDocument()
     expect(screen.getByText(/\d{2}:\d{2}/)).toBeInTheDocument()
   })
 

@@ -158,7 +158,7 @@ export const MemorySettings = memo(function MemorySettings() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `muse-memories-${new Date().toISOString().slice(0, 10)}.json`
+      a.download = `crow-memories-${new Date().toISOString().slice(0, 10)}.json`
       a.click()
       URL.revokeObjectURL(url)
       notify.success(`已导出 ${data.length} 条记忆`)
@@ -411,8 +411,8 @@ export const MemorySettings = memo(function MemorySettings() {
           <h3 className="text-base font-semibold">记忆功能</h3>
           <p className="text-xs text-muted-foreground mt-1">
             {memoryEnabled
-              ? '已开启 — Muse 会记住你的偏好和项目知识'
-              : '开启后，Muse 将记住你的偏好和项目知识'}
+              ? '已开启 — Crow 会记住你的偏好和项目知识'
+              : '开启后，Crow 将记住你的偏好和项目知识'}
           </p>
         </div>
         <button

@@ -26,10 +26,10 @@ export class MemoryManager {
   ): Promise<string> {
     const sections: MemorySection[] = []
 
-    // 1. Load user-level memories from ~/.muse/memory/*.md
+    // 1. Load user-level memories from ~/.crow/memory/*.md
     const userItems = await this.loadUserMemories()
 
-    // 2. Load project-level memories from workspace/.muse/memory/*.md
+    // 2. Load project-level memories from workspace/.crow/memory/*.md
     const projectItems = workspacePath
       ? await this.loadProjectMemories(workspacePath)
       : []

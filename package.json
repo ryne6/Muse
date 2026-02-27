@@ -1,7 +1,7 @@
 {
-  "name": "muse",
-  "version": "0.0.4",
-  "description": "AI-powered desktop coding assistant with multi-provider support",
+  "name": "crow",
+  "version": "0.0.6",
+  "description": "AI-powered desktop chat agent with multi-provider support",
   "main": "./out/main/index.js",
   "author": "ryne6",
   "license": "MIT",
@@ -24,9 +24,9 @@
     "db:generate": "drizzle-kit generate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:backup": "sqlite3 muse.db \".dump\" > backups/muse-$(date +%Y%m%d-%H%M%S).sql",
+    "db:backup": "sqlite3 crow.db \".dump\" > backups/crow-$(date +%Y%m%d-%H%M%S).sql",
     "clean": "rm -rf out dist node_modules/.vite",
-    "clean:db": "rm -f muse.db muse.db-wal muse.db-shm",
+    "clean:db": "rm -f crow.db crow.db-wal crow.db-shm",
     "package": "npm run build && electron-builder",
     "package:mac": "npm run build && electron-builder --mac",
     "package:win": "npm run build && electron-builder --win",
@@ -60,8 +60,8 @@
     "electron-liquid-glass": "^1.1.1"
   },
   "build": {
-    "appId": "com.muse.app",
-    "productName": "Muse",
+    "appId": "com.crow.app",
+    "productName": "Crow",
     "compression": "maximum",
     "directories": {
       "output": "dist"

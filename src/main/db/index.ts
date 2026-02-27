@@ -12,7 +12,7 @@ let db: ReturnType<typeof drizzle> | null = null
 // Use different database files for development and production
 export function getDbPath(): string {
   const userDataPath = app.getPath('userData')
-  const dbName = app.isPackaged ? 'muse-ai.db' : 'muse.db'
+  const dbName = app.isPackaged ? 'crow-ai.db' : 'crow.db'
   return path.join(userDataPath, dbName)
 }
 

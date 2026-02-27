@@ -1,4 +1,4 @@
-# Muse
+# Crow
 
 <div align="center">
 
@@ -53,8 +53,8 @@ A modern desktop application that brings the power of AI to your coding workflow
 
 ```bash
 # Clone the repository
-git clone https://github.com/ryne6/Muse.git
-cd Muse
+git clone https://github.com/ryne6/Crow.git
+cd Crow
 
 # Install dependencies
 npm install
@@ -73,10 +73,10 @@ npm run package:linux   # Linux
 
 ### macOS Installation Note
 
-If you see "Muse is damaged and can't be opened", run:
+If you see "Crow is damaged and can't be opened", run:
 
 ```bash
-sudo xattr -rd com.apple.quarantine /Applications/Muse.app
+sudo xattr -rd com.apple.quarantine /Applications/Crow.app
 ```
 
 ---

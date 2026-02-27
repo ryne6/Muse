@@ -69,7 +69,7 @@
     "publish": {
       "provider": "github",
       "owner": "ryne6",
-      "repo": "Muse",
+      "repo": "Crow",
       "releaseType": "release"
     },
     "mac": {

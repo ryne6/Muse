@@ -151,6 +151,14 @@ export async function triggerCompression(
   return { compressed: true, count: toCompressIds.length }
 }
 
+// 缓冲区消息项
+export interface BufferItem {
+  id: string
+  content: string
+  attachments?: PendingAttachment[]
+  createdAt: number
+}
+
 // VList 滚动方法接口
 interface ScrollMethods {
   scrollToIndex: (
@@ -173,6 +181,8 @@ interface ChatStore {
   // 滚动状态
   atBottom: boolean
   isScrolling: boolean
+  // 消息缓冲队列
+  messageBuffer: BufferItem[]
 
   // Actions
   sendMessage: (
@@ -195,6 +205,13 @@ interface ChatStore {
     reason?: string
   ) => Promise<void>
   getSessionApprovedTools: (conversationId: string) => string[]
+  enqueueMessage: (
+    content: string,
+    attachments?: BufferItem['attachments']
+  ) => boolean
+  dequeueMessage: (id: string) => void
+  clearBuffer: () => void
+  sendBufferItem: (id: string) => void
   abortMessage: () => void
   clearError: () => void
   setScrollState: (
@@ -217,6 +234,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   sessionApprovals: {},
   atBottom: true,
   isScrolling: false,
+  messageBuffer: [],
 
   // Actions
   clearError: () => set({ error: null, lastError: null, retryable: false }),
@@ -242,6 +260,78 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
   registerScrollMethods: methods => {
     _scrollMethods = methods
+  },
+
+  // 入队消息到缓冲区，最多 5 条
+  enqueueMessage: (content, attachments) => {
+    const { messageBuffer } = get()
+    if (messageBuffer.length >= 5) return false
+    const item: BufferItem = {
+      id: crypto.randomUUID(),
+      content,
+      attachments,
+      createdAt: Date.now(),
+    }
+    set({ messageBuffer: [...messageBuffer, item] })
+    return true
+  },
+
+  // 从缓冲区移除指定消息
+  dequeueMessage: (id) => {
+    set({ messageBuffer: get().messageBuffer.filter(m => m.id !== id) })
+  },
+
+  // 清空缓冲区
+  clearBuffer: () => {
+    set({ messageBuffer: [] })
+  },
+
+  // 立即发送缓冲区中的指定消息（中断当前生成）
+  sendBufferItem: (id) => {
+    const { messageBuffer } = get()
+    const item = messageBuffer.find(m => m.id === id)
+    if (!item) return
+
+    // 中断当前生成
+    get().abortMessage()
+
+    // 从缓冲区移除
+    set({ messageBuffer: messageBuffer.filter(m => m.id !== id) })
+
+    // 删除当前 assistant 占位消息
+    const convStore = useConversationStore.getState()
+    const conv = convStore.getCurrentConversation()
+    if (conv) {
+      const lastAssistant = [...conv.messages]
+        .reverse()
+        .find(m => m.role === 'assistant')
+      if (lastAssistant) {
+        convStore.updateConversation(conv.id, {
+          messages: conv.messages.filter(m => m.id !== lastAssistant.id),
+        })
+      }
+    }
+
+    // 获取当前 provider/model 配置
+    const settings = useSettingsStore.getState()
+    const provider = settings.getCurrentProvider()
+    const model = settings.getCurrentModel()
+    if (!provider || !model || !provider.apiKey) return
+
+    const convId = convStore.currentConversationId
+    if (!convId) return
+
+    const aiConfig: AIConfig = {
+      apiKey: provider.apiKey,
+      model: model.modelId,
+      baseURL: provider.baseURL || undefined,
+      apiFormat: provider.apiFormat || 'chat-completions',
+      temperature: settings.temperature,
+      maxTokens: 4096,
+      thinkingEnabled: settings.thinkingEnabled,
+    }
+
+    get().sendMessage(convId, item.content, provider.type, aiConfig, item.attachments)
   },
 
   abortMessage: () => {
@@ -760,6 +850,23 @@ Current workspace: ${workspacePath || 'Not set'}`
       set({ error: errorMessage, lastError: apiError, retryable: isRetryable })
     } finally {
       set({ isLoading: false, abortController: null })
+
+      // 自动消费缓冲区
+      const buffer = get().messageBuffer
+      if (buffer.length > 0) {
+        const next = buffer[0]
+        set({ messageBuffer: buffer.slice(1) })
+        // 延迟一帧再发送，避免状态竞争
+        setTimeout(() => {
+          get().sendMessage(
+            conversationId,
+            next.content,
+            providerType,
+            config,
+            undefined
+          )
+        }, 0)
+      }
     }
   },
 

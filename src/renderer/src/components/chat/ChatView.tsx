@@ -3,6 +3,7 @@ import { MessageList } from './MessageList'
 import { ChatInput } from './ChatInput'
 import { ChatHeader } from './ChatHeader'
 import { TodoPanel } from './TodoCard'
+import { MessageBuffer } from './MessageBuffer'
 
 export const ChatView = memo(function ChatView() {
   return (
@@ -10,6 +11,7 @@ export const ChatView = memo(function ChatView() {
       <ChatHeader />
       <MessageList />
       <TodoPanel />
+      <MessageBuffer />
       <ChatInput />
     </div>
   )

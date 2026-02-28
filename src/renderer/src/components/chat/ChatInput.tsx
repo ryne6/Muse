@@ -26,7 +26,8 @@ export function ChatInput() {
   >([])
   const [isFullscreen, setIsFullscreen] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const { sendMessage, isLoading, abortMessage } = useChatStore()
+  const { sendMessage, isLoading, abortMessage, enqueueMessage } =
+    useChatStore()
   const { getCurrentConversation, createConversation } = useConversationStore()
   const {
     getCurrentProvider,
@@ -253,7 +254,19 @@ export function ChatInput() {
   )
 
   const handleSend = async () => {
-    if ((!input.trim() && pendingAttachments.length === 0) || isLoading) return
+    if (!input.trim() && pendingAttachments.length === 0) return
+
+    // 生成中时，将消息入队到缓冲区
+    if (isLoading) {
+      const enqueued = enqueueMessage(input.trim(), pendingAttachments)
+      if (enqueued) {
+        setInput('')
+        setPendingAttachments([])
+      } else {
+        console.warn('缓冲队列已满（最多 5 条），请等待当前生成完成')
+      }
+      return
+    }
 
     const provider = getCurrentProvider()
     const model = getCurrentModel()
@@ -424,28 +437,33 @@ export function ChatInput() {
                   />
                 </div>
 
-                {/* Send / Stop Button */}
-                {isLoading ? (
-                  <Button
-                    onClick={abortMessage}
-                    size="icon"
-                    variant="destructive"
-                    className="h-8 w-8 rounded-md shrink-0"
-                    aria-label="Stop generation"
-                  >
-                    <Square className="w-4 h-4" />
-                  </Button>
-                ) : (
+                {/* Send / Stop Buttons */}
+                <div className="flex items-center gap-1">
+                  {isLoading && (
+                    <Button
+                      onClick={abortMessage}
+                      size="icon"
+                      variant="destructive"
+                      className="h-8 w-8 rounded-md shrink-0"
+                      aria-label="Stop generation"
+                    >
+                      <Square className="w-4 h-4" />
+                    </Button>
+                  )}
                   <Button
                     onClick={handleSend}
-                    disabled={!input.trim() && pendingAttachments.length === 0}
+                    disabled={
+                      !input.trim() && pendingAttachments.length === 0
+                    }
                     size="icon"
                     className="h-8 w-8 rounded-md shrink-0"
-                    aria-label="Send message"
+                    aria-label={
+                      isLoading ? 'Enqueue message' : 'Send message'
+                    }
                   >
                     <Send className="w-4 h-4" />
                   </Button>
-                )}
+                </div>
               </div>
             </div>
           </div>

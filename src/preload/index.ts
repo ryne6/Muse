@@ -79,6 +79,10 @@ const api: IpcApi = {
         recencyDays,
         domains,
       }),
+    openLogin: (engine: 'google' | 'bing') =>
+      ipcRenderer.invoke('web:openLogin', { engine }),
+    sessionStatus: () => ipcRenderer.invoke('web:sessionStatus'),
+    clearSession: () => ipcRenderer.invoke('web:clearSession'),
   },
   workspace: {
     get: () => ipcRenderer.invoke('workspace:get'),

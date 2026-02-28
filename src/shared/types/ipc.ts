@@ -129,6 +129,13 @@ export interface IpcApi {
     ) => Promise<{
       results: { title: string; url: string; snippet?: string }[]
     }>
+    openLogin: (
+      engine: 'google' | 'bing'
+    ) => Promise<void>
+    sessionStatus: () => Promise<{
+      status: 'logged_in' | 'logged_out' | 'unknown'
+    }>
+    clearSession: () => Promise<void>
   }
   workspace: {
     get: () => Promise<{ path: string | null }>

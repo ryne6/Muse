@@ -9,6 +9,7 @@ import { MCPSettings } from '../settings/MCPSettings'
 import { SkillsSettings } from '../settings/SkillsSettings'
 import { PromptsSettings } from '../settings/PromptsSettings'
 import { MemorySettings } from '../settings/MemorySettings'
+import { WebSearchSettings } from '../settings/WebSearchSettings'
 import { dbClient } from '~/services/dbClient'
 import { applyUIFont } from '~/services/fontService'
 
@@ -21,7 +22,14 @@ interface Provider {
   enabled: boolean
 }
 
-type Tab = 'providers' | 'mcp' | 'skills' | 'prompts' | 'memory' | 'general'
+type Tab =
+  | 'providers'
+  | 'mcp'
+  | 'skills'
+  | 'prompts'
+  | 'memory'
+  | 'web-search'
+  | 'general'
 
 interface SettingsComponentProps {
   showText?: boolean
@@ -168,6 +176,20 @@ export function Settings({ showText = true }: SettingsComponentProps) {
             </button>
 
             <button
+              onClick={() => setActiveTab('web-search')}
+              className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                activeTab === 'web-search'
+                  ? 'bg-primary text-primary-foreground'
+                  : 'hover:bg-accent hover:text-accent-foreground'
+              }`}
+            >
+              <div className="font-medium">Web Search</div>
+              <div className="text-xs opacity-70">
+                Search engine settings
+              </div>
+            </button>
+
+            <button
               onClick={() => setActiveTab('general')}
               className={`w-full text-left px-4 py-2 rounded-lg transition-colors ${
                 activeTab === 'general'
@@ -193,6 +215,8 @@ export function Settings({ showText = true }: SettingsComponentProps) {
             {activeTab === 'prompts' && <PromptsSettings />}
 
             {activeTab === 'memory' && <MemorySettings />}
+
+            {activeTab === 'web-search' && <WebSearchSettings />}
 
             {activeTab === 'general' && (
               <div>

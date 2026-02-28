@@ -3,12 +3,11 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { FileSystemService } from './services/fileSystemService'
 import { GitService } from './services/gitService'
-import { WebService } from './services/webService'
+import { WebBrowserService } from './services/webBrowserService'
 
 const app = new Hono()
 const fsService = new FileSystemService()
 const gitService = new GitService()
-const webService = new WebService()
 
 // CORS for local API access
 app.use(
@@ -107,18 +106,31 @@ app.post('/ipc/:channel', async c => {
         break
 
       case 'web:fetch':
-        result = { content: await webService.fetch(body.url, body.maxLength) }
+        result = { content: await WebBrowserService.fetch(body.url, body.maxLength) }
         break
 
       case 'web:search':
         result = {
-          results: await webService.search(
-            body.query,
-            body.limit,
-            body.recencyDays,
-            body.domains
-          ),
+          results: await WebBrowserService.search(body.query, {
+            limit: body.limit,
+            recencyDays: body.recencyDays,
+            domains: body.domains,
+          }),
         }
+        break
+
+      case 'web:openLogin':
+        await WebBrowserService.openLoginWindow(body.engine || 'google')
+        result = { success: true }
+        break
+
+      case 'web:sessionStatus':
+        result = { status: await WebBrowserService.getSessionStatus() }
+        break
+
+      case 'web:clearSession':
+        await WebBrowserService.clearSession()
+        result = { success: true }
         break
 
       case 'workspace:get':

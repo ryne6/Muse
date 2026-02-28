@@ -87,7 +87,10 @@ export const MessageItem = memo<MessageItemProps>(function MessageItem({ id }) {
               {message.content}
             </div>
           ) : (
-            <MarkdownRenderer content={message.content} />
+            <MarkdownRenderer
+              content={message.content}
+              animated={!message.durationMs}
+            />
           )}
         </>
       )}

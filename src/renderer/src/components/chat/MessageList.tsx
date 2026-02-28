@@ -12,6 +12,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { MessageItem } from './MessageItem'
 import { AutoScroll } from './AutoScroll'
 import { BackBottom } from './BackBottom'
+import { TokenMinimap } from './TokenMinimap'
 
 const AT_BOTTOM_THRESHOLD = 100
 
@@ -163,6 +164,9 @@ export function MessageList() {
 
       {/* 回到底部按钮 */}
       <BackBottom />
+
+      {/* Token 用量缩略图 */}
+      <TokenMinimap />
     </div>
   )
 }

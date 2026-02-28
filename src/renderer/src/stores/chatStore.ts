@@ -218,6 +218,7 @@ interface ChatStore {
     state: Partial<{ atBottom: boolean; isScrolling: boolean }>
   ) => void
   scrollToBottom: (smooth?: boolean) => void
+  scrollToIndex: (index: number) => void
   registerScrollMethods: (methods: ScrollMethods | null) => void
 }
 
@@ -256,6 +257,11 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     } else {
       _scrollMethods.scrollToEnd()
     }
+  },
+
+  scrollToIndex: (index: number) => {
+    if (!_scrollMethods) return
+    _scrollMethods.scrollToIndex(index, { align: 'center', smooth: true })
   },
 
   registerScrollMethods: methods => {

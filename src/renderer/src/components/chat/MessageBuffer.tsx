@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { Zap, X } from 'lucide-react'
-import { useChatStore } from '@/stores/chatStore'
+import { useChatStore } from '~/stores/chatStore'
 
 // 消息缓冲队列 UI，紧贴 ChatInput 上方显示
 export function MessageBuffer() {

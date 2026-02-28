@@ -1,5 +1,7 @@
 import { autoUpdater } from 'electron-updater'
-import { BrowserWindow, ipcMain } from 'electron'
+import { BrowserWindow, ipcMain, app } from 'electron'
+import { rmSync, existsSync } from 'fs'
+import { join } from 'path'
 
 export interface UpdateStatus {
   status:
@@ -16,6 +18,24 @@ export interface UpdateStatus {
 
 let mainWindow: BrowserWindow | null = null
 
+// 清理旧 bundle ID (com.muse.app) 遗留的更新缓存
+function cleanupLegacyCache() {
+  const cacheDir = app.getPath('cache') || join(app.getPath('home'), 'Library/Caches')
+  const legacyPaths = [
+    join(cacheDir, 'com.muse.app.ShipIt'),
+    join(cacheDir, 'com.muse.app'),
+  ]
+  for (const p of legacyPaths) {
+    if (existsSync(p)) {
+      try {
+        rmSync(p, { recursive: true, force: true })
+      } catch (_err) {
+        console.warn(`[Updater] 清理旧缓存失败: ${p}`)
+      }
+    }
+  }
+}
+
 function sendStatusToWindow(status: UpdateStatus) {
   if (mainWindow) {
     mainWindow.webContents.send('updater:status', status)
@@ -24,6 +44,9 @@ function sendStatusToWindow(status: UpdateStatus) {
 
 export function initUpdater(window: BrowserWindow) {
   mainWindow = window
+
+  // 清理旧 bundle ID (com.muse.app) 的更新缓存
+  cleanupLegacyCache()
 
   // Configure auto updater
   autoUpdater.autoDownload = false

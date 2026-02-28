@@ -58,14 +58,98 @@ async function triggerMemoryExtraction(
   })
 
   if (result.saved > 0) {
-    console.log(
-      `🧠 Auto-extracted ${result.extracted} memories, ${result.saved} new saved`
+    console.warn(
+      `Auto-extracted ${result.extracted} memories, ${result.saved} new saved`
     )
   }
 }
 
 /** Export for use by conversationStore on conversation switch */
 export { triggerMemoryExtraction }
+
+// 上下文压缩常量
+const COMPRESSION_THRESHOLD = 0.8
+const KEEP_RECENT = 6
+
+// 截断降级：AI 压缩失败时的 fallback
+function generateTruncatedSummary(msgs: Message[]): string {
+  const lines = msgs.map(m => {
+    const prefix = m.role === 'user' ? 'User' : 'Assistant'
+    const text = m.content.slice(0, 100)
+    return `${prefix}: ${text}${m.content.length > 100 ? '...' : ''}`
+  })
+  return `[Truncated Summary]\n${lines.join('\n')}`
+}
+
+// 手动触发压缩（/compact 命令调用）
+export async function triggerCompression(
+  conversationId: string,
+  providerType: string,
+  config: AIConfig
+): Promise<{ compressed: boolean; count: number }> {
+  const conv = useConversationStore
+    .getState()
+    .conversations.find(c => c.id === conversationId)
+  if (!conv) return { compressed: false, count: 0 }
+
+  const activeMessages = conv.messages.filter(m => !m.compressed)
+  if (activeMessages.length <= KEEP_RECENT + 1) {
+    return { compressed: false, count: 0 }
+  }
+
+  const toCompress = activeMessages.slice(0, -KEEP_RECENT)
+  const toCompressIds = toCompress.map(m => m.id)
+
+  const compressPayload: AIMessage[] = toCompress.map(m => ({
+    role: m.role as 'user' | 'assistant',
+    content:
+      m.content.length > 500 ? m.content.slice(0, 500) + '...' : m.content,
+  }))
+
+  let summaryContent: string
+  try {
+    summaryContent = await apiClient.compressMessages(
+      providerType,
+      compressPayload,
+      config
+    )
+  } catch (err) {
+    console.error('AI compression failed, falling back to truncation:', err)
+    summaryContent = generateTruncatedSummary(toCompress)
+  }
+
+  const summaryId = uuidv4()
+  await window.api.ipc.invoke('db:messages:createSummary', {
+    id: summaryId,
+    conversationId,
+    content: summaryContent,
+    summaryOf: toCompressIds,
+    timestamp: Date.now(),
+  })
+
+  await window.api.ipc.invoke('db:messages:markCompressed', {
+    messageIds: toCompressIds,
+  })
+
+  const summaryMessage: Message = {
+    id: summaryId,
+    role: 'assistant',
+    content: summaryContent,
+    timestamp: Date.now(),
+    summaryOf: toCompressIds,
+  }
+
+  const updatedMessages = [
+    summaryMessage,
+    ...conv.messages.filter(m => !toCompressIds.includes(m.id)),
+  ]
+
+  useConversationStore.getState().updateConversation(conversationId, {
+    messages: updatedMessages,
+  })
+
+  return { compressed: true, count: toCompressIds.length }
+}
 
 // VList 滚动方法接口
 interface ScrollMethods {
@@ -229,13 +313,93 @@ export const useChatStore = create<ChatStore>((set, get) => ({
     useConversationStore.getState().addMessage(userMessage)
 
     // Get conversation for context
-    const conversation = useConversationStore
-      .getState()
-      .getCurrentConversation()
+    let conversation = useConversationStore.getState().getCurrentConversation()
     if (!conversation) {
       set({ isLoading: false, error: 'No conversation found' })
       return
     }
+
+    // --- 上下文压缩检测 ---
+    const compressionEnabled =
+      useSettingsStore.getState().contextCompressionEnabled
+    const currentModel = useSettingsStore.getState().getCurrentModel()
+
+    if (compressionEnabled && currentModel?.contextLength) {
+      const lastAssistant = conversation.messages
+        .filter(m => m.role === 'assistant' && m.inputTokens)
+        .at(-1)
+
+      if (lastAssistant?.inputTokens) {
+        const ratio = lastAssistant.inputTokens / currentModel.contextLength
+        const activeMessages = conversation.messages.filter(m => !m.compressed)
+
+        if (
+          ratio >= COMPRESSION_THRESHOLD &&
+          activeMessages.length > KEEP_RECENT + 1
+        ) {
+          const toCompress = activeMessages.slice(0, -KEEP_RECENT)
+          const toCompressIds = toCompress.map(m => m.id)
+
+          const compressPayload: AIMessage[] = toCompress.map(m => ({
+            role: m.role as 'user' | 'assistant',
+            content:
+              m.content.length > 500
+                ? m.content.slice(0, 500) + '...'
+                : m.content,
+          }))
+
+          let summaryContent: string
+          try {
+            summaryContent = await apiClient.compressMessages(
+              providerType,
+              compressPayload,
+              config
+            )
+          } catch (err) {
+            console.error(
+              'AI compression failed, falling back to truncation:',
+              err
+            )
+            summaryContent = generateTruncatedSummary(toCompress)
+          }
+
+          const summaryId = uuidv4()
+          await window.api.ipc.invoke('db:messages:createSummary', {
+            id: summaryId,
+            conversationId,
+            content: summaryContent,
+            summaryOf: toCompressIds,
+            timestamp: Date.now(),
+          })
+
+          await window.api.ipc.invoke('db:messages:markCompressed', {
+            messageIds: toCompressIds,
+          })
+
+          const summaryMessage: Message = {
+            id: summaryId,
+            role: 'assistant',
+            content: summaryContent,
+            timestamp: Date.now(),
+            summaryOf: toCompressIds,
+          }
+
+          const updatedMessages = [
+            summaryMessage,
+            ...conversation.messages.filter(m => !toCompressIds.includes(m.id)),
+          ]
+
+          useConversationStore.getState().updateConversation(conversationId, {
+            messages: updatedMessages,
+          })
+
+          conversation = useConversationStore
+            .getState()
+            .getCurrentConversation()!
+        }
+      }
+    }
+    // --- 压缩检测结束 ---
 
     const buildContentBlocks = async (
       m: Message
@@ -272,19 +436,21 @@ export const useChatStore = create<ChatStore>((set, get) => ({
 
     // Prepare messages for API (include history attachments)
     const historyMessages: AIMessage[] = await Promise.all(
-      conversation.messages.map(async m => {
-        if (m.attachments && m.attachments.length > 0) {
+      conversation.messages
+        .filter(m => !m.compressed) // 过滤已压缩消息
+        .map(async m => {
+          if (m.attachments && m.attachments.length > 0) {
+            return {
+              role: m.role as 'user' | 'assistant',
+              content: await buildContentBlocks(m),
+            }
+          }
+
           return {
             role: m.role as 'user' | 'assistant',
-            content: await buildContentBlocks(m),
+            content: m.content,
           }
-        }
-
-        return {
-          role: m.role as 'user' | 'assistant',
-          content: m.content,
-        }
-      })
+        })
     )
 
     // Build system prompt with tool instructions

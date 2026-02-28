@@ -12,6 +12,8 @@ export interface Message {
   inputTokens?: number
   outputTokens?: number
   durationMs?: number
+  compressed?: boolean
+  summaryOf?: string[] // 被压缩的消息 ID 列表（DB 存 JSON string，前端解析后为数组）
 }
 
 export interface ToolCall {

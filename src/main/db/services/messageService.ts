@@ -107,6 +107,39 @@ export class MessageService {
     return newToolResult
   }
 
+  // 批量标记消息为已压缩
+  static async markCompressed(messageIds: string[]) {
+    if (messageIds.length === 0) return
+    const db = getDatabase()
+    for (const id of messageIds) {
+      await db
+        .update(messages)
+        .set({ compressed: true })
+        .where(eq(messages.id, id))
+    }
+  }
+
+  // 创建摘要消息
+  static async createSummary(data: {
+    id: string
+    conversationId: string
+    content: string
+    summaryOf: string[]
+    timestamp: Date
+  }) {
+    const db = getDatabase()
+    const newMessage: NewMessage = {
+      id: data.id,
+      conversationId: data.conversationId,
+      role: 'assistant',
+      content: data.content,
+      timestamp: data.timestamp,
+      summaryOf: JSON.stringify(data.summaryOf),
+    }
+    await db.insert(messages).values(newMessage)
+    return newMessage
+  }
+
   // Delete message (cascade deletes tool calls and results)
   static async delete(id: string) {
     const db = getDatabase()

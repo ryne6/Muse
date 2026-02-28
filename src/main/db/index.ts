@@ -244,6 +244,22 @@ function runSchemaMigrations(sqlite: Database.Database) {
       )
       console.log('✅ Added last_accessed_at column')
     }
+    // 上下文压缩：messages 表新增 compressed、summary_of 列
+    const msgColsForCompression = sqlite.pragma('table_info(messages)') as {
+      name: string
+    }[]
+    const hasCompressed = msgColsForCompression.some(
+      col => col.name === 'compressed'
+    )
+
+    if (!hasCompressed) {
+      console.log('📦 Adding compression columns to messages table...')
+      sqlite.exec(
+        'ALTER TABLE messages ADD COLUMN compressed INTEGER DEFAULT 0'
+      )
+      sqlite.exec('ALTER TABLE messages ADD COLUMN summary_of TEXT')
+      console.log('✅ Added compression columns')
+    }
   } catch (error) {
     console.error('❌ Schema migration failed:', error)
   }

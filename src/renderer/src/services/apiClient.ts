@@ -323,6 +323,36 @@ export class APIClient {
   }
 
   /**
+   * 上下文压缩（非流式，30s 超时）
+   */
+  async compressMessages(
+    provider: string,
+    messages: AIMessage[],
+    config: AIConfig
+  ): Promise<string> {
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 30000)
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/chat/compress`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider, messages, config }),
+        signal: controller.signal,
+      })
+
+      if (!response.ok) {
+        throw await parseErrorResponse(response)
+      }
+
+      const data = await response.json()
+      return data.summary || ''
+    } finally {
+      clearTimeout(timeout)
+    }
+  }
+
+  /**
    * 健康检查
    */
   async healthCheck(): Promise<boolean> {

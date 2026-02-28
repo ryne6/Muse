@@ -238,4 +238,67 @@ app.post('/chat/extract', async c => {
   }
 })
 
+// 压缩 system prompt
+const COMPRESSION_SYSTEM_PROMPT = `你是一个对话摘要助手。请将以下对话历史压缩为简洁的摘要。
+
+要求：
+- 保留所有文件路径、代码片段、技术决策
+- 保留错误信息和解决方案
+- 保留因果关系和上下文依赖
+- 500 字以内
+- 使用与原始对话相同的语言
+- 以 "[Context Summary]" 开头`
+
+// 上下文压缩端点（非流式，独立超时）
+app.post('/chat/compress', async c => {
+  try {
+    const { provider, messages, config } = await c.req.json<{
+      provider: string
+      messages: AIMessage[]
+      config: AIConfig
+    }>()
+
+    if (!provider || !messages || !config) {
+      const error = new AIError(
+        ErrorCode.INVALID_REQUEST,
+        'Missing required fields: provider, messages, config'
+      )
+      return c.json(createErrorResponse(error), error.httpStatus)
+    }
+
+    if (!Array.isArray(messages) || messages.length === 0) {
+      return c.json({ summary: '' })
+    }
+
+    // 构建压缩请求：system prompt + 待压缩消息
+    const compressMessages: AIMessage[] = [
+      { role: 'system', content: COMPRESSION_SYSTEM_PROMPT },
+      ...messages,
+      {
+        role: 'user',
+        content: '请将以上对话压缩为摘要。',
+      },
+    ]
+
+    // 非流式调用，低温度
+    const compressConfig: AIConfig = {
+      ...config,
+      temperature: 0.2,
+      maxTokens: 2048,
+      thinkingEnabled: false,
+    }
+
+    const response = await aiManager.sendMessage(
+      provider,
+      compressMessages,
+      compressConfig
+    )
+
+    return c.json({ summary: response || '' })
+  } catch (error) {
+    const aiError = AIError.fromUnknown(error)
+    return c.json(createErrorResponse(aiError), aiError.httpStatus)
+  }
+})
+
 export default app

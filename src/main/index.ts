@@ -343,6 +343,47 @@ function registerIpcHandlers() {
     }
   )
 
+  // 上下文压缩：批量标记消息为已压缩
+  ipcMain.handle('db:messages:markCompressed', async (_, { messageIds }) => {
+    if (!Array.isArray(messageIds) || messageIds.length === 0) {
+      throw new Error('messageIds must be a non-empty array')
+    }
+    if (messageIds.length > 100) {
+      throw new Error('messageIds exceeds max length of 100')
+    }
+    // M3: 校验数组元素类型，防止非 string 元素导致 SQL 异常
+    if (
+      !messageIds.every(
+        (id: unknown) => typeof id === 'string' && id.length > 0
+      )
+    ) {
+      throw new Error('messageIds must contain only non-empty strings')
+    }
+    await MessageService.markCompressed(messageIds)
+    return { success: true }
+  })
+
+  // 上下文压缩：创建摘要消息
+  ipcMain.handle('db:messages:createSummary', async (_, data) => {
+    if (!data.id || !data.conversationId || !data.content || !data.summaryOf) {
+      throw new Error(
+        'Missing required fields: id, conversationId, content, summaryOf'
+      )
+    }
+    if (!Array.isArray(data.summaryOf)) {
+      throw new Error('summaryOf must be an array of message IDs')
+    }
+    // M2: 校验 timestamp，缺失时使用当前时间
+    const timestamp =
+      data.timestamp && typeof data.timestamp === 'number'
+        ? new Date(data.timestamp)
+        : new Date()
+    return await MessageService.createSummary({
+      ...data,
+      timestamp,
+    })
+  })
+
   // Database - Providers
   ipcMain.handle('db:providers:getAll', async () => {
     return await ProviderService.getAll()

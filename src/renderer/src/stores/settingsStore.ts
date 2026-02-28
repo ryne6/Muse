@@ -17,6 +17,8 @@ interface SettingsStore {
   selectedSkill: string | null // null = Auto mode
   globalSystemPrompt: string
   memoryEnabled: boolean
+  contextCompressionEnabled: boolean
+  webSearchEngine: 'google' | 'bing'
 
   // Cached data
   providers: Provider[]
@@ -32,6 +34,8 @@ interface SettingsStore {
   setSelectedSkill: (skillPath: string | null) => void
   setGlobalSystemPrompt: (prompt: string) => void
   setMemoryEnabled: (enabled: boolean) => void
+  setContextCompressionEnabled: (enabled: boolean) => void
+  setWebSearchEngine: (engine: 'google' | 'bing') => void
   clearError: () => void
   triggerRefresh: () => void
 
@@ -82,6 +86,8 @@ export const useSettingsStore = create<SettingsStore>()(
       selectedSkill: null,
       globalSystemPrompt: '',
       memoryEnabled: false,
+      contextCompressionEnabled: true, // 默认开启
+      webSearchEngine: 'google',
 
       // Cached data
       providers: [],
@@ -186,6 +192,12 @@ export const useSettingsStore = create<SettingsStore>()(
       setMemoryEnabled: (enabled: boolean) => {
         set({ memoryEnabled: enabled })
       },
+      setContextCompressionEnabled: (enabled: boolean) => {
+        set({ contextCompressionEnabled: enabled })
+      },
+      setWebSearchEngine: (engine: 'google' | 'bing') => {
+        set({ webSearchEngine: engine })
+      },
       triggerRefresh: () => {
         set({ lastUpdated: Date.now() })
       },
@@ -244,6 +256,8 @@ export const useSettingsStore = create<SettingsStore>()(
         selectedSkill: state.selectedSkill,
         globalSystemPrompt: state.globalSystemPrompt,
         memoryEnabled: state.memoryEnabled,
+        contextCompressionEnabled: state.contextCompressionEnabled,
+        webSearchEngine: state.webSearchEngine,
       }),
       migrate: persistedState => {
         const state =
@@ -260,6 +274,8 @@ export const useSettingsStore = create<SettingsStore>()(
           selectedSkill: state?.selectedSkill ?? null,
           globalSystemPrompt: state?.globalSystemPrompt ?? '',
           memoryEnabled: state?.memoryEnabled ?? false,
+          contextCompressionEnabled: state?.contextCompressionEnabled ?? true,
+          webSearchEngine: state?.webSearchEngine ?? 'google',
         }
       },
     }

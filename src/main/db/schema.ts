@@ -30,6 +30,8 @@ export const messages = sqliteTable('messages', {
   inputTokens: integer('input_tokens'),
   outputTokens: integer('output_tokens'),
   durationMs: integer('duration_ms'),
+  compressed: integer('compressed', { mode: 'boolean' }).default(false),
+  summaryOf: text('summary_of'), // JSON string: 被压缩的消息 ID 数组
 })
 
 // 3. Tool calls table

@@ -220,6 +220,16 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         inputTokens: msg.inputTokens ?? msg.input_tokens,
         outputTokens: msg.outputTokens ?? msg.output_tokens,
         durationMs: msg.durationMs ?? msg.duration_ms,
+        compressed: msg.compressed ?? false,
+        summaryOf: (() => {
+          const raw = msg.summaryOf ?? msg.summary_of
+          if (!raw) return undefined
+          try {
+            return JSON.parse(raw)
+          } catch {
+            return undefined
+          }
+        })(),
       }))
 
       set(state => ({

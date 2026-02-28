@@ -3,6 +3,7 @@ import { Send, Square, Maximize2, Brain, X } from 'lucide-react'
 import { v4 as uuidv4 } from 'uuid'
 import { Button } from '../ui/button'
 import { useChatStore } from '~/stores/chatStore'
+import { triggerCompression } from '~/stores/chatStore'
 import { useConversationStore } from '~/stores/conversationStore'
 import { useSettingsStore } from '~/stores/settingsStore'
 import { notify } from '~/utils/notify'
@@ -201,6 +202,56 @@ export function ChatInput() {
     []
   )
 
+  // /compact 手动压缩命令
+  const handleCompactCommand = useCallback(
+    async (message: string): Promise<boolean> => {
+      if (message !== '~main/compact') return false
+
+      const conv = getCurrentConversation()
+      if (!conv) {
+        notify.info('没有活跃的对话')
+        return true
+      }
+
+      const provider = getCurrentProvider()
+      const model = getCurrentModel()
+      if (!provider || !model || !provider.apiKey) {
+        notify.error('请先配置 AI 供应商')
+        return true
+      }
+
+      notify.info('正在压缩对话上下文...')
+
+      try {
+        const aiConfig: AIConfig = {
+          apiKey: provider.apiKey,
+          model: model.modelId,
+          baseURL: provider.baseURL || undefined,
+          apiFormat: provider.apiFormat || 'chat-completions',
+          temperature,
+          maxTokens: 4096,
+          thinkingEnabled: false,
+        }
+
+        const result = await triggerCompression(
+          conv.id,
+          provider.type,
+          aiConfig
+        )
+
+        if (result.compressed) {
+          notify.success(`已压缩 ${result.count} 条消息`)
+        } else {
+          notify.info('消息数量不足，无需压缩')
+        }
+      } catch {
+        notify.error('压缩失败')
+      }
+      return true
+    },
+    [getCurrentConversation, getCurrentProvider, getCurrentModel, temperature]
+  )
+
   const handleSend = async () => {
     if ((!input.trim() && pendingAttachments.length === 0) || isLoading) return
 
@@ -230,6 +281,9 @@ export function ChatInput() {
 
     // Intercept memory slash commands
     if (await handleMemoryCommand(message)) return
+
+    // Intercept /compact command
+    if (await handleCompactCommand(message)) return
 
     try {
       // Construct AI config from database provider/model

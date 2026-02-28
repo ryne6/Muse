@@ -47,6 +47,12 @@ export const MemorySettings = memo(function MemorySettings() {
 
   const memoryEnabled = useSettingsStore(s => s.memoryEnabled)
   const setMemoryEnabled = useSettingsStore(s => s.setMemoryEnabled)
+  const contextCompressionEnabled = useSettingsStore(
+    s => s.contextCompressionEnabled
+  )
+  const setContextCompressionEnabled = useSettingsStore(
+    s => s.setContextCompressionEnabled
+  )
 
   const loadMemories = useCallback(async () => {
     if (!memoryEnabled) {
@@ -427,6 +433,35 @@ export const MemorySettings = memo(function MemorySettings() {
           <span
             className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
               memoryEnabled ? 'translate-x-6' : 'translate-x-1'
+            }`}
+          />
+        </button>
+      </div>
+
+      {/* 上下文压缩 toggle */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-base font-semibold">上下文压缩</h3>
+          <p className="text-xs text-muted-foreground mt-1">
+            {contextCompressionEnabled
+              ? '已开启 — 对话过长时自动压缩早期消息'
+              : '开启后，长对话将自动压缩以节省上下文窗口'}
+          </p>
+        </div>
+        <button
+          role="switch"
+          aria-checked={contextCompressionEnabled}
+          aria-label="上下文压缩开关"
+          onClick={() =>
+            setContextCompressionEnabled(!contextCompressionEnabled)
+          }
+          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            contextCompressionEnabled ? 'bg-primary' : 'bg-gray-300'
+          }`}
+        >
+          <span
+            className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
+              contextCompressionEnabled ? 'translate-x-6' : 'translate-x-1'
             }`}
           />
         </button>

@@ -6,6 +6,7 @@ import { ToolCallsList } from './ToolCallsList'
 import { MessageImage } from './MessageImage'
 import { ThinkingBlock } from './ThinkingBlock'
 import { MessageStats } from './MessageStats'
+import { CompressedSummary } from './CompressedSummary'
 
 function formatTime(timestamp?: number): string {
   if (!timestamp) return ''
@@ -32,6 +33,21 @@ export const MessageItem = memo<MessageItemProps>(function MessageItem({ id }) {
   )
 
   if (!message) return null
+
+  // 摘要消息：渲染 CompressedSummary 组件
+  if (message.summaryOf && message.summaryOf.length > 0) {
+    return (
+      <div className="animate-fade-in-up">
+        <CompressedSummary
+          content={message.content}
+          compressedCount={message.summaryOf.length}
+        />
+      </div>
+    )
+  }
+
+  // 已压缩的消息不渲染
+  if (message.compressed) return null
 
   const isUser = message.role === 'user'
   const hasAttachments = message.attachments && message.attachments.length > 0

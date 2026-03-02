@@ -15,6 +15,8 @@ export const conversations = sqliteTable('conversations', {
   model: text('model'),
   workspace: text('workspace'),
   systemPrompt: text('system_prompt'),
+  totalInputTokens: integer('total_input_tokens').default(0),
+  totalOutputTokens: integer('total_output_tokens').default(0),
 })
 
 // 2. Messages table

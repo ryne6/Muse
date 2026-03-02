@@ -1,5 +1,6 @@
 interface ContextIndicatorProps {
   usedTokens: number | null
+  totalConsumed: number | null
   contextLength: number | null
 }
 
@@ -11,17 +12,28 @@ function formatTokenShort(count: number): string {
 
 export function ContextIndicator({
   usedTokens,
+  totalConsumed,
   contextLength,
 }: ContextIndicatorProps) {
-  if (usedTokens == null || contextLength == null) return null
+  if (usedTokens == null && totalConsumed == null) return null
 
-  const ratio = usedTokens / contextLength
-  const usedDisplay = formatTokenShort(usedTokens)
-  const totalDisplay = formatTokenShort(contextLength)
-
-  // 状态判定
+  const ratio =
+    usedTokens != null && contextLength ? usedTokens / contextLength : 0
   const isWarning = ratio > 0.7
   const isCritical = ratio > 0.9
+
+  const contextPart =
+    usedTokens != null && contextLength != null
+      ? `${formatTokenShort(usedTokens)} / ${formatTokenShort(contextLength)}`
+      : null
+
+  const totalPart =
+    totalConsumed != null && totalConsumed > 0
+      ? `Σ ${formatTokenShort(totalConsumed)}`
+      : null
+
+  const display = [contextPart, totalPart].filter(Boolean).join(' · ')
+  if (!display) return null
 
   if (isCritical) {
     return (
@@ -32,9 +44,7 @@ export function ContextIndicator({
             style={{ width: `${Math.min(ratio * 100, 100)}%` }}
           />
         </div>
-        <span className="text-xs text-red-500">
-          {usedDisplay} / {totalDisplay}
-        </span>
+        <span className="text-xs text-red-500">{display}</span>
       </div>
     )
   }
@@ -45,7 +55,7 @@ export function ContextIndicator({
         isWarning ? 'text-orange-500' : 'text-[hsl(var(--text-muted))]'
       }`}
     >
-      {usedDisplay} / {totalDisplay}
+      {display}
     </span>
   )
 }

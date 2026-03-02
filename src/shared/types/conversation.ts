@@ -39,6 +39,8 @@ export interface Conversation {
   contextFiles?: string[]
   workspace?: string | null
   systemPrompt?: string | null
+  totalInputTokens?: number
+  totalOutputTokens?: number
 }
 
 export interface ConversationGroup {

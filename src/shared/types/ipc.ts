@@ -137,6 +137,13 @@ export interface IpcApi {
     }>
     clearSession: () => Promise<void>
   }
+  conversation: {
+    addTokens: (
+      id: string,
+      inputTokens: number,
+      outputTokens: number
+    ) => Promise<void>
+  }
   workspace: {
     get: () => Promise<{ path: string | null }>
     set: (path: string) => Promise<{ success: boolean }>

@@ -64,6 +64,8 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         updatedAt: new Date(conv.updatedAt).getTime(),
         workspace: conv.workspace || null,
         systemPrompt: conv.systemPrompt || null,
+        totalInputTokens: conv.totalInputTokens ?? 0,
+        totalOutputTokens: conv.totalOutputTokens ?? 0,
         messages: [],
       }))
 

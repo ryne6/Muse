@@ -137,6 +137,8 @@ export async function triggerCompression(
     content: summaryContent,
     timestamp: Date.now(),
     summaryOf: toCompressIds,
+    inputTokens: toCompress.reduce((s, m) => s + (m.inputTokens ?? 0), 0),
+    outputTokens: toCompress.reduce((s, m) => s + (m.outputTokens ?? 0), 0),
   }
 
   const updatedMessages = [
@@ -478,6 +480,8 @@ export const useChatStore = create<ChatStore>((set, get) => ({
             content: summaryContent,
             timestamp: Date.now(),
             summaryOf: toCompressIds,
+            inputTokens: toCompress.reduce((s, m) => s + (m.inputTokens ?? 0), 0),
+            outputTokens: toCompress.reduce((s, m) => s + (m.outputTokens ?? 0), 0),
           }
 
           const updatedMessages = [
@@ -784,6 +788,28 @@ Current workspace: ${workspacePath || 'Not set'}`
           outputTokens: finalAssistantMessage.outputTokens,
           durationMs: finalAssistantMessage.durationMs,
         })
+
+        // 累加 token 到对话总计
+        if (finalAssistantMessage.inputTokens || finalAssistantMessage.outputTokens) {
+          const conv = useConversationStore
+            .getState()
+            .conversations.find(c => c.id === conversationId)
+          window.api.conversation
+            .addTokens(
+              conversationId,
+              finalAssistantMessage.inputTokens ?? 0,
+              finalAssistantMessage.outputTokens ?? 0
+            )
+            .catch((err: unknown) => console.error('Failed to accumulate tokens:', err))
+          if (conv) {
+            useConversationStore.getState().updateConversation(conversationId, {
+              totalInputTokens:
+                (conv.totalInputTokens ?? 0) + (finalAssistantMessage.inputTokens ?? 0),
+              totalOutputTokens:
+                (conv.totalOutputTokens ?? 0) + (finalAssistantMessage.outputTokens ?? 0),
+            })
+          }
+        }
       }
 
       // Update conversation title if it's the first user message

@@ -228,6 +228,14 @@ function registerIpcHandlers() {
     return { path: null }
   })
 
+  // Token 累加
+  ipcMain.handle('conversation:addTokens', async (_, { id, inputTokens, outputTokens }) => {
+    if (!id || typeof inputTokens !== 'number' || typeof outputTokens !== 'number') {
+      throw new Error('Invalid params for conversation:addTokens')
+    }
+    await ConversationService.addTokens(id, inputTokens, outputTokens)
+  })
+
   // Workspace management
   ipcMain.handle('workspace:createDefault', async (_, { conversationId }) => {
     const path = WorkspaceService.createDefaultWorkspace(conversationId)
@@ -308,6 +316,20 @@ function registerIpcHandlers() {
   ipcMain.handle('db:conversations:delete', async (_, { id }) => {
     return await ConversationService.delete(id)
   })
+
+  ipcMain.handle(
+    'db:conversations:addTokens',
+    async (_, { id, inputTokens, outputTokens }) => {
+      if (
+        !id ||
+        typeof inputTokens !== 'number' ||
+        typeof outputTokens !== 'number'
+      ) {
+        throw new Error('Invalid params for addTokens')
+      }
+      return await ConversationService.addTokens(id, inputTokens, outputTokens)
+    }
+  )
 
   // Database - Messages
   ipcMain.handle(

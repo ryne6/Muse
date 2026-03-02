@@ -96,6 +96,10 @@ const api: IpcApi = {
     forceDelete: (path: string) =>
       ipcRenderer.invoke('workspace:forceDelete', { path }),
   },
+  conversation: {
+    addTokens: (id: string, inputTokens: number, outputTokens: number) =>
+      ipcRenderer.invoke('conversation:addTokens', { id, inputTokens, outputTokens }),
+  },
   ipc: {
     invoke: (channel: string, ...args: any[]) =>
       ipcRenderer.invoke(channel, ...args),

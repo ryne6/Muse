@@ -260,6 +260,21 @@ function runSchemaMigrations(sqlite: Database.Database) {
       sqlite.exec('ALTER TABLE messages ADD COLUMN summary_of TEXT')
       console.log('✅ Added compression columns')
     }
+
+    // 对话级 token 统计列
+    const hasTotalTokens = convColumns.some(
+      col => col.name === 'total_input_tokens'
+    )
+    if (!hasTotalTokens) {
+      console.log('📦 Adding token stats columns to conversations table...')
+      sqlite.exec(
+        'ALTER TABLE conversations ADD COLUMN total_input_tokens INTEGER DEFAULT 0'
+      )
+      sqlite.exec(
+        'ALTER TABLE conversations ADD COLUMN total_output_tokens INTEGER DEFAULT 0'
+      )
+      console.log('✅ Added conversation token stats columns')
+    }
   } catch (error) {
     console.error('❌ Schema migration failed:', error)
   }

@@ -1,4 +1,4 @@
-import { eq, desc } from 'drizzle-orm'
+import { eq, desc, sql } from 'drizzle-orm'
 import { getDatabase, schema } from '../index'
 import type { NewConversation } from '../schema'
 import { generateId } from '../utils/idGenerator'
@@ -117,5 +117,21 @@ export class ConversationService {
       .set({ systemPrompt, updatedAt: new Date() })
       .where(eq(conversations.id, id))
     return this.getById(id)
+  }
+
+  // 原子累加 token 统计
+  static async addTokens(
+    id: string,
+    inputTokens: number,
+    outputTokens: number
+  ) {
+    const db = getDatabase()
+    await db.run(sql`
+      UPDATE conversations
+      SET total_input_tokens = COALESCE(total_input_tokens, 0) + ${inputTokens},
+          total_output_tokens = COALESCE(total_output_tokens, 0) + ${outputTokens},
+          updated_at = unixepoch()
+      WHERE id = ${id}
+    `)
   }
 }

@@ -13,6 +13,7 @@ import { ImageDropZone } from './ImageDropZone'
 import { FullscreenEditor } from './FullscreenEditor'
 import { ToolsSkillsPanel } from './ToolsSkillsPanel'
 import { useSkillMention } from './SkillMention'
+import { useSlashCommand } from './SlashCommand'
 import { WorkspaceDropdown } from './WorkspaceDropdown'
 import { ModelSelector } from './ModelSelector'
 import { ContextIndicator } from './ContextIndicator'
@@ -58,6 +59,8 @@ export function ChatInput() {
     ?.filter(m => m.role === 'assistant' && m.inputTokens)
     .at(-1)
   const lastInputTokens = lastAssistantMsg?.inputTokens ?? null
+  // 对话级累计 token
+  const totalTokens = conversation?.totalInputTokens ?? null
 
   // Load provider and model data on mount
   useEffect(() => {
@@ -253,6 +256,26 @@ export function ChatInput() {
     [getCurrentConversation, getCurrentProvider, getCurrentModel, temperature]
   )
 
+  // / 斜杠命令：immediate 命令直接走对应 handler
+  const executeSlashCommand = useCallback(
+    async (cmd: string) => {
+      if (await handleMemoryCommand(cmd)) return
+      if (await handleCompactCommand(cmd)) return
+    },
+    [handleMemoryCommand, handleCompactCommand]
+  )
+
+  const {
+    handleInputChange: handleSlashChange,
+    handleKeyDown: handleSlashKeyDown,
+    slashMenu,
+  } = useSlashCommand({
+    inputValue: input,
+    onInputChange: handleMentionChange,
+    onExecute: executeSlashCommand,
+    textareaRef,
+  })
+
   const handleSend = async () => {
     if (!input.trim() && pendingAttachments.length === 0) return
 
@@ -326,6 +349,8 @@ export function ChatInput() {
   }
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    // / 斜杠命令键盘导航优先
+    if (handleSlashKeyDown(e)) return
     // @ mention 键盘导航优先
     if (handleMentionKeyDown(e)) return
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -380,9 +405,9 @@ export function ChatInput() {
                 <textarea
                   ref={textareaRef}
                   value={input}
-                  onChange={e => handleMentionChange(e.target.value)}
+                  onChange={e => handleSlashChange(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="从任何想法开始… (输入 @ 选择 Skill)"
+                  placeholder="从任何想法开始… (/ 命令, @ 选择 Skill)"
                   aria-label="Message input"
                   className="w-full resize-none bg-transparent text-[15px] min-h-[60px] max-h-[200px] focus:outline-none"
                   rows={3}
@@ -433,6 +458,7 @@ export function ChatInput() {
                   {/* Context Usage Indicator */}
                   <ContextIndicator
                     usedTokens={lastInputTokens}
+                    totalConsumed={totalTokens}
                     contextLength={currentModel?.contextLength ?? null}
                   />
                 </div>
@@ -483,6 +509,9 @@ export function ChatInput() {
 
       {/* @ Skill Mention 浮层 */}
       {mentionMenu}
+
+      {/* / 斜杠命令浮层 */}
+      {slashMenu}
     </>
   )
 }

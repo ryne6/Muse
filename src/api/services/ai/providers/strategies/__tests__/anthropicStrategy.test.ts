@@ -94,6 +94,52 @@ describe('anthropicStrategy', () => {
     expect(logSpy).toHaveBeenCalled()
   })
 
+  it('should inject system fallback into first user message for non-anthropic endpoints', () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const messages: AIMessage[] = [
+      { role: 'system', content: 'You are Crow, a desktop AI chat agent.' },
+      { role: 'user', content: 'Please help me refactor this function.' },
+    ]
+
+    const body = anthropicStrategy.buildBody(
+      messages,
+      { ...baseConfig, baseURL: 'https://gateway.example.com' },
+      { stream: true }
+    )
+
+    expect(body.system).toBe('You are Crow, a desktop AI chat agent.')
+    expect(body.messages).toHaveLength(1)
+    expect(body.messages[0].role).toBe('user')
+    expect(body.messages[0].content).toContain(
+      'You are Crow, a desktop AI chat agent.'
+    )
+    expect(body.messages[0].content).toContain(
+      'Please help me refactor this function.'
+    )
+    expect(logSpy).toHaveBeenCalled()
+  })
+
+  it('should not inject fallback for official anthropic endpoint', () => {
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
+    const messages: AIMessage[] = [
+      { role: 'system', content: 'You are Crow, a desktop AI chat agent.' },
+      { role: 'user', content: 'Please help me refactor this function.' },
+    ]
+
+    const body = anthropicStrategy.buildBody(
+      messages,
+      { ...baseConfig, baseURL: 'https://api.anthropic.com' },
+      { stream: true }
+    )
+
+    expect(body.messages).toHaveLength(1)
+    expect(body.messages[0]).toEqual({
+      role: 'user',
+      content: 'Please help me refactor this function.',
+    })
+    expect(logSpy).toHaveBeenCalled()
+  })
+
   it('should force temperature=1 and include thinking settings when enabled', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
 

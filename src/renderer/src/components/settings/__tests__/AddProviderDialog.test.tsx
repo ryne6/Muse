@@ -107,4 +107,34 @@ describe('AddProviderDialog', () => {
       expect(onProviderAdded).toHaveBeenCalled()
     })
   })
+
+  it('should pass apiFormat when testing provider connection', async () => {
+    const user = (await import('@testing-library/user-event')).default.setup()
+
+    render(<AddProviderDialog onProviderAdded={vi.fn()} />)
+
+    await user.click(screen.getByRole('button', { name: 'Add Provider' }))
+    await user.click(screen.getByRole('button', { name: /Custom/i }))
+
+    await user.type(screen.getByPlaceholderText('sk-...'), 'sk-test')
+
+    const apiFormatSelect = screen.getByDisplayValue(
+      'Chat Completions (/chat/completions)'
+    )
+    await user.selectOptions(
+      apiFormatSelect,
+      'anthropic-messages'
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Test' }))
+
+    await waitFor(() => {
+      expect(mockApiClient.validateProvider).toHaveBeenCalledWith(
+        'custom',
+        expect.objectContaining({
+          apiFormat: 'anthropic-messages',
+        })
+      )
+    })
+  })
 })

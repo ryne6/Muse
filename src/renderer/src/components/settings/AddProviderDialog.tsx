@@ -70,7 +70,7 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
         type: template.type,
         apiKey: '',
         baseURL: template.baseURL,
-        apiFormat: 'chat-completions',
+        apiFormat: template.apiFormat || 'chat-completions',
       })
       setValidationResult(null)
     }
@@ -94,6 +94,7 @@ export function AddProviderDialog({ onProviderAdded }: AddProviderDialogProps) {
         apiKey: formData.apiKey,
         model: defaultModel,
         baseURL: formData.baseURL || undefined,
+        apiFormat: formData.apiFormat,
         temperature: 1,
         maxTokens: 100,
       })

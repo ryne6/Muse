@@ -30,6 +30,51 @@ function convertContent(content: string | MessageContent[]): string | any[] {
   })
 }
 
+function extractSystemText(systemMessage?: AIMessage): string {
+  if (!systemMessage) return ''
+  if (typeof systemMessage.content === 'string') return systemMessage.content
+  return (systemMessage.content as any[]).map((b: any) => b.text || '').join('\n')
+}
+
+function shouldInjectSystemFallback(config: AIConfig): boolean {
+  if (!config.baseURL) return false
+  try {
+    const host = new URL(config.baseURL).hostname.toLowerCase()
+    return !host.endsWith('anthropic.com')
+  } catch {
+    // Invalid or non-standard URL for custom gateways: prefer fallback for compatibility
+    return true
+  }
+}
+
+function withSystemFallback(
+  messages: AIMessage[],
+  systemText: string
+): AIMessage[] {
+  if (!systemText) return messages
+
+  const fallbackHeader = '[System Instructions - Compatibility Fallback]'
+  const fallbackText = `${fallbackHeader}\n${systemText}`
+
+  const firstUserIndex = messages.findIndex(m => m.role === 'user')
+  if (firstUserIndex === -1) {
+    return [{ role: 'user', content: fallbackText }, ...messages]
+  }
+
+  return messages.map((msg, index) => {
+    if (index !== firstUserIndex) return msg
+
+    if (typeof msg.content === 'string') {
+      return { ...msg, content: `${fallbackText}\n\n${msg.content}` }
+    }
+
+    return {
+      ...msg,
+      content: [{ type: 'text', text: fallbackText }, ...msg.content],
+    }
+  })
+}
+
 export const anthropicStrategy: ProviderStrategy = {
   getEndpoint: () => '/v1/messages',
   buildHeaders: (config: AIConfig) => ({
@@ -44,7 +89,12 @@ export const anthropicStrategy: ProviderStrategy = {
   ) => {
     // Extract system message
     const systemMessage = messages.find(m => m.role === 'system')
-    const conversationMessages = messages.filter(m => m.role !== 'system')
+    const systemText = extractSystemText(systemMessage)
+    let conversationMessages = messages.filter(m => m.role !== 'system')
+
+    if (systemText && shouldInjectSystemFallback(config)) {
+      conversationMessages = withSystemFallback(conversationMessages, systemText)
+    }
 
     const thinkingBudget = config.thinkingBudget ?? 10000
     const responseTokens = config.maxTokens ?? 8192
@@ -66,12 +116,7 @@ export const anthropicStrategy: ProviderStrategy = {
 
     // Add system prompt if present
     if (systemMessage) {
-      body.system =
-        typeof systemMessage.content === 'string'
-          ? systemMessage.content
-          : (systemMessage.content as any[])
-              .map((b: any) => b.text || '')
-              .join('\n')
+      body.system = systemText
     }
 
     if (config.thinkingEnabled) {

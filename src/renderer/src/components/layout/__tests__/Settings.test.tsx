@@ -45,6 +45,12 @@ vi.mock('../../settings/ProviderConfigDialog', () => ({
 describe('Settings', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    ;(window.api.api.getVersion as any).mockResolvedValue('0.0.9-test')
+    ;(window.api.updater.check as any).mockResolvedValue({
+      success: true,
+      version: '0.0.9-test',
+      available: false,
+    })
   })
 
   describe('关闭状态测试', () => {
@@ -125,6 +131,24 @@ describe('Settings', () => {
         expect(
           screen.getByText('More settings coming soon.')
         ).toBeInTheDocument()
+      })
+    })
+
+    it('should check version from General tab', async () => {
+      const user = userEvent.setup()
+      render(<Settings />)
+
+      await user.click(screen.getByText('Settings'))
+      await user.click(screen.getByText('General'))
+
+      await waitFor(() => {
+        expect(screen.getByText('Current: v0.0.9-test')).toBeInTheDocument()
+      })
+
+      await user.click(screen.getByRole('button', { name: 'Check Version' }))
+
+      await waitFor(() => {
+        expect(window.api.updater.check).toHaveBeenCalledTimes(1)
       })
     })
 

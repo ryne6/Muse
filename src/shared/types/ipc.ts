@@ -79,6 +79,7 @@ export interface ElectronBridge {
 export interface IpcApi {
   api: {
     getPort: () => Promise<number | null>
+    getVersion: () => Promise<string>
   }
   fs: {
     readFile: (path: string) => Promise<{ content: string }>
@@ -287,7 +288,12 @@ export interface IpcApi {
     deleteByType: (type: string) => Promise<{ success: boolean }>
   }
   updater: {
-    check: () => Promise<{ success: boolean; error?: string }>
+    check: () => Promise<{
+      success: boolean
+      version?: string
+      available?: boolean
+      error?: string
+    }>
     download: () => Promise<{ success: boolean; error?: string }>
     install: () => void
     onStatus: (

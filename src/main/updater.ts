@@ -17,6 +17,8 @@ export interface UpdateStatus {
 }
 
 let mainWindow: BrowserWindow | null = null
+const UPDATER_DISABLED_ERROR =
+  'Auto-update is only available in packaged builds.'
 
 // 清理旧 bundle ID (com.muse.app) 遗留的更新缓存
 function cleanupLegacyCache() {
@@ -48,8 +50,12 @@ function sendStatusToWindow(status: UpdateStatus) {
 export function initUpdater(window: BrowserWindow) {
   mainWindow = window
 
+  const updaterEnabled = app.isPackaged
+
   // 清理旧 bundle ID (com.muse.app) 的更新缓存
-  cleanupLegacyCache()
+  if (updaterEnabled) {
+    cleanupLegacyCache()
+  }
 
   // Configure auto updater
   autoUpdater.autoDownload = false
@@ -85,15 +91,31 @@ export function initUpdater(window: BrowserWindow) {
 
   // Register IPC handlers
   ipcMain.handle('updater:check', async () => {
+    if (!updaterEnabled) {
+      return { success: false, available: false, error: UPDATER_DISABLED_ERROR }
+    }
+
     try {
       const result = await autoUpdater.checkForUpdates()
-      return { success: true, version: result?.updateInfo.version }
+      return {
+        success: true,
+        version: result?.updateInfo.version,
+        available: result?.isUpdateAvailable ?? false,
+      }
     } catch (error) {
-      return { success: false, error: (error as Error).message }
+      return {
+        success: false,
+        available: false,
+        error: (error as Error).message,
+      }
     }
   })
 
   ipcMain.handle('updater:download', async () => {
+    if (!updaterEnabled) {
+      return { success: false, error: UPDATER_DISABLED_ERROR }
+    }
+
     try {
       await autoUpdater.downloadUpdate()
       return { success: true }
@@ -103,10 +125,13 @@ export function initUpdater(window: BrowserWindow) {
   })
 
   ipcMain.handle('updater:install', () => {
+    if (!updaterEnabled) return
     autoUpdater.quitAndInstall()
   })
 
   // Check for updates on startup (after a delay)
+  if (!updaterEnabled) return
+
   setTimeout(() => {
     autoUpdater.checkForUpdates().catch(() => {
       // Silently ignore errors on startup check

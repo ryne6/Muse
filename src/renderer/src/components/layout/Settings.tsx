@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Modal } from '@lobehub/ui'
 import { Button } from '../ui/button'
-import { Settings as SettingsIcon } from 'lucide-react'
+import { RefreshCw, Settings as SettingsIcon } from 'lucide-react'
 import { cn } from '~/utils/cn'
 import { ProviderList } from '../settings/ProviderList'
 import { ProviderConfigDialog } from '../settings/ProviderConfigDialog'
@@ -12,6 +12,7 @@ import { MemorySettings } from '../settings/MemorySettings'
 import { WebSearchSettings } from '../settings/WebSearchSettings'
 import { dbClient, type ProviderRecord as Provider } from '~/services/dbClient'
 import { applyUIFont } from '~/services/fontService'
+import { notify } from '~/utils/notify'
 
 type Tab =
   | 'providers'
@@ -32,6 +33,11 @@ export function Settings({ showText = true }: SettingsComponentProps) {
   const [activeTab, setActiveTab] = useState<Tab>('providers')
   const [configProvider, setConfigProvider] = useState<Provider | null>(null)
   const [showConfigDialog, setShowConfigDialog] = useState(false)
+  const [appVersion, setAppVersion] = useState<string>('Unknown')
+  const [checkingVersion, setCheckingVersion] = useState(false)
+  const [checkedLatestVersion, setCheckedLatestVersion] = useState<
+    string | null
+  >(null)
 
   // Load and apply saved UI font on mount
   useEffect(() => {
@@ -53,6 +59,26 @@ export function Settings({ showText = true }: SettingsComponentProps) {
     }
   }, [])
 
+  useEffect(() => {
+    let mounted = true
+
+    const loadVersion = async () => {
+      try {
+        const version = await window.api?.api?.getVersion?.()
+        if (mounted && version) {
+          setAppVersion(version)
+        }
+      } catch {
+        // Ignore in environments without IPC (tests/dev tools)
+      }
+    }
+
+    void loadVersion()
+    return () => {
+      mounted = false
+    }
+  }, [])
+
   const handleConfigureProvider = (provider: Provider) => {
     setConfigProvider(provider)
     setShowConfigDialog(true)
@@ -61,6 +87,45 @@ export function Settings({ showText = true }: SettingsComponentProps) {
   const handleCloseConfigDialog = () => {
     setShowConfigDialog(false)
     setConfigProvider(null)
+  }
+
+  const handleCheckVersion = async () => {
+    if (!window.api?.updater?.check) {
+      notify.info('Update checker is unavailable in this environment')
+      return
+    }
+
+    try {
+      setCheckingVersion(true)
+      const result = await window.api.updater.check()
+
+      if (!result.success) {
+        notify.error(result.error || 'Failed to check for updates')
+        return
+      }
+
+      if (result.version) {
+        setCheckedLatestVersion(result.version)
+      }
+
+      if (result.available && result.version) {
+        notify.success(`New version available: v${result.version}`)
+        return
+      }
+
+      if (result.version) {
+        notify.info(`You are on the latest version (v${result.version})`)
+        return
+      }
+
+      notify.info('Version check completed')
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to check for updates'
+      notify.error(message)
+    } finally {
+      setCheckingVersion(false)
+    }
   }
 
   return (
@@ -217,6 +282,29 @@ export function Settings({ showText = true }: SettingsComponentProps) {
                 <p className="text-[hsl(var(--text-muted))]">
                   More settings coming soon.
                 </p>
+                <div className="mt-6 max-w-xl rounded-xl border border-[hsl(var(--border))] p-4 space-y-3">
+                  <div>
+                    <p className="text-sm font-medium">Version</p>
+                    <p className="text-xs text-[hsl(var(--text-muted))] mt-1">
+                      Current: v{appVersion}
+                    </p>
+                    {checkedLatestVersion && (
+                      <p className="text-xs text-[hsl(var(--text-muted))] mt-1">
+                        Latest checked: v{checkedLatestVersion}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    onClick={handleCheckVersion}
+                    disabled={checkingVersion}
+                  >
+                    {checkingVersion && (
+                      <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    )}
+                    Check Version
+                  </Button>
+                </div>
               </div>
             )}
           </div>

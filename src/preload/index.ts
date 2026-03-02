@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('electron', {
 const api: IpcApi = {
   api: {
     getPort: () => ipcRenderer.invoke('api:get-port'),
+    getVersion: () => ipcRenderer.invoke('api:get-version'),
   },
   fs: {
     readFile: (path: string) => ipcRenderer.invoke('fs:readFile', { path }),

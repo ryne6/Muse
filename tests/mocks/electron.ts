@@ -63,6 +63,10 @@ export const mockElectron = {
  * 这是渲染进程中实际使用的 API 结构
  */
 export const mockWindowApi = {
+  api: {
+    getPort: vi.fn(async () => 2323),
+    getVersion: vi.fn(async () => '0.0.9-test')
+  },
   workspace: {
     get: vi.fn(async () => ({
       path: '/test/workspace/path'
@@ -93,6 +97,16 @@ export const mockWindowApi = {
     getAll: vi.fn(async () => []),
     getContent: vi.fn(async () => ''),
     getCount: vi.fn(async () => 0),
+  },
+  updater: {
+    check: vi.fn(async () => ({
+      success: true,
+      version: '0.0.9-test',
+      available: false
+    })),
+    download: vi.fn(async () => ({ success: true })),
+    install: vi.fn(),
+    onStatus: vi.fn(() => () => {})
   },
   ipc: {
     invoke: vi.fn(async (channel: string, ...args: any[]) => {

@@ -156,10 +156,9 @@ app.whenReady().then(async () => {
 
   const mainWindow = createWindow()
 
-  // Initialize auto-updater (only in production)
-  if (app.isPackaged) {
-    initUpdater(mainWindow)
-  }
+  // Initialize updater IPC handlers in all environments.
+  // Actual update checks are still guarded in updater.ts for packaged builds.
+  initUpdater(mainWindow)
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
@@ -173,6 +172,10 @@ function registerIpcHandlers() {
   // API port
   ipcMain.handle('api:get-port', () => {
     return getApiPort()
+  })
+
+  ipcMain.handle('api:get-version', () => {
+    return app.getVersion()
   })
 
   // File operations

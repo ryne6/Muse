@@ -1,6 +1,6 @@
 {
   "name": "crow",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "AI-powered desktop chat agent with multi-provider support",
   "main": "./out/main/index.js",
   "author": "ryne6",

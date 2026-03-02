@@ -116,7 +116,11 @@ export class GeminiProvider extends BaseAIProvider {
     model: string,
     onChunk: (chunk: AIStreamChunk) => void
   ): Promise<string> {
-    const geminiMessages: GeminiMessage[] = messages.map(msg => ({
+    // 提取 system message，用 systemInstruction 传递
+    const systemMessage = messages.find(m => m.role === 'system')
+    const conversationMessages = messages.filter(m => m.role !== 'system')
+
+    const geminiMessages: GeminiMessage[] = conversationMessages.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: this.convertContent(msg.content),
     }))
@@ -124,7 +128,7 @@ export class GeminiProvider extends BaseAIProvider {
     const history = geminiMessages.slice(0, -1)
     const lastMessage = geminiMessages[geminiMessages.length - 1]
 
-    const requestBody = {
+    const requestBody: Record<string, unknown> = {
       contents: [
         ...history.map(msg => ({
           role: msg.role,
@@ -139,6 +143,12 @@ export class GeminiProvider extends BaseAIProvider {
         temperature: config.temperature ?? 1,
         maxOutputTokens: config.maxTokens ?? 10000000,
       },
+    }
+
+    if (systemMessage) {
+      requestBody.systemInstruction = {
+        parts: this.convertContent(systemMessage.content),
+      }
     }
 
     const url = `${baseURL}/models/${model}:streamGenerateContent?key=${apiKey}&alt=sse`
@@ -231,12 +241,16 @@ export class GeminiProvider extends BaseAIProvider {
     apiKey: string,
     model: string
   ): Promise<string> {
-    const geminiMessages: GeminiMessage[] = messages.map(msg => ({
+    // 提取 system message
+    const systemMessage = messages.find(m => m.role === 'system')
+    const conversationMessages = messages.filter(m => m.role !== 'system')
+
+    const geminiMessages: GeminiMessage[] = conversationMessages.map(msg => ({
       role: msg.role === 'user' ? 'user' : 'model',
       parts: this.convertContent(msg.content),
     }))
 
-    const requestBody = {
+    const requestBody: Record<string, unknown> = {
       contents: geminiMessages.map(msg => ({
         role: msg.role,
         parts: msg.parts,
@@ -245,6 +259,12 @@ export class GeminiProvider extends BaseAIProvider {
         temperature: config.temperature ?? 1,
         maxOutputTokens: config.maxTokens ?? 10000000,
       },
+    }
+
+    if (systemMessage) {
+      requestBody.systemInstruction = {
+        parts: this.convertContent(systemMessage.content),
+      }
     }
 
     const url = `${baseURL}/models/${model}:generateContent?key=${apiKey}`

@@ -112,9 +112,9 @@ Renderer → HTTP → Hono API → AI Provider → Streaming Response
 | IPC 类型 + MemoryRecord | `src/shared/types/ipc.ts` |
 
 **Path Aliases:**
-- `@/` → `src/renderer/src/`
-- `@shared/` → `src/shared/`
-- `@main/` → `src/main/`
+- `~/` → `src/renderer/src/`
+- `~shared/` → `src/shared/`
+- `~main/` → `src/main/`
 
 ---
 

@@ -5,7 +5,7 @@ import { render, screen } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
 import { MessageItem } from '../MessageItem'
 
-vi.mock('~/assets/providers/logo.png', () => ({
+vi.mock('../../../../../build/icon.png', () => ({
   default: 'logo.png',
 }))
 

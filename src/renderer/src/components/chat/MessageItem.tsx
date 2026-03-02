@@ -1,5 +1,5 @@
 import { memo, useCallback } from 'react'
-import logoImage from '~/assets/providers/logo.png'
+import logoImage from '../../../../../build/icon.png'
 import { useConversationStore } from '~/stores/conversationStore'
 import { MarkdownRenderer } from './MarkdownRenderer'
 import { ToolCallsList } from './ToolCallsList'

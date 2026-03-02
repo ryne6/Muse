@@ -10,17 +10,8 @@ import { SkillsSettings } from '../settings/SkillsSettings'
 import { PromptsSettings } from '../settings/PromptsSettings'
 import { MemorySettings } from '../settings/MemorySettings'
 import { WebSearchSettings } from '../settings/WebSearchSettings'
-import { dbClient } from '~/services/dbClient'
+import { dbClient, type ProviderRecord as Provider } from '~/services/dbClient'
 import { applyUIFont } from '~/services/fontService'
-
-interface Provider {
-  id: string
-  name: string
-  type: string
-  apiKey: string
-  baseURL?: string
-  enabled: boolean
-}
 
 type Tab =
   | 'providers'

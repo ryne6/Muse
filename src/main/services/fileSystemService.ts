@@ -6,6 +6,8 @@ import fg from 'fast-glob'
 import type { FileInfo, CommandResult } from '../../shared/types/ipc'
 
 const execAsync = promisify(exec)
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : String(error)
 
 export class FileSystemService {
   private workspacePath: string | null = null
@@ -20,8 +22,8 @@ export class FileSystemService {
 
       const content = await fs.readFile(path, 'utf-8')
       return content
-    } catch (error: any) {
-      throw new Error(`Failed to read file: ${error.message}`)
+    } catch (error: unknown) {
+      throw new Error(`Failed to read file: ${getErrorMessage(error)}`)
     }
   }
 
@@ -29,8 +31,8 @@ export class FileSystemService {
     try {
       await fs.writeFile(path, content, 'utf-8')
       return true
-    } catch (error: any) {
-      throw new Error(`Failed to write file: ${error.message}`)
+    } catch (error: unknown) {
+      throw new Error(`Failed to write file: ${getErrorMessage(error)}`)
     }
   }
 
@@ -44,8 +46,8 @@ export class FileSystemService {
         onlyFiles: true,
       })
       return files.slice(0, 500)
-    } catch (error: any) {
-      throw new Error(`Failed to glob files: ${error.message}`)
+    } catch (error: unknown) {
+      throw new Error(`Failed to glob files: ${getErrorMessage(error)}`)
     }
   }
 
@@ -77,8 +79,8 @@ export class FileSystemService {
       }
 
       return results
-    } catch (error: any) {
-      throw new Error(`Failed to grep files: ${error.message}`)
+    } catch (error: unknown) {
+      throw new Error(`Failed to grep files: ${getErrorMessage(error)}`)
     }
   }
 
@@ -123,8 +125,8 @@ export class FileSystemService {
 
       await fs.writeFile(path, updated, 'utf-8')
       return replaced
-    } catch (error: any) {
-      throw new Error(`Failed to edit file: ${error.message}`)
+    } catch (error: unknown) {
+      throw new Error(`Failed to edit file: ${getErrorMessage(error)}`)
     }
   }
 
@@ -160,8 +162,8 @@ export class FileSystemService {
         }
         return a.name.localeCompare(b.name)
       })
-    } catch (error: any) {
-      throw new Error(`Failed to list files: ${error.message}`)
+    } catch (error: unknown) {
+      throw new Error(`Failed to list files: ${getErrorMessage(error)}`)
     }
   }
 
@@ -178,8 +180,8 @@ export class FileSystemService {
     try {
       await fs.mkdir(path, { recursive: true })
       return true
-    } catch (error: any) {
-      throw new Error(`Failed to create directory: ${error.message}`)
+    } catch (error: unknown) {
+      throw new Error(`Failed to create directory: ${getErrorMessage(error)}`)
     }
   }
 
@@ -207,10 +209,10 @@ export class FileSystemService {
         output: stdout,
         error: stderr || undefined,
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         output: '',
-        error: error.message || 'Command execution failed',
+        error: getErrorMessage(error) || 'Command execution failed',
       }
     }
   }

@@ -22,8 +22,20 @@ interface LocalStorageMessage {
   role: 'user' | 'assistant'
   content: string
   timestamp: number
-  toolCalls?: any[]
-  toolResults?: any[]
+  toolCalls?: LocalStorageToolCall[]
+  toolResults?: LocalStorageToolResult[]
+}
+
+interface LocalStorageToolCall {
+  id: string
+  name: string
+  input: Record<string, unknown>
+}
+
+interface LocalStorageToolResult {
+  toolCallId: string
+  output: string
+  isError?: boolean
 }
 
 interface LocalStorageSettings {
@@ -81,7 +93,7 @@ export class DataMigration {
             timestamp: new Date(msg.timestamp),
           })
 
-          // Migrate tool calls if any
+          // Migrate tool calls if present
           if (msg.toolCalls && msg.toolCalls.length > 0) {
             for (const toolCall of msg.toolCalls) {
               await MessageService.addToolCall(messageId, {
@@ -91,7 +103,7 @@ export class DataMigration {
             }
           }
 
-          // Migrate tool results if any
+          // Migrate tool results if present
           if (msg.toolResults && msg.toolResults.length > 0) {
             for (const toolResult of msg.toolResults) {
               // Find corresponding tool call

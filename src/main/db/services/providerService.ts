@@ -124,7 +124,9 @@ export class ProviderService {
   ) {
     const db = getDatabase()
 
-    const updateData: any = { ...data }
+    const updateData: Partial<Omit<NewProvider, 'id' | 'createdAt'>> = {
+      ...data,
+    }
 
     // Encrypt API key if provided
     if (data.apiKey) {

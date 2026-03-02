@@ -17,7 +17,7 @@ const app = new Hono()
 const aiManager = new AIManager()
 
 /**
- * Helper to create error response from any error
+ * Helper to create error response from unknown errors
  */
 function createErrorResponse(error: unknown): {
   error: ReturnType<AIError['toAPIError']>

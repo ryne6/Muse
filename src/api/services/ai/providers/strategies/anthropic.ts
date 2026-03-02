@@ -10,7 +10,15 @@ import type {
 } from './index'
 import { getAllTools } from '../../tools/definitions'
 
-function convertContent(content: string | MessageContent[]): string | any[] {
+function asRecord(value: unknown): Record<string, unknown> | undefined {
+  return value !== null && typeof value === 'object'
+    ? (value as Record<string, unknown>)
+    : undefined
+}
+
+function convertContent(
+  content: string | MessageContent[]
+): string | Array<Record<string, unknown>> {
   if (typeof content === 'string') return content
   return content.map(block => {
     if (block.type === 'text') {
@@ -33,7 +41,12 @@ function convertContent(content: string | MessageContent[]): string | any[] {
 function extractSystemText(systemMessage?: AIMessage): string {
   if (!systemMessage) return ''
   if (typeof systemMessage.content === 'string') return systemMessage.content
-  return (systemMessage.content as any[]).map((b: any) => b.text || '').join('\n')
+  return systemMessage.content
+    .filter((block): block is Extract<MessageContent, { type: 'text' }> =>
+      block.type === 'text'
+    )
+    .map(block => block.text)
+    .join('\n')
 }
 
 function shouldInjectSystemFallback(config: AIConfig): boolean {
@@ -133,50 +146,89 @@ export const anthropicStrategy: ProviderStrategy = {
     )
     return body
   },
-  parseStreamChunk: (parsed: any): StreamChunkResult | undefined => {
+  parseStreamChunk: (parsed: unknown): StreamChunkResult | undefined => {
+    const parsedRecord = asRecord(parsed)
+    if (!parsedRecord || typeof parsedRecord.type !== 'string') {
+      return undefined
+    }
+
     // Handle tool_use block start
-    if (parsed.type === 'content_block_start') {
-      if (parsed.content_block?.type === 'tool_use') {
+    if (parsedRecord.type === 'content_block_start') {
+      const contentBlock = asRecord(parsedRecord.content_block)
+      if (contentBlock?.type === 'tool_use') {
         return {
           toolCalls: [
             {
-              index: parsed.index,
-              id: parsed.content_block.id,
-              function: { name: parsed.content_block.name, arguments: '' },
+              index:
+                typeof parsedRecord.index === 'number'
+                  ? parsedRecord.index
+                  : undefined,
+              id:
+                typeof contentBlock.id === 'string'
+                  ? contentBlock.id
+                  : undefined,
+              function: {
+                name:
+                  typeof contentBlock.name === 'string'
+                    ? contentBlock.name
+                    : undefined,
+                arguments: '',
+              },
             },
           ],
         }
       }
     }
-    if (parsed.type === 'content_block_delta') {
+    if (parsedRecord.type === 'content_block_delta') {
+      const delta = asRecord(parsedRecord.delta)
       // Handle tool input JSON delta
-      if (parsed.delta?.type === 'input_json_delta') {
+      if (delta?.type === 'input_json_delta') {
         return {
           toolCalls: [
             {
-              index: parsed.index,
-              function: { arguments: parsed.delta.partial_json },
+              index:
+                typeof parsedRecord.index === 'number'
+                  ? parsedRecord.index
+                  : undefined,
+              function: {
+                arguments:
+                  typeof delta.partial_json === 'string'
+                    ? delta.partial_json
+                    : undefined,
+              },
             },
           ],
         }
       }
-      if (parsed.delta?.type === 'thinking_delta') {
+      if (delta?.type === 'thinking_delta') {
+        const thinking =
+          typeof delta.thinking === 'string' ? delta.thinking : undefined
         console.log(
           '[anthropic-strategy] Got thinking_delta:',
-          parsed.delta.thinking?.slice(0, 50)
+          thinking?.slice(0, 50)
         )
-        return { thinking: parsed.delta.thinking }
+        return { thinking }
       }
-      if (parsed.delta?.type === 'text_delta') {
-        return { content: parsed.delta.text }
+      if (delta?.type === 'text_delta' && typeof delta.text === 'string') {
+        return { content: delta.text }
       }
     }
     return undefined
   },
-  parseResponse: (result: any) => {
-    const textBlock = result.content?.find(
-      (block: any) => block.type === 'text'
-    )
-    return textBlock?.text || ''
+  parseResponse: (result: unknown) => {
+    const resultRecord = asRecord(result)
+    const contentBlocks = Array.isArray(resultRecord?.content)
+      ? resultRecord.content
+      : []
+    for (const block of contentBlocks) {
+      const blockRecord = asRecord(block)
+      if (
+        blockRecord?.type === 'text' &&
+        typeof blockRecord.text === 'string'
+      ) {
+        return blockRecord.text
+      }
+    }
+    return ''
   },
 }

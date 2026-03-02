@@ -8,6 +8,8 @@ import { WebBrowserService } from './services/webBrowserService'
 const app = new Hono()
 const fsService = new FileSystemService()
 const gitService = new GitService()
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : 'Internal server error'
 
 // CORS for local API access
 app.use(
@@ -29,7 +31,7 @@ app.post('/ipc/:channel', async c => {
   const body = await c.req.json()
 
   try {
-    let result: any
+    let result: Record<string, unknown> | { output: string; error?: string }
 
     switch (channel) {
       case 'fs:readFile':
@@ -146,9 +148,9 @@ app.post('/ipc/:channel', async c => {
     }
 
     return c.json(result)
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`[IPC Bridge] Error on ${channel}:`, error)
-    return c.json({ error: error.message || 'Internal server error' }, 500)
+    return c.json({ error: getErrorMessage(error) }, 500)
   }
 })
 

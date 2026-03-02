@@ -3,6 +3,7 @@ import { getDatabase, schema } from '../index'
 import type { NewSetting } from '../schema'
 
 const { settings } = schema
+type SettingValue = NewSetting['value']
 
 export class SettingsService {
   // Get all settings
@@ -11,7 +12,7 @@ export class SettingsService {
     const allSettings = await db.select().from(settings)
 
     // Convert to key-value object
-    const settingsObject: Record<string, any> = {}
+    const settingsObject: Record<string, SettingValue> = {}
     allSettings.forEach(setting => {
       settingsObject[setting.key] = setting.value
     })
@@ -34,7 +35,7 @@ export class SettingsService {
   }
 
   // Set setting
-  static async set(key: string, value: any) {
+  static async set(key: string, value: SettingValue) {
     const db = getDatabase()
 
     const newSetting: NewSetting = {
@@ -58,7 +59,7 @@ export class SettingsService {
   }
 
   // Set multiple settings
-  static async setMany(settingsObject: Record<string, any>) {
+  static async setMany(settingsObject: Record<string, SettingValue>) {
     const settingsArray: NewSetting[] = Object.entries(settingsObject).map(
       ([key, value]) => ({
         key,

@@ -1,4 +1,14 @@
 import Anthropic from '@anthropic-ai/sdk'
+import type {
+  ContentBlockParam,
+  MessageCreateParamsNonStreaming,
+  MessageCreateParamsStreaming,
+  MessageParam as AnthropicMessageParam,
+  RawMessageStreamEvent,
+  ToolResultBlockParam,
+  ToolUseBlock,
+  ToolUseBlockParam,
+} from '@anthropic-ai/sdk/resources/messages'
 import { BaseAIProvider } from './base'
 import type {
   AIMessage,
@@ -9,6 +19,19 @@ import type {
 } from '../../../../shared/types/ai'
 import { getAllTools } from '../tools/definitions'
 import { ToolExecutor } from '../tools/executor'
+
+interface ToolUseAccumulator {
+  id: string
+  name: string
+  input: Record<string, unknown>
+  inputJson?: string
+}
+
+type AnthropicImageMimeType =
+  | 'image/jpeg'
+  | 'image/png'
+  | 'image/gif'
+  | 'image/webp'
 
 export class ClaudeProvider extends BaseAIProvider {
   readonly name = 'claude'
@@ -27,26 +50,67 @@ export class ClaudeProvider extends BaseAIProvider {
   /**
    * Convert AIMessage content to Claude API format
    */
-  private convertContent(content: string | MessageContent[]): any {
+  private convertContent(
+    content: string | MessageContent[]
+  ): string | ContentBlockParam[] {
     if (typeof content === 'string') {
       return content
     }
 
-    return content.map(block => {
+    const blocks: ContentBlockParam[] = []
+    for (const block of content) {
       if (block.type === 'text') {
-        return { type: 'text', text: block.text }
+        blocks.push({ type: 'text', text: block.text })
       } else if (block.type === 'image') {
-        return {
+        const mimeType = this.toAnthropicImageMimeType(block.mimeType)
+        if (!mimeType) {
+          continue
+        }
+        blocks.push({
           type: 'image',
           source: {
             type: 'base64',
-            media_type: block.mimeType,
+            media_type: mimeType,
             data: block.data,
           },
-        }
+        })
       }
-      return block
-    })
+    }
+
+    return blocks
+  }
+
+  private toAnthropicImageMimeType(
+    mimeType: string
+  ): AnthropicImageMimeType | null {
+    return mimeType === 'image/jpeg' ||
+      mimeType === 'image/png' ||
+      mimeType === 'image/gif' ||
+      mimeType === 'image/webp'
+      ? mimeType
+      : null
+  }
+
+  private extractSystemText(content: AIMessage['content']): string {
+    if (typeof content === 'string') return content
+    return content
+      .filter((block): block is Extract<MessageContent, { type: 'text' }> =>
+        block.type === 'text'
+      )
+      .map(block => block.text)
+      .join('\n')
+  }
+
+  private parseToolInput(raw: string | undefined): Record<string, unknown> {
+    if (!raw) return {}
+    try {
+      const parsed: unknown = JSON.parse(raw)
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+        ? (parsed as Record<string, unknown>)
+        : {}
+    } catch {
+      return {}
+    }
   }
 
   async sendMessage(
@@ -101,29 +165,26 @@ export class ClaudeProvider extends BaseAIProvider {
 
     // Extract system message and conversation messages
     const systemMessage = messages.find(m => m.role === 'system')
-    const conversationMessages: any[] = messages
+    const conversationMessages: AnthropicMessageParam[] = messages
       .filter(m => m.role !== 'system')
       .map(m => ({
-        role: m.role,
+        role: m.role === 'assistant' ? 'assistant' : 'user',
         content: this.convertContent(m.content),
       }))
 
     while (true) {
       // Build request parameters
-      const requestParams: any = {
+      const requestParams: MessageCreateParamsStreaming = {
         model: config.model,
         max_tokens: config.maxTokens || 10000000,
         messages: conversationMessages,
-        tools: getAllTools(),
+        tools: getAllTools() as MessageCreateParamsStreaming['tools'],
         stream: true,
       }
 
       // Add system prompt if present
       if (systemMessage) {
-        requestParams.system =
-          typeof systemMessage.content === 'string'
-            ? systemMessage.content
-            : systemMessage.content.map((b: any) => b.text || '').join('\n')
+        requestParams.system = this.extractSystemText(systemMessage.content)
       }
 
       // Add thinking configuration if enabled
@@ -140,7 +201,7 @@ export class ClaudeProvider extends BaseAIProvider {
 
       const stream = (await client.messages.create(
         requestParams
-      )) as unknown as AsyncIterable<any>
+      )) as AsyncIterable<RawMessageStreamEvent>
       console.log(
         '[Claude] Request with thinking:',
         config.thinkingEnabled,
@@ -149,15 +210,16 @@ export class ClaudeProvider extends BaseAIProvider {
       )
 
       let currentContent = ''
-      const toolUses: any[] = []
+      const toolUses: ToolUseAccumulator[] = []
 
       for await (const chunk of stream) {
-        console.log('[Claude] Chunk:', chunk.type, (chunk as any).delta?.type)
+        console.log(
+          '[Claude] Chunk:',
+          chunk.type,
+          chunk.type === 'content_block_delta' ? chunk.delta.type : undefined
+        )
         if (chunk.type === 'content_block_start') {
-          console.log(
-            '[Claude] Block start:',
-            (chunk as any).content_block?.type
-          )
+          console.log('[Claude] Block start:', chunk.content_block.type)
           if (chunk.content_block.type === 'tool_use') {
             toolUses.push({
               id: chunk.content_block.id,
@@ -186,22 +248,14 @@ export class ClaudeProvider extends BaseAIProvider {
             }
           }
         } else if (chunk.type === 'message_start') {
-          if ((chunk as any).message?.usage) {
-            totalInputTokens += (chunk as any).message.usage.input_tokens || 0
-          }
+          totalInputTokens += chunk.message.usage.input_tokens || 0
         } else if (chunk.type === 'message_delta') {
-          if ((chunk as any).usage) {
-            totalOutputTokens += (chunk as any).usage.output_tokens || 0
-          }
+          totalOutputTokens += chunk.usage.output_tokens || 0
         } else if (chunk.type === 'message_stop') {
           // Parse tool inputs
           for (const tool of toolUses) {
             if (tool.inputJson) {
-              try {
-                tool.input = JSON.parse(tool.inputJson)
-              } catch (e) {
-                console.error('Failed to parse tool input:', e)
-              }
+              tool.input = this.parseToolInput(tool.inputJson)
             }
           }
         }
@@ -213,7 +267,7 @@ export class ClaudeProvider extends BaseAIProvider {
       }
 
       // Execute tools and continue conversation
-      const toolResults: any[] = []
+      const toolResults: ToolResultBlockParam[] = []
       for (const toolUse of toolUses) {
         // Send tool call info
         onChunk({
@@ -256,7 +310,7 @@ export class ClaudeProvider extends BaseAIProvider {
       // Add assistant message with tool uses and user message with tool results
       conversationMessages.push({
         role: 'assistant',
-        content: toolUses.map(t => ({
+        content: toolUses.map<ToolUseBlockParam>(t => ({
           type: 'tool_use',
           id: t.id,
           name: t.name,
@@ -288,10 +342,10 @@ export class ClaudeProvider extends BaseAIProvider {
 
     // Extract system message and conversation messages
     const systemMessage = messages.find(m => m.role === 'system')
-    const conversationMessages: any[] = messages
+    const conversationMessages: AnthropicMessageParam[] = messages
       .filter(m => m.role !== 'system')
       .map(m => ({
-        role: m.role,
+        role: m.role === 'assistant' ? 'assistant' : 'user',
         content: this.convertContent(m.content),
       }))
 
@@ -299,19 +353,16 @@ export class ClaudeProvider extends BaseAIProvider {
 
     while (true) {
       // Build request parameters
-      const requestParams: any = {
+      const requestParams: MessageCreateParamsNonStreaming = {
         model: config.model,
         max_tokens: config.maxTokens || 10000000,
         messages: conversationMessages,
-        tools: getAllTools(),
+        tools: getAllTools() as MessageCreateParamsNonStreaming['tools'],
       }
 
       // Add system prompt if present
       if (systemMessage) {
-        requestParams.system =
-          typeof systemMessage.content === 'string'
-            ? systemMessage.content
-            : systemMessage.content.map((b: any) => b.text || '').join('\n')
+        requestParams.system = this.extractSystemText(systemMessage.content)
       }
 
       // Add thinking configuration if enabled
@@ -339,7 +390,7 @@ export class ClaudeProvider extends BaseAIProvider {
 
       // Check for tool uses
       const toolUses = response.content.filter(
-        block => block.type === 'tool_use'
+        (block): block is ToolUseBlock => block.type === 'tool_use'
       )
 
       if (toolUses.length === 0) {
@@ -347,34 +398,38 @@ export class ClaudeProvider extends BaseAIProvider {
       }
 
       // Execute tools
-      const toolResults: any[] = []
+      const toolResults: ToolResultBlockParam[] = []
       for (const toolUse of toolUses) {
-        if (toolUse.type === 'tool_use') {
-          const result = await toolExecutor.execute(
-            toolUse.name,
-            toolUse.input,
-            {
-              toolCallId: toolUse.id,
-              toolPermissions: options?.toolPermissions,
-              allowOnceTools: options?.allowOnceTools,
-              sessionApprovedTools: options?.sessionApprovedTools
-                ? new Set(options.sessionApprovedTools)
-                : undefined,
-              permissionRules: options?.permissionRules,
-            }
-          )
-          toolResults.push({
-            type: 'tool_result',
-            tool_use_id: toolUse.id,
-            content: result,
-          })
-        }
+        const toolInput =
+          toolUse.input &&
+          typeof toolUse.input === 'object' &&
+          !Array.isArray(toolUse.input)
+            ? (toolUse.input as Record<string, unknown>)
+            : {}
+        const result = await toolExecutor.execute(
+          toolUse.name,
+          toolInput,
+          {
+            toolCallId: toolUse.id,
+            toolPermissions: options?.toolPermissions,
+            allowOnceTools: options?.allowOnceTools,
+            sessionApprovedTools: options?.sessionApprovedTools
+              ? new Set(options.sessionApprovedTools)
+              : undefined,
+            permissionRules: options?.permissionRules,
+          }
+        )
+        toolResults.push({
+          type: 'tool_result',
+          tool_use_id: toolUse.id,
+          content: result,
+        })
       }
 
       // Continue conversation
       conversationMessages.push({
         role: 'assistant',
-        content: response.content,
+        content: response.content as unknown as AnthropicMessageParam['content'],
       })
 
       conversationMessages.push({

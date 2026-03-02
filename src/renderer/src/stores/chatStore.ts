@@ -5,18 +5,17 @@ import { dbClient } from '../services/dbClient'
 import type {
   AIMessage,
   AIConfig,
+  AIStreamChunk,
   MessageContent,
   AIRequestOptions,
 } from '~shared/types/ai'
 import type { APIError } from '~shared/types/error'
-import { getErrorMessage } from '~shared/types/error'
+import { ErrorCode, getErrorMessage } from '~shared/types/error'
 import type { Message, ToolCall, ToolResult } from '~shared/types/conversation'
 import type { PendingAttachment } from '~shared/types/attachment'
 import type { ApprovalScope } from '~shared/types/toolPermissions'
 import { useConversationStore } from './conversationStore'
 import { useSettingsStore } from './settingsStore'
-
-import { getTextContent } from '~shared/types/ai'
 
 // TODO: Consider extracting memory-related logic into a dedicated memoryStore.ts
 
@@ -43,10 +42,7 @@ async function triggerMemoryExtraction(
     .slice(-10)
     .map(m => ({
       role: m.role,
-      content:
-        typeof m.content === 'string'
-          ? m.content
-          : getTextContent(m.content as any),
+      content: m.content,
     }))
 
   const result = await window.api.memory.extract({
@@ -573,7 +569,7 @@ export const useChatStore = create<ChatStore>((set, get) => ({
         if (skills.length > 0) {
           const skillsList = skills
             .map(
-              (s: any) =>
+              s =>
                 `- **${s.name}**: ${s.description || 'No description'}`
             )
             .join('\n')
@@ -674,7 +670,7 @@ Current workspace: ${workspacePath || 'Not set'}`
     useConversationStore.getState().addMessage(assistantMessage)
 
     // RAF-throttled streaming: buffer chunks and flush once per frame
-    let pendingChunks: any[] = []
+    let pendingChunks: AIStreamChunk[] = []
     let rafId: number | null = null
     let flushChunks: () => void = () => {}
 
@@ -763,7 +759,7 @@ Current workspace: ${workspacePath || 'Not set'}`
         }
       )
 
-      // Flush any remaining buffered chunks after stream ends
+      // Flush remaining buffered chunks after stream ends
       if (rafId !== null) {
         cancelAnimationFrame(rafId)
         rafId = null
@@ -845,7 +841,7 @@ Current workspace: ${workspacePath || 'Not set'}`
     } catch (error) {
       // Ignore abort errors (user cancelled)
       if (error instanceof Error && error.name === 'AbortError') {
-        // Flush any buffered chunks so already-received content is not lost
+        // Flush buffered chunks so already-received content is not lost
         if (rafId !== null) {
           cancelAnimationFrame(rafId)
           rafId = null
@@ -868,7 +864,7 @@ Current workspace: ${workspacePath || 'Not set'}`
         isRetryable = error.retryable
       } else if (error instanceof Error) {
         // Fallback for non-APIClientError
-        errorMessage = getErrorMessage(error.message as any) || error.message
+        errorMessage = error.message || getErrorMessage(ErrorCode.INTERNAL_ERROR)
       }
 
       // Update assistant message with error (use updateMessage to preserve sibling refs)

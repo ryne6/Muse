@@ -43,6 +43,52 @@ interface ConversationStore {
   getEffectiveWorkspace: () => string | null
 }
 
+interface DBConversationRow {
+  id: string
+  title: string
+  createdAt: Date | string | number
+  updatedAt: Date | string | number
+  workspace?: string | null
+  systemPrompt?: string | null
+  totalInputTokens?: number | null
+  totalOutputTokens?: number | null
+}
+
+interface DBMessageWithToolsRow {
+  id: string
+  role: Message['role']
+  content: string
+  thinking?: string | null
+  timestamp: Date | string | number
+  toolCalls?: Message['toolCalls']
+  toolResults?: Message['toolResults']
+  attachments?: Message['attachments']
+  inputTokens?: number | null
+  input_tokens?: number | null
+  outputTokens?: number | null
+  output_tokens?: number | null
+  durationMs?: number | null
+  duration_ms?: number | null
+  compressed?: boolean | null
+  summaryOf?: string | null
+  summary_of?: string | null
+}
+
+function parseSummaryOf(
+  raw: string | null | undefined
+): string[] | undefined {
+  if (!raw) return undefined
+  try {
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) &&
+      parsed.every((id): id is string => typeof id === 'string')
+      ? parsed
+      : undefined
+  } catch {
+    return undefined
+  }
+}
+
 export const useConversationStore = create<ConversationStore>((set, get) => ({
   conversations: [],
   currentConversationId: localStorage.getItem('currentConversationId') || null,
@@ -57,7 +103,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
       const dbConversations = await dbClient.conversations.getAll()
 
       // Only load metadata, messages will be loaded on demand
-      const conversations = dbConversations.map((conv: any) => ({
+      const conversations = (dbConversations as DBConversationRow[]).map(conv => ({
         id: conv.id,
         title: conv.title,
         createdAt: new Date(conv.createdAt).getTime(),
@@ -202,7 +248,7 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         typeof window !== 'undefined' ? window.api?.attachments : undefined
 
       const messagesWithAttachments = await Promise.all(
-        messages.map(async (msg: any) => {
+        (messages as DBMessageWithToolsRow[]).map(async msg => {
           const attachments = attachmentsApi?.getPreviewsByMessageId
             ? await attachmentsApi.getPreviewsByMessageId(msg.id)
             : []
@@ -210,28 +256,20 @@ export const useConversationStore = create<ConversationStore>((set, get) => ({
         })
       )
 
-      const mappedMessages = messagesWithAttachments.map((msg: any) => ({
+      const mappedMessages = messagesWithAttachments.map(msg => ({
         id: msg.id,
         role: msg.role,
         content: msg.content,
-        thinking: msg.thinking,
+        thinking: msg.thinking ?? undefined,
         timestamp: new Date(msg.timestamp).getTime(),
         toolCalls: msg.toolCalls || [],
         toolResults: msg.toolResults || [],
         attachments: msg.attachments || [],
-        inputTokens: msg.inputTokens ?? msg.input_tokens,
-        outputTokens: msg.outputTokens ?? msg.output_tokens,
-        durationMs: msg.durationMs ?? msg.duration_ms,
+        inputTokens: msg.inputTokens ?? msg.input_tokens ?? undefined,
+        outputTokens: msg.outputTokens ?? msg.output_tokens ?? undefined,
+        durationMs: msg.durationMs ?? msg.duration_ms ?? undefined,
         compressed: msg.compressed ?? false,
-        summaryOf: (() => {
-          const raw = msg.summaryOf ?? msg.summary_of
-          if (!raw) return undefined
-          try {
-            return JSON.parse(raw)
-          } catch {
-            return undefined
-          }
-        })(),
+        summaryOf: parseSummaryOf(msg.summaryOf ?? msg.summary_of),
       }))
 
       set(state => ({

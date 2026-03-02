@@ -15,7 +15,8 @@ export function SystemStatus() {
   const checkServerHealth = async () => {
     setIsChecking(true)
     try {
-      const healthy = await window.api.ipc.invoke('check-server-health')
+      const healthy =
+        await window.api.ipc.invoke<boolean>('check-server-health')
       setIsServerHealthy(healthy)
     } catch (error) {
       setIsServerHealthy(false)

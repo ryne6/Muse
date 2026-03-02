@@ -39,10 +39,51 @@ const TODO_STATUS_MARKERS: Record<string, string> = {
   done: 'x',
 }
 
+interface TodoInput {
+  status: string
+  title?: string
+  notes?: string
+}
+
+interface GrepResult {
+  file: string
+  line: number
+  content: string
+}
+
+interface WebSearchResult {
+  title: string
+  url?: string
+  snippet?: string
+}
+
+interface ListFileEntry {
+  name: string
+  isDirectory: boolean
+  size: number
+}
+
+function getBridgeErrorMessage(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const responseData = error.response?.data
+    const errorMessage =
+      responseData !== null &&
+      typeof responseData === 'object' &&
+      'error' in responseData &&
+      typeof responseData.error === 'string'
+        ? responseData.error
+        : undefined
+    if (errorMessage) return errorMessage
+  }
+
+  if (error instanceof Error) return error.message
+  return 'Unknown error'
+}
+
 export class ToolExecutor {
   async execute(
     toolName: string,
-    input: any,
+    input: Record<string, unknown>,
     options: ToolExecutionOptions = {}
   ): Promise<string> {
     const decision = permissionEngine.evaluate(toolName, input, {
@@ -72,38 +113,50 @@ export class ToolExecutor {
     if (mcpManager.isMCPTool(toolName)) {
       try {
         return await mcpManager.callTool(toolName, input)
-      } catch (error: any) {
-        return `Error: ${error.message || 'MCP tool execution failed'}`
+      } catch (error: unknown) {
+        return `Error: ${getBridgeErrorMessage(error) || 'MCP tool execution failed'}`
       }
     }
 
     try {
       switch (toolName) {
         case 'Read':
-          return await this.readFile(input.path)
+          return await this.readFile(this.getStringValue(input, 'path'))
 
         case 'Write':
-          return await this.writeFile(input.path, input.content)
+          return await this.writeFile(
+            this.getStringValue(input, 'path'),
+            this.getStringValue(input, 'content')
+          )
 
         case 'Edit':
           return await this.editFile(
-            input.path,
-            input.old_text,
-            input.new_text,
-            input.replace_all
+            this.getStringValue(input, 'path'),
+            this.getStringValue(input, 'old_text'),
+            this.getStringValue(input, 'new_text'),
+            this.getOptionalBooleanValue(input, 'replace_all')
           )
 
         case 'LS':
-          return await this.listFiles(input.path, input.pattern)
+          return await this.listFiles(
+            this.getStringValue(input, 'path'),
+            this.getOptionalStringValue(input, 'pattern')
+          )
 
         case 'Bash':
-          return await this.executeCommand(input.command, input.cwd)
+          return await this.executeCommand(
+            this.getStringValue(input, 'command'),
+            this.getOptionalStringValue(input, 'cwd')
+          )
 
         case 'TodoWrite':
           return this.formatTodoList(input)
 
         case 'Glob':
-          return await this.globFiles(input.pattern, input.path)
+          return await this.globFiles(
+            this.getStringValue(input, 'pattern'),
+            this.getOptionalStringValue(input, 'path')
+          )
 
         case 'Grep':
           return await this.grepFiles(input)
@@ -146,7 +199,10 @@ export class ToolExecutor {
           })
 
         case 'WebFetch':
-          return await this.webFetch(input?.url, input?.maxLength)
+          return await this.webFetch(
+            this.getStringValue(input, 'url'),
+            this.getOptionalNumberValue(input, 'maxLength')
+          )
 
         case 'WebSearch':
           return await this.webSearch(input)
@@ -154,8 +210,8 @@ export class ToolExecutor {
         default:
           throw new Error(`Unknown tool: ${toolName}`)
       }
-    } catch (error: any) {
-      return `Error: ${error.message || 'Tool execution failed'}`
+    } catch (error: unknown) {
+      return `Error: ${getBridgeErrorMessage(error) || 'Tool execution failed'}`
     }
   }
 
@@ -165,10 +221,8 @@ export class ToolExecutor {
         path,
       })
       return response.data.content
-    } catch (error: any) {
-      throw new Error(
-        `Failed to read file: ${error.response?.data?.error || error.message}`
-      )
+    } catch (error: unknown) {
+      throw new Error(`Failed to read file: ${getBridgeErrorMessage(error)}`)
     }
   }
 
@@ -184,10 +238,8 @@ export class ToolExecutor {
       } else {
         throw new Error('Write operation returned false')
       }
-    } catch (error: any) {
-      throw new Error(
-        `Failed to write file: ${error.response?.data?.error || error.message}`
-      )
+    } catch (error: unknown) {
+      throw new Error(`Failed to write file: ${getBridgeErrorMessage(error)}`)
     }
   }
 
@@ -207,20 +259,20 @@ export class ToolExecutor {
 
       const replaced = response.data.replaced
       return `Replaced ${replaced} occurrence${replaced === 1 ? '' : 's'} in ${path}`
-    } catch (error: any) {
-      throw new Error(
-        `Failed to edit file: ${error.response?.data?.error || error.message}`
-      )
+    } catch (error: unknown) {
+      throw new Error(`Failed to edit file: ${getBridgeErrorMessage(error)}`)
     }
   }
 
-  private formatTodoList(input: any): string {
-    const todos = Array.isArray(input?.todos) ? input.todos : null
+  private formatTodoList(input: Record<string, unknown>): string {
+    const todos = Array.isArray(input.todos)
+      ? (input.todos as TodoInput[])
+      : null
     if (!todos) {
       throw new Error('Todos must be provided as an array')
     }
 
-    const lines = todos.map((todo: any) => {
+    const lines = todos.map(todo => {
       const marker = TODO_STATUS_MARKERS[todo.status]
       if (!marker) {
         throw new Error(`Invalid todo status: ${todo.status}`)
@@ -249,14 +301,12 @@ export class ToolExecutor {
         return 'No matches found.'
       }
       return files.join('\n')
-    } catch (error: any) {
-      throw new Error(
-        `Failed to glob files: ${error.response?.data?.error || error.message}`
-      )
+    } catch (error: unknown) {
+      throw new Error(`Failed to glob files: ${getBridgeErrorMessage(error)}`)
     }
   }
 
-  private async grepFiles(input: any): Promise<string> {
+  private async grepFiles(input: Record<string, unknown>): Promise<string> {
     try {
       const response = await axios.post(`${IPC_BRIDGE_BASE}/ipc/fs:grep`, {
         pattern: input?.pattern,
@@ -270,18 +320,19 @@ export class ToolExecutor {
         return 'No matches found.'
       }
       return results
-        .map((result: any) => `${result.file}:${result.line} ${result.content}`)
+        .map(
+          (result: GrepResult) =>
+            `${result.file}:${result.line} ${result.content}`
+        )
         .join('\n')
-    } catch (error: any) {
-      throw new Error(
-        `Failed to grep files: ${error.response?.data?.error || error.message}`
-      )
+    } catch (error: unknown) {
+      throw new Error(`Failed to grep files: ${getBridgeErrorMessage(error)}`)
     }
   }
 
   private async gitCommand(
     channel: string,
-    payload: Record<string, any>
+    payload: Record<string, unknown>
   ): Promise<string> {
     try {
       const response = await axios.post(
@@ -294,9 +345,9 @@ export class ToolExecutor {
         return output ? `${output}\n${error}` : error
       }
       return output
-    } catch (error: any) {
+    } catch (error: unknown) {
       throw new Error(
-        `Failed to run git command: ${error.response?.data?.error || error.message}`
+        `Failed to run git command: ${getBridgeErrorMessage(error)}`
       )
     }
   }
@@ -308,14 +359,12 @@ export class ToolExecutor {
         maxLength,
       })
       return response.data.content
-    } catch (error: any) {
-      throw new Error(
-        `Failed to fetch URL: ${error.response?.data?.error || error.message}`
-      )
+    } catch (error: unknown) {
+      throw new Error(`Failed to fetch URL: ${getBridgeErrorMessage(error)}`)
     }
   }
 
-  private async webSearch(input: any): Promise<string> {
+  private async webSearch(input: Record<string, unknown>): Promise<string> {
     try {
       const response = await axios.post(`${IPC_BRIDGE_BASE}/ipc/web:search`, {
         query: input?.query,
@@ -328,17 +377,15 @@ export class ToolExecutor {
         return 'No results found.'
       }
       return results
-        .map((result: any, index: number) => {
+        .map((result: WebSearchResult, index: number) => {
           const lines = [`${index + 1}. ${result.title}`]
           if (result.url) lines.push(`   ${result.url}`)
           if (result.snippet) lines.push(`   ${result.snippet}`)
           return lines.join('\n')
         })
         .join('\n')
-    } catch (error: any) {
-      throw new Error(
-        `Failed to search web: ${error.response?.data?.error || error.message}`
-      )
+    } catch (error: unknown) {
+      throw new Error(`Failed to search web: ${getBridgeErrorMessage(error)}`)
     }
   }
 
@@ -355,7 +402,7 @@ export class ToolExecutor {
       }
 
       const fileList = files
-        .map((file: any) => {
+        .map((file: ListFileEntry) => {
           const type = file.isDirectory ? '[DIR]' : '[FILE]'
           const size = file.isDirectory ? '' : `(${this.formatSize(file.size)})`
           return `${type} ${file.name} ${size}`
@@ -363,10 +410,8 @@ export class ToolExecutor {
         .join('\n')
 
       return `Contents of ${path}:\n${fileList}`
-    } catch (error: any) {
-      throw new Error(
-        `Failed to list files: ${error.response?.data?.error || error.message}`
-      )
+    } catch (error: unknown) {
+      throw new Error(`Failed to list files: ${getBridgeErrorMessage(error)}`)
     }
   }
 
@@ -389,9 +434,9 @@ export class ToolExecutor {
       }
 
       return output
-    } catch (error: any) {
+    } catch (error: unknown) {
       throw new Error(
-        `Failed to execute command: ${error.response?.data?.error || error.message}`
+        `Failed to execute command: ${getBridgeErrorMessage(error)}`
       )
     }
   }
@@ -400,5 +445,34 @@ export class ToolExecutor {
     if (bytes < 1024) return `${bytes}B`
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`
     return `${(bytes / (1024 * 1024)).toFixed(1)}MB`
+  }
+
+  private getStringValue(input: Record<string, unknown>, key: string): string {
+    const value = input[key]
+    return typeof value === 'string' ? value : ''
+  }
+
+  private getOptionalStringValue(
+    input: Record<string, unknown>,
+    key: string
+  ): string | undefined {
+    const value = input[key]
+    return typeof value === 'string' ? value : undefined
+  }
+
+  private getOptionalBooleanValue(
+    input: Record<string, unknown>,
+    key: string
+  ): boolean | undefined {
+    const value = input[key]
+    return typeof value === 'boolean' ? value : undefined
+  }
+
+  private getOptionalNumberValue(
+    input: Record<string, unknown>,
+    key: string
+  ): number | undefined {
+    const value = input[key]
+    return typeof value === 'number' ? value : undefined
   }
 }

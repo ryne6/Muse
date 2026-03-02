@@ -8,6 +8,12 @@ import type {
 import { getStrategy } from './strategies'
 import { ToolExecutor } from '../tools/executor'
 
+interface StreamToolCallBuffer {
+  id: string
+  name: string
+  arguments: string
+}
+
 // Generic OpenAI-compatible provider for Moonshot, OpenRouter, and custom APIs
 export class GenericProvider extends BaseAIProvider {
   readonly name = 'generic'
@@ -97,7 +103,7 @@ export class GenericProvider extends BaseAIProvider {
       const decoder = new TextDecoder()
       let buffer = ''
       let currentContent = ''
-      const toolCalls: any[] = []
+      const toolCalls: StreamToolCallBuffer[] = []
 
       try {
         while (true) {

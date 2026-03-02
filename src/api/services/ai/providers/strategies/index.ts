@@ -6,10 +6,19 @@ export interface StrategyOptions {
   stream: boolean
 }
 
+export interface StreamToolCallDelta {
+  index?: number
+  id?: string
+  function?: {
+    name?: string
+    arguments?: string
+  }
+}
+
 export interface StreamChunkResult {
   content?: string
   thinking?: string
-  toolCalls?: any[]
+  toolCalls?: StreamToolCallDelta[]
 }
 
 export interface ProviderStrategy {
@@ -19,9 +28,9 @@ export interface ProviderStrategy {
     messages: AIMessage[],
     config: AIConfig,
     options: StrategyOptions
-  ) => any
-  parseStreamChunk: (parsed: any) => StreamChunkResult | undefined
-  parseResponse: (result: any) => string
+  ) => Record<string, unknown>
+  parseStreamChunk: (parsed: unknown) => StreamChunkResult | undefined
+  parseResponse: (result: unknown) => string
 }
 
 export function getStrategy(apiFormat?: string): ProviderStrategy {

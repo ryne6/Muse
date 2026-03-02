@@ -3,18 +3,9 @@ import { Loader2 } from 'lucide-react'
 import { ProviderCard } from './ProviderCard'
 import { AddProviderDialog } from './AddProviderDialog'
 import { ManageModelsDialog } from './ManageModelsDialog'
-import { dbClient } from '~/services/dbClient'
+import { dbClient, type ProviderRecord as Provider } from '~/services/dbClient'
 import { fadeInUpClass } from '~/utils/animations'
 import { useSettingsStore } from '~/stores/settingsStore'
-
-interface Provider {
-  id: string
-  name: string
-  type: string
-  apiKey: string
-  enabled: boolean
-  baseURL?: string
-}
 
 interface ProviderListProps {
   onConfigureProvider?: (provider: Provider) => void

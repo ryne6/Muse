@@ -1,8 +1,11 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import { dbClient } from '../services/dbClient'
+import {
+  dbClient,
+  type ProviderRecord as Provider,
+  type ModelRecord as Model,
+} from '../services/dbClient'
 import { notify } from '../utils/notify'
-import type { Provider, Model } from '~shared/types/db'
 
 interface SettingsStore {
   // State

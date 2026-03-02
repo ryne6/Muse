@@ -12,6 +12,26 @@ const DEDUP_RANK_THRESHOLD = -5
 // FTS5 reserved keywords that must be quoted to avoid syntax errors
 const FTS5_KEYWORDS = new Set(['AND', 'OR', 'NOT', 'NEAR'])
 
+interface MemoryRawRow {
+  id: string
+  type: string
+  category: string
+  content: string
+  tags: string | null
+  source: string
+  conversation_id?: string | null
+  conversationId?: string | null
+  file_path?: string | null
+  filePath?: string | null
+  created_at?: number | null
+  createdAt?: Date | null
+  updated_at?: number | null
+  updatedAt?: Date | null
+  last_accessed_at?: number | null
+  lastAccessedAt?: Date | null
+  rank?: number
+}
+
 export class MemoryService {
   // Get all memories
   static async getAll() {
@@ -159,7 +179,7 @@ export class MemoryService {
       JOIN memories_fts fts ON m.rowid = fts.rowid
       WHERE memories_fts MATCH ${searchTerm}
       ORDER BY fts.rank
-    `) as any[]
+    `) as MemoryRawRow[]
 
     return results.map(this.mapRawToMemory)
   }
@@ -205,7 +225,7 @@ export class MemoryService {
       WHERE ${whereClause}
       ORDER BY fts.rank
       LIMIT 10
-    `) as any[]
+    `) as MemoryRawRow[]
 
     const mapped = results.map(r => ({
       ...this.mapRawToMemory(r),
@@ -311,7 +331,7 @@ export class MemoryService {
       WHERE ${whereClause}
       ORDER BY fts.rank
       LIMIT 10
-    `) as any[]
+    `) as MemoryRawRow[]
 
     return results
       .map(r => ({ ...this.mapRawToMemory(r), rank: r.rank as number }))
@@ -322,7 +342,7 @@ export class MemoryService {
    * Map raw SQLite row (snake_case) to Memory type (camelCase).
    * Raw SQL via db.all() returns column names as-is from the DB schema.
    */
-  private static mapRawToMemory(row: any): Memory {
+  private static mapRawToMemory(row: MemoryRawRow): Memory {
     return {
       id: row.id,
       type: row.type,

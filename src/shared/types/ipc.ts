@@ -1,6 +1,11 @@
 import type { SearchQuery, SearchResponse } from './search'
-import type { AttachmentPreview, NewAttachmentData } from './attachment'
-import type { PermissionRule } from './toolPermissions'
+import type {
+  Attachment,
+  AttachmentPreview,
+  NewAttachmentData,
+} from './attachment'
+import type { MessageContent } from './ai'
+import type { PermissionRule, RuleSource } from './toolPermissions'
 
 // MCP Server State for IPC
 export interface MCPServerState {
@@ -64,6 +69,11 @@ export interface FileInfo {
 export interface CommandResult {
   output: string
   error?: string
+}
+
+export interface ElectronBridge {
+  platform: string
+  isMacTahoe: boolean
 }
 
 export interface IpcApi {
@@ -159,17 +169,17 @@ export interface IpcApi {
     forceDelete: (path: string) => Promise<{ deleted: boolean }>
   }
   ipc: {
-    invoke: (channel: string, ...args: any[]) => Promise<any>
+    invoke: <T = unknown>(channel: string, ...args: unknown[]) => Promise<T>
   }
   search: {
     query: (query: SearchQuery) => Promise<SearchResponse>
     rebuildIndex: () => Promise<{ success: boolean }>
   }
   attachments: {
-    create: (data: NewAttachmentData) => Promise<any>
-    getByMessageId: (messageId: string) => Promise<any[]>
+    create: (data: NewAttachmentData) => Promise<Attachment>
+    getByMessageId: (messageId: string) => Promise<Attachment[]>
     getPreviewsByMessageId: (messageId: string) => Promise<AttachmentPreview[]>
-    getById: (id: string) => Promise<any>
+    getById: (id: string) => Promise<Attachment | null>
     getBase64: (id: string) => Promise<string | null>
     updateNote: (
       id: string,
@@ -205,13 +215,13 @@ export interface IpcApi {
   permissions: {
     load: (workspacePath?: string) => Promise<PermissionRule[]>
     addRule: (
-      rule: any,
-      source: string,
+      rule: Omit<PermissionRule, 'source'>,
+      source: RuleSource,
       workspacePath?: string
     ) => Promise<{ success: boolean }>
     removeRule: (
       ruleId: string,
-      source: string,
+      source: RuleSource,
       workspacePath?: string
     ) => Promise<{ success: boolean }>
   }
@@ -261,14 +271,19 @@ export interface IpcApi {
       workspacePath?: string
     ) => Promise<string>
     extract: (data: {
-      messages: Array<{ role: string; content: string | any[] }>
+      messages: Array<{
+        role: 'user' | 'assistant' | 'system'
+        content: string | MessageContent[]
+      }>
       providerId: string
       modelId: string
       workspacePath?: string
       conversationId?: string
     }) => Promise<{ extracted: number; saved: number }>
     export: () => Promise<Array<Record<string, unknown>>>
-    import: (memories: any[]) => Promise<{ imported: number; skipped: number }>
+    import: (
+      memories: Array<Record<string, unknown>>
+    ) => Promise<{ imported: number; skipped: number }>
     deleteByType: (type: string) => Promise<{ success: boolean }>
   }
   updater: {
@@ -295,5 +310,6 @@ export interface IpcApi {
 declare global {
   interface Window {
     api: IpcApi
+    electron?: ElectronBridge
   }
 }

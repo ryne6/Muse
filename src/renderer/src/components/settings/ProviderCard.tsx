@@ -2,18 +2,9 @@ import { useState } from 'react'
 import { Power, Trash2 } from 'lucide-react'
 import { Button } from '~/components/ui/button'
 import { ProviderLogo } from '~/components/ui/ProviderLogo'
-import { dbClient } from '~/services/dbClient'
+import { dbClient, type ProviderRecord as Provider } from '~/services/dbClient'
 import { notify } from '~/utils/notify'
 import { cn } from '~/utils/cn'
-
-interface Provider {
-  id: string
-  name: string
-  type: string
-  apiKey: string
-  enabled: boolean
-  baseURL?: string
-}
 
 interface ProviderCardProps {
   provider: Provider

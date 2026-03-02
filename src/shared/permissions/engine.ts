@@ -24,7 +24,7 @@ export class PermissionEngine {
    */
   evaluate(
     toolName: string,
-    input: Record<string, any>,
+    input: Record<string, unknown>,
     options: PermissionEvaluateOptions = {}
   ): PermissionDecision {
     // Step 1: 分类
@@ -72,7 +72,7 @@ export class PermissionEngine {
    */
   private matchRules(
     toolName: string,
-    input: Record<string, any>,
+    input: Record<string, unknown>,
     rules: PermissionRule[]
   ): PermissionDecision | null {
     const matchingRules = rules.filter(rule => {
@@ -82,11 +82,21 @@ export class PermissionEngine {
       // match 条件检查
       if (rule.match) {
         if (rule.match.commandPrefix) {
-          const command = input.command || input.cmd || ''
+          const command =
+            typeof input.command === 'string'
+              ? input.command
+              : typeof input.cmd === 'string'
+                ? input.cmd
+                : ''
           if (!command.startsWith(rule.match.commandPrefix)) return false
         }
         if (rule.match.pathGlob) {
-          const filePath = input.path || input.file_path || ''
+          const filePath =
+            typeof input.path === 'string'
+              ? input.path
+              : typeof input.file_path === 'string'
+                ? input.file_path
+                : ''
           if (!this.matchGlob(filePath, rule.match.pathGlob)) return false
         }
       }

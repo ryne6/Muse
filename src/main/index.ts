@@ -37,6 +37,22 @@ const VALID_MEMORY_CATEGORIES = [
 ] as const
 const MAX_CONTENT_LENGTH = 10000
 const MAX_QUERY_LENGTH = 500
+type MemoryType = (typeof VALID_MEMORY_TYPES)[number]
+type MemoryCategory = (typeof VALID_MEMORY_CATEGORIES)[number]
+
+function isMemoryType(value: unknown): value is MemoryType {
+  return (
+    typeof value === 'string' &&
+    VALID_MEMORY_TYPES.includes(value as MemoryType)
+  )
+}
+
+function isMemoryCategory(value: unknown): value is MemoryCategory {
+  return (
+    typeof value === 'string' &&
+    VALID_MEMORY_CATEGORIES.includes(value as MemoryCategory)
+  )
+}
 
 function validateMemoryInput(
   data: Record<string, unknown>,
@@ -44,44 +60,32 @@ function validateMemoryInput(
 ): string | null {
   for (const field of requiredFields) {
     if (field === 'type') {
-      if (!data.type || !VALID_MEMORY_TYPES.includes(data.type as any)) {
+      if (!isMemoryType(data.type)) {
         return `Invalid type: must be one of ${VALID_MEMORY_TYPES.join(', ')}`
       }
     } else if (field === 'category') {
-      if (
-        !data.category ||
-        !VALID_MEMORY_CATEGORIES.includes(data.category as any)
-      ) {
+      if (!isMemoryCategory(data.category)) {
         return `Invalid category: must be one of ${VALID_MEMORY_CATEGORIES.join(', ')}`
       }
     } else if (field === 'content') {
-      if (
-        !data.content ||
-        typeof data.content !== 'string' ||
-        data.content.trim().length === 0
-      ) {
+      const { content } = data
+      if (typeof content !== 'string' || content.trim().length === 0) {
         return 'content must be a non-empty string'
       }
-      if ((data.content as string).length > MAX_CONTENT_LENGTH) {
+      if (content.length > MAX_CONTENT_LENGTH) {
         return `content exceeds max length of ${MAX_CONTENT_LENGTH}`
       }
     } else if (field === 'id') {
-      if (
-        !data.id ||
-        typeof data.id !== 'string' ||
-        (data.id as string).trim().length === 0
-      ) {
+      const { id } = data
+      if (typeof id !== 'string' || id.trim().length === 0) {
         return 'id must be a non-empty string'
       }
     } else if (field === 'query') {
-      if (
-        !data.query ||
-        typeof data.query !== 'string' ||
-        (data.query as string).trim().length === 0
-      ) {
+      const { query } = data
+      if (typeof query !== 'string' || query.trim().length === 0) {
         return 'query must be a non-empty string'
       }
-      if ((data.query as string).length > MAX_QUERY_LENGTH) {
+      if (query.length > MAX_QUERY_LENGTH) {
         return `query exceeds max length of ${MAX_QUERY_LENGTH}`
       }
     }

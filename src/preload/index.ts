@@ -101,8 +101,8 @@ const api: IpcApi = {
       ipcRenderer.invoke('conversation:addTokens', { id, inputTokens, outputTokens }),
   },
   ipc: {
-    invoke: (channel: string, ...args: any[]) =>
-      ipcRenderer.invoke(channel, ...args),
+    invoke: <T = unknown>(channel: string, ...args: unknown[]) =>
+      ipcRenderer.invoke(channel, ...args) as Promise<T>,
   },
   search: {
     query: query => ipcRenderer.invoke('db:search', { query }),
@@ -156,13 +156,13 @@ const api: IpcApi = {
   permissions: {
     load: (workspacePath?: string) =>
       ipcRenderer.invoke('permissions:load', { workspacePath }),
-    addRule: (rule: any, source: string, workspacePath?: string) =>
+    addRule: (rule, source, workspacePath) =>
       ipcRenderer.invoke('permissions:addRule', {
         rule,
         source,
         workspacePath,
       }),
-    removeRule: (ruleId: string, source: string, workspacePath?: string) =>
+    removeRule: (ruleId, source, workspacePath) =>
       ipcRenderer.invoke('permissions:removeRule', {
         ruleId,
         source,
@@ -173,8 +173,8 @@ const api: IpcApi = {
     getAll: () => ipcRenderer.invoke('memory:getAll'),
     getByType: (type: string) =>
       ipcRenderer.invoke('memory:getByType', { type }),
-    create: (data: any) => ipcRenderer.invoke('memory:create', data),
-    update: (id: string, data: any) =>
+    create: data => ipcRenderer.invoke('memory:create', data),
+    update: (id, data) =>
       ipcRenderer.invoke('memory:update', { id, data }),
     delete: (id: string) => ipcRenderer.invoke('memory:delete', { id }),
     search: (query: string) => ipcRenderer.invoke('memory:search', { query }),
@@ -196,18 +196,12 @@ const api: IpcApi = {
       ipcRenderer.invoke('memory:forget', { keyword, workspacePath }),
     getByConversationId: (conversationId: string) =>
       ipcRenderer.invoke('memory:getByConversationId', { conversationId }),
-    upsert: (data: any) => ipcRenderer.invoke('memory:upsert', data),
-    syncToFile: (memory: any, workspacePath?: string) =>
+    upsert: data => ipcRenderer.invoke('memory:upsert', data),
+    syncToFile: (memory, workspacePath) =>
       ipcRenderer.invoke('memory:syncToFile', { memory, workspacePath }),
-    extract: (data: {
-      messages: any[]
-      providerId: string
-      modelId: string
-      workspacePath?: string
-      conversationId?: string
-    }) => ipcRenderer.invoke('memory:extract', data),
+    extract: data => ipcRenderer.invoke('memory:extract', data),
     export: () => ipcRenderer.invoke('memory:export'),
-    import: (memories: any[]) =>
+    import: memories =>
       ipcRenderer.invoke('memory:import', { memories }),
     deleteByType: (type: string) =>
       ipcRenderer.invoke('memory:deleteByType', { type }),
@@ -216,8 +210,11 @@ const api: IpcApi = {
     check: () => ipcRenderer.invoke('updater:check'),
     download: () => ipcRenderer.invoke('updater:download'),
     install: () => ipcRenderer.invoke('updater:install'),
-    onStatus: (callback: (status: any) => void) => {
-      const handler = (_: any, status: any) => callback(status)
+    onStatus: callback => {
+      const handler = (
+        _event: unknown,
+        status: Parameters<typeof callback>[0]
+      ) => callback(status)
       ipcRenderer.on('updater:status', handler)
       return () => ipcRenderer.removeListener('updater:status', handler)
     },

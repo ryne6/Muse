@@ -1,4 +1,47 @@
 // Database client for IPC communication
+import type { MCPServerState, Skill, SkillsDirectory } from '~shared/types/ipc'
+
+export interface ProviderRecord {
+  id: string
+  name: string
+  type: string
+  apiKey: string
+  baseURL: string | null
+  apiFormat?: string | null
+  enabled: boolean
+}
+
+export interface ModelRecord {
+  id: string
+  providerId: string
+  modelId: string
+  name: string
+  contextLength?: number | null
+  isCustom: boolean
+  enabled: boolean
+}
+
+interface MigrationStats {
+  conversations: number
+  providers: number
+  models: number
+  settings: number
+  messages: number
+}
+
+interface MigrationResult {
+  success: boolean
+  error?: unknown
+}
+
+interface MCPServerRecord {
+  id: string
+  name: string
+  command: string
+  args?: string[] | null
+  env?: Record<string, string> | null
+  enabled: boolean
+}
 
 export const dbClient = {
   // Conversations
@@ -14,10 +57,10 @@ export const dbClient = {
         id,
       })
     },
-    create: async (data: any) => {
+    create: async (data: Record<string, unknown>) => {
       return await window.api.ipc.invoke('db:conversations:create', data)
     },
-    update: async (id: string, data: any) => {
+    update: async (id: string, data: Record<string, unknown>) => {
       return await window.api.ipc.invoke('db:conversations:update', {
         id,
         data,
@@ -40,7 +83,7 @@ export const dbClient = {
         conversationId,
       })
     },
-    create: async (data: any) => {
+    create: async (data: Record<string, unknown>) => {
       return await window.api.ipc.invoke('db:messages:create', data)
     },
     updateContent: async (id: string, content: string) => {
@@ -49,13 +92,13 @@ export const dbClient = {
         content,
       })
     },
-    addToolCall: async (messageId: string, data: any) => {
+    addToolCall: async (messageId: string, data: Record<string, unknown>) => {
       return await window.api.ipc.invoke('db:messages:addToolCall', {
         messageId,
         data,
       })
     },
-    addToolResult: async (toolCallId: string, data: any) => {
+    addToolResult: async (toolCallId: string, data: Record<string, unknown>) => {
       return await window.api.ipc.invoke('db:messages:addToolResult', {
         toolCallId,
         data,
@@ -65,56 +108,93 @@ export const dbClient = {
 
   // Providers
   providers: {
-    getAll: async () => {
-      return await window.api.ipc.invoke('db:providers:getAll')
+    getAll: async (): Promise<ProviderRecord[]> => {
+      return await window.api.ipc.invoke<ProviderRecord[]>('db:providers:getAll')
     },
-    getEnabled: async () => {
-      return await window.api.ipc.invoke('db:providers:getEnabled')
+    getEnabled: async (): Promise<ProviderRecord[]> => {
+      return await window.api.ipc.invoke<ProviderRecord[]>('db:providers:getEnabled')
     },
-    getById: async (id: string) => {
-      return await window.api.ipc.invoke('db:providers:getById', { id })
+    getById: async (id: string): Promise<ProviderRecord | null> => {
+      return await window.api.ipc.invoke<ProviderRecord | null>(
+        'db:providers:getById',
+        { id }
+      )
     },
-    getByName: async (name: string) => {
-      return await window.api.ipc.invoke('db:providers:getByName', { name })
+    getByName: async (name: string): Promise<ProviderRecord | null> => {
+      return await window.api.ipc.invoke<ProviderRecord | null>(
+        'db:providers:getByName',
+        { name }
+      )
     },
-    create: async (data: any) => {
-      return await window.api.ipc.invoke('db:providers:create', data)
+    create: async (data: Record<string, unknown>): Promise<ProviderRecord> => {
+      return await window.api.ipc.invoke<ProviderRecord>('db:providers:create', data)
     },
-    update: async (id: string, data: any) => {
-      return await window.api.ipc.invoke('db:providers:update', { id, data })
+    update: async (
+      id: string,
+      data: Record<string, unknown>
+    ): Promise<ProviderRecord | null> => {
+      return await window.api.ipc.invoke<ProviderRecord | null>(
+        'db:providers:update',
+        {
+          id,
+          data,
+        }
+      )
     },
-    delete: async (id: string) => {
-      return await window.api.ipc.invoke('db:providers:delete', { id })
+    delete: async (id: string): Promise<void> => {
+      return await window.api.ipc.invoke<void>('db:providers:delete', { id })
     },
-    toggleEnabled: async (id: string) => {
-      return await window.api.ipc.invoke('db:providers:toggleEnabled', { id })
+    toggleEnabled: async (id: string): Promise<ProviderRecord | null> => {
+      return await window.api.ipc.invoke<ProviderRecord | null>(
+        'db:providers:toggleEnabled',
+        { id }
+      )
     },
   },
 
   // Models
   models: {
-    getAll: async () => {
-      return await window.api.ipc.invoke('db:models:getAll')
+    getAll: async (): Promise<ModelRecord[]> => {
+      return await window.api.ipc.invoke<ModelRecord[]>('db:models:getAll')
     },
-    getByProviderId: async (providerId: string) => {
-      return await window.api.ipc.invoke('db:models:getByProviderId', {
-        providerId,
+    getByProviderId: async (providerId: string): Promise<ModelRecord[]> => {
+      return await window.api.ipc.invoke<ModelRecord[]>(
+        'db:models:getByProviderId',
+        {
+          providerId,
+        }
+      )
+    },
+    create: async (data: Record<string, unknown>): Promise<ModelRecord> => {
+      return await window.api.ipc.invoke<ModelRecord>('db:models:create', data)
+    },
+    createMany: async (
+      models: Array<Record<string, unknown>>
+    ): Promise<ModelRecord[]> => {
+      return await window.api.ipc.invoke<ModelRecord[]>(
+        'db:models:createMany',
+        {
+          models,
+        }
+      )
+    },
+    update: async (
+      id: string,
+      data: Record<string, unknown>
+    ): Promise<ModelRecord | null> => {
+      return await window.api.ipc.invoke<ModelRecord | null>('db:models:update', {
+        id,
+        data,
       })
     },
-    create: async (data: any) => {
-      return await window.api.ipc.invoke('db:models:create', data)
+    delete: async (id: string): Promise<void> => {
+      return await window.api.ipc.invoke<void>('db:models:delete', { id })
     },
-    createMany: async (models: any[]) => {
-      return await window.api.ipc.invoke('db:models:createMany', { models })
-    },
-    update: async (id: string, data: any) => {
-      return await window.api.ipc.invoke('db:models:update', { id, data })
-    },
-    delete: async (id: string) => {
-      return await window.api.ipc.invoke('db:models:delete', { id })
-    },
-    toggleEnabled: async (id: string) => {
-      return await window.api.ipc.invoke('db:models:toggleEnabled', { id })
+    toggleEnabled: async (id: string): Promise<ModelRecord | null> => {
+      return await window.api.ipc.invoke<ModelRecord | null>(
+        'db:models:toggleEnabled',
+        { id }
+      )
     },
   },
 
@@ -126,59 +206,75 @@ export const dbClient = {
     get: async (key: string) => {
       return await window.api.ipc.invoke('db:settings:get', { key })
     },
-    set: async (key: string, value: any) => {
+    set: async (key: string, value: unknown) => {
       return await window.api.ipc.invoke('db:settings:set', { key, value })
     },
-    setMany: async (settings: Record<string, any>) => {
+    setMany: async (settings: Record<string, unknown>) => {
       return await window.api.ipc.invoke('db:settings:setMany', { settings })
     },
   },
 
   // Migration
   migration: {
-    run: async (data: any) => {
-      return await window.api.ipc.invoke('db:migration:run', { data })
+    run: async (data: Record<string, unknown>): Promise<MigrationResult> => {
+      return await window.api.ipc.invoke<MigrationResult>('db:migration:run', {
+        data,
+      })
     },
-    verify: async () => {
-      return await window.api.ipc.invoke('db:migration:verify')
+    verify: async (): Promise<MigrationStats> => {
+      return await window.api.ipc.invoke<MigrationStats>('db:migration:verify')
     },
-    clear: async () => {
-      return await window.api.ipc.invoke('db:migration:clear')
+    clear: async (): Promise<void> => {
+      return await window.api.ipc.invoke<void>('db:migration:clear')
     },
   },
 
   // MCP Servers
   mcp: {
-    getAll: async () => {
-      return await window.api.ipc.invoke('db:mcp:getAll')
+    getAll: async (): Promise<MCPServerRecord[]> => {
+      return await window.api.ipc.invoke<MCPServerRecord[]>('db:mcp:getAll')
     },
-    getEnabled: async () => {
-      return await window.api.ipc.invoke('db:mcp:getEnabled')
+    getEnabled: async (): Promise<MCPServerRecord[]> => {
+      return await window.api.ipc.invoke<MCPServerRecord[]>(
+        'db:mcp:getEnabled'
+      )
     },
-    getById: async (id: string) => {
-      return await window.api.ipc.invoke('db:mcp:getById', { id })
+    getById: async (id: string): Promise<MCPServerRecord | null> => {
+      return await window.api.ipc.invoke<MCPServerRecord | null>(
+        'db:mcp:getById',
+        { id }
+      )
     },
-    create: async (data: any) => {
-      return await window.api.ipc.invoke('db:mcp:create', data)
+    create: async (data: Record<string, unknown>): Promise<MCPServerRecord> => {
+      return await window.api.ipc.invoke<MCPServerRecord>('db:mcp:create', data)
     },
-    update: async (id: string, data: any) => {
-      return await window.api.ipc.invoke('db:mcp:update', { id, data })
+    update: async (
+      id: string,
+      data: Record<string, unknown>
+    ): Promise<MCPServerRecord | null> => {
+      return await window.api.ipc.invoke<MCPServerRecord | null>('db:mcp:update', {
+        id,
+        data,
+      })
     },
-    delete: async (id: string) => {
-      return await window.api.ipc.invoke('db:mcp:delete', { id })
+    delete: async (id: string): Promise<void> => {
+      return await window.api.ipc.invoke<void>('db:mcp:delete', { id })
     },
-    toggleEnabled: async (id: string) => {
-      return await window.api.ipc.invoke('db:mcp:toggleEnabled', { id })
+    toggleEnabled: async (id: string): Promise<MCPServerRecord | null> => {
+      return await window.api.ipc.invoke<MCPServerRecord | null>(
+        'db:mcp:toggleEnabled',
+        { id }
+      )
     },
     // Runtime status
-    getServerStates: async () => {
+    getServerStates: async (): Promise<MCPServerState[]> => {
       return await window.api.mcp.getServerStates()
     },
   },
 
   // Skills
   skills: {
-    getDirectories: async () => {
+    getDirectories: async (): Promise<SkillsDirectory[]> => {
       return await window.api.skills.getDirectories()
     },
     addDirectory: async (path: string) => {
@@ -190,7 +286,7 @@ export const dbClient = {
     toggleDirectory: async (id: string) => {
       return await window.api.skills.toggleDirectory(id)
     },
-    getAll: async () => {
+    getAll: async (): Promise<Skill[]> => {
       return await window.api.skills.getAll()
     },
     getContent: async (path: string) => {

@@ -2,19 +2,9 @@ import { useState, useEffect } from 'react'
 import { Checkbox, Modal, Select } from '@lobehub/ui'
 import { Button } from '~/components/ui/button'
 import { Input } from '~/components/ui/input'
-import { dbClient } from '~/services/dbClient'
+import { dbClient, type ProviderRecord as Provider } from '~/services/dbClient'
 import { notify } from '~/utils/notify'
 import { useSettingsStore } from '~/stores/settingsStore'
-
-interface Provider {
-  id: string
-  name: string
-  type: string
-  apiKey: string
-  baseURL?: string
-  apiFormat?: string
-  enabled: boolean
-}
 
 interface ProviderConfigDialogProps {
   provider: Provider | null

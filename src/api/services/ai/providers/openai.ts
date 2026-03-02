@@ -10,6 +10,8 @@ import type {
 import { getAllTools } from '../tools/definitions'
 import { ToolExecutor } from '../tools/executor'
 
+type ToolDefinition = ReturnType<typeof getAllTools>[number]
+
 export class OpenAIProvider extends BaseAIProvider {
   readonly name = 'openai'
   readonly supportsVision = true
@@ -40,7 +42,9 @@ export class OpenAIProvider extends BaseAIProvider {
   /**
    * Convert AIMessage content to OpenAI API format
    */
-  private convertContent(content: string | MessageContent[]): any {
+  private convertContent(
+    content: string | MessageContent[]
+  ): string | OpenAI.ChatCompletionContentPart[] {
     if (typeof content === 'string') {
       return content
     }
@@ -123,7 +127,7 @@ export class OpenAIProvider extends BaseAIProvider {
       const isReasoning = this.isReasoningModel(config.model)
 
       // Build request parameters
-      const requestParams: any = {
+      const requestParams: OpenAI.ChatCompletionCreateParamsStreaming = {
         model: config.model,
         messages: conversationMessages,
         stream: true,
@@ -140,9 +144,7 @@ export class OpenAIProvider extends BaseAIProvider {
         requestParams.tools = this.convertTools(getAllTools())
       }
 
-      const stream = (await client.chat.completions.create(
-        requestParams
-      )) as unknown as AsyncIterable<any>
+      const stream = await client.chat.completions.create(requestParams)
 
       let currentContent = ''
       const toolCalls: OpenAI.ChatCompletionMessageToolCall[] = []
@@ -182,9 +184,9 @@ export class OpenAIProvider extends BaseAIProvider {
           }
         }
 
-        if ((chunk as any).usage) {
-          totalInputTokens += (chunk as any).usage.prompt_tokens || 0
-          totalOutputTokens += (chunk as any).usage.completion_tokens || 0
+        if (chunk.usage) {
+          totalInputTokens += chunk.usage.prompt_tokens || 0
+          totalOutputTokens += chunk.usage.completion_tokens || 0
         }
       }
 
@@ -204,7 +206,9 @@ export class OpenAIProvider extends BaseAIProvider {
         if (toolCall.type !== 'function') continue
 
         const functionName = toolCall.function.name
-        const functionArgs = JSON.parse(toolCall.function.arguments)
+        const functionArgs = this.parseToolArguments(
+          toolCall.function.arguments
+        )
 
         onChunk({
           content: `\n\n[Using tool: ${functionName}]\n`,
@@ -264,7 +268,7 @@ export class OpenAIProvider extends BaseAIProvider {
       const isReasoning = this.isReasoningModel(config.model)
 
       // Build request parameters
-      const requestParams: any = {
+      const requestParams: OpenAI.ChatCompletionCreateParamsNonStreaming = {
         model: config.model,
         messages: conversationMessages,
       }
@@ -290,13 +294,19 @@ export class OpenAIProvider extends BaseAIProvider {
       }
 
       // Execute tools
-      conversationMessages.push(message as any)
+      conversationMessages.push({
+        role: 'assistant',
+        content: message.content ?? null,
+        tool_calls: message.tool_calls,
+      })
 
       for (const toolCall of message.tool_calls) {
         if (toolCall.type !== 'function') continue
 
         const functionName = toolCall.function.name
-        const functionArgs = JSON.parse(toolCall.function.arguments)
+        const functionArgs = this.parseToolArguments(
+          toolCall.function.arguments
+        )
 
         const result = await toolExecutor.execute(functionName, functionArgs, {
           toolCallId: toolCall.id,
@@ -319,7 +329,7 @@ export class OpenAIProvider extends BaseAIProvider {
     return finalText
   }
 
-  private convertTools(tools: any[]): OpenAI.ChatCompletionTool[] {
+  private convertTools(tools: ToolDefinition[]): OpenAI.ChatCompletionTool[] {
     return tools.map(tool => ({
       type: 'function' as const,
       function: {
@@ -328,6 +338,17 @@ export class OpenAIProvider extends BaseAIProvider {
         parameters: tool.input_schema,
       },
     }))
+  }
+
+  private parseToolArguments(argumentsText: string): Record<string, unknown> {
+    try {
+      const parsed: unknown = JSON.parse(argumentsText || '{}')
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+        ? (parsed as Record<string, unknown>)
+        : {}
+    } catch {
+      return {}
+    }
   }
 
   getDefaultModel(): string {

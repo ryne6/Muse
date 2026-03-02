@@ -20,7 +20,10 @@ let mainWindow: BrowserWindow | null = null
 
 // 清理旧 bundle ID (com.muse.app) 遗留的更新缓存
 function cleanupLegacyCache() {
-  const cacheDir = app.getPath('cache') || join(app.getPath('home'), 'Library/Caches')
+  const cacheDir =
+    process.platform === 'darwin'
+      ? join(app.getPath('home'), 'Library', 'Caches')
+      : app.getPath('temp')
   const legacyPaths = [
     join(cacheDir, 'com.muse.app.ShipIt'),
     join(cacheDir, 'com.muse.app'),

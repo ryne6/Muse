@@ -10,8 +10,8 @@ interface MCPServer {
   id: string
   name: string
   command: string
-  args?: string[]
-  env?: Record<string, string>
+  args?: string[] | null
+  env?: Record<string, string> | null
   enabled: boolean
 }
 

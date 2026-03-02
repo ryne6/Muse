@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { useSettingsStore } from '~/stores/settingsStore'
-import type { Model } from '~shared/types/db'
+import type { ModelRecord as Model } from '~/services/dbClient'
 import {
   DropdownMenu,
   DropdownMenuContent,

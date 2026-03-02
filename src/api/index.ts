@@ -50,18 +50,23 @@ app.onError((err, c) => {
 
 export default app
 
-// Declare Bun types if not available
-declare const Bun: any
+interface BunRuntime {
+  serve: (options: { port: number; fetch: typeof app.fetch }) => {
+    port: number
+  }
+}
+
+const bunRuntime = (globalThis as { Bun?: BunRuntime }).Bun
 
 // 如果直接运行此文件，启动服务器（仅在支持的运行时）
 if (
-  typeof Bun !== 'undefined' &&
+  bunRuntime &&
   import.meta.url === `file://${process.argv[1]}`
 ) {
   const port = process.env.PORT || 3000
   console.log(`🚀 Hono API Server starting on port ${port}`)
 
-  const server = Bun.serve({
+  const server = bunRuntime.serve({
     port: Number(port),
     fetch: app.fetch,
   })

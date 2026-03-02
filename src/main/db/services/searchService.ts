@@ -9,6 +9,15 @@ import type {
 
 const { conversations, messages } = schema
 
+interface SearchIndexRow {
+  content_type: string
+  content_id: string
+  conversation_id: string
+  highlighted_snippet: string | null
+  searchable_text: string | null
+  rank: number
+}
+
 export class SearchService {
   /**
    * Perform FTS5 full-text search
@@ -57,7 +66,7 @@ export class SearchService {
       ${sql.raw(conversationFilter)}
       ORDER BY rank
       LIMIT ${limit + 1} OFFSET ${offset}
-    `) as any[]
+    `) as SearchIndexRow[]
 
     // Check if there are more results
     const hasMore = rawResults.length > limit
@@ -123,7 +132,7 @@ export class SearchService {
    * Enrich search results with additional data
    */
   private static async enrichResults(
-    rawResults: any[]
+    rawResults: SearchIndexRow[]
   ): Promise<SearchResult[]> {
     const db = getDatabase()
     const results: SearchResult[] = []

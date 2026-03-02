@@ -8,6 +8,7 @@ import type {
 
 interface GeminiPart {
   text?: string
+  thought?: string
   inline_data?: {
     mime_type: string
     data: string
@@ -22,7 +23,7 @@ interface GeminiMessage {
 interface GeminiStreamChunk {
   candidates?: Array<{
     content: {
-      parts: Array<{ text: string }>
+      parts: GeminiPart[]
       role: string
     }
     finishReason?: string
@@ -198,11 +199,11 @@ export class GeminiProvider extends BaseAIProvider {
 
                 for (const part of parts) {
                   // Handle thought content (thinking models)
-                  if ((part as any).thought) {
+                  if (part.thought) {
                     onChunk({
                       content: '',
                       done: false,
-                      thinking: (part as any).thought,
+                      thinking: part.thought,
                     })
                   }
 

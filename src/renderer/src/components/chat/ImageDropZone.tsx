@@ -1,8 +1,8 @@
 import { useState, useCallback, type ReactNode } from 'react'
 import { ImagePlus } from 'lucide-react'
 import {
-  SUPPORTED_IMAGE_TYPES,
   MAX_ATTACHMENT_SIZE,
+  isSupportedImageType,
 } from '~shared/types/attachment'
 import { notify } from '~/utils/notify'
 
@@ -23,7 +23,7 @@ export function ImageDropZone({
     const validFiles: File[] = []
 
     for (const file of files) {
-      if (!SUPPORTED_IMAGE_TYPES.includes(file.type as any)) {
+      if (!isSupportedImageType(file.type)) {
         notify.error(`Unsupported image type: ${file.type}`)
         continue
       }

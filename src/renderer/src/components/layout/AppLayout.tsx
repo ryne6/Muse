@@ -72,7 +72,7 @@ export function AppLayout() {
   )
 
   // Tahoe 上原生液态玻璃替代 CSS 毛玻璃
-  const isTahoe = (window as any).electron?.isMacTahoe ?? false
+  const isTahoe = window.electron?.isMacTahoe ?? false
 
   const sidebarGlassStyle: CSSProperties = isTahoe
     ? {

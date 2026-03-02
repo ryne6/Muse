@@ -56,7 +56,7 @@ export function getTextContent(content: string | MessageContent[]): string {
 export interface ToolCallData {
   id: string
   name: string
-  input: Record<string, any>
+  input: Record<string, unknown>
 }
 
 export interface ToolResultData {

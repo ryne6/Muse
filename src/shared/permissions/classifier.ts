@@ -250,11 +250,12 @@ export function classifyBashCommand(command: string): ToolRiskLevel {
  */
 export function classifyTool(
   toolName: string,
-  input?: Record<string, any>
+  input?: Record<string, unknown>
 ): ToolRiskLevel {
   // Bash 工具需要动态分类
   if (toolName === 'Bash') {
-    return classifyBashCommand(input?.command || '')
+    const command = typeof input?.command === 'string' ? input.command : ''
+    return classifyBashCommand(command)
   }
 
   // 静态分类表查找

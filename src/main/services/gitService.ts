@@ -3,6 +3,8 @@ import { promisify } from 'util'
 import type { CommandResult } from '../../shared/types/ipc'
 
 const execAsync = promisify(exec)
+const getErrorMessage = (error: unknown): string =>
+  error instanceof Error ? error.message : 'Git command failed'
 
 export class GitService {
   private getCwd(path?: string): string {
@@ -22,10 +24,10 @@ export class GitService {
         output: stdout,
         error: stderr || undefined,
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       return {
         output: '',
-        error: error.message || 'Git command failed',
+        error: getErrorMessage(error),
       }
     }
   }

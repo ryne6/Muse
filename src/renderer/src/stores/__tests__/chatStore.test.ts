@@ -912,6 +912,81 @@ describe('ChatStore', () => {
     })
   })
 
+  describe('submitQuestionAnswer', () => {
+    const mockProvider = {
+      id: 'p1',
+      name: 'OpenAI',
+      type: 'openai',
+      apiKey: 'key',
+      baseURL: null,
+      apiFormat: 'chat-completions',
+      enabled: true,
+      createdAt: new Date(),
+    }
+
+    const mockModel = {
+      id: 'm1',
+      providerId: 'p1',
+      modelId: 'gpt-4',
+      name: 'GPT-4',
+      description: null,
+      enabled: true,
+      createdAt: new Date(),
+    }
+
+    it('should send tagged answer message', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+      mockGetCurrentProvider.mockReturnValue(mockProvider)
+      mockGetCurrentModel.mockReturnValue(mockModel)
+      mockSendMessageStream.mockResolvedValue(undefined)
+
+      await useChatStore.getState().submitQuestionAnswer(
+        'conv-1',
+        'Question',
+        'q-1',
+        'Which env?',
+        'staging'
+      )
+
+      const userMsg = mockAddMessage.mock.calls.find(
+        (c: any) =>
+          c[0].role === 'user' && c[0].content.includes('[Question Answer]')
+      )
+      expect(userMsg[0].content).toContain('Which env?')
+      expect(userMsg[0].content).toContain('staging')
+    })
+
+    it('should send tagged skip message', async () => {
+      const mockConversation = {
+        id: 'conv-1',
+        messages: [{ id: '1', role: 'user', content: 'Hello' }],
+      }
+      mockGetCurrentConversation.mockReturnValue(mockConversation)
+      mockGetCurrentProvider.mockReturnValue(mockProvider)
+      mockGetCurrentModel.mockReturnValue(mockModel)
+      mockSendMessageStream.mockResolvedValue(undefined)
+
+      await useChatStore.getState().submitQuestionAnswer(
+        'conv-1',
+        'Question',
+        'q-2',
+        'Which env?',
+        '',
+        true
+      )
+
+      const userMsg = mockAddMessage.mock.calls.find(
+        (c: any) =>
+          c[0].role === 'user' && c[0].content.includes('[Question Skipped]')
+      )
+      expect(userMsg[0].content).toContain('Which env?')
+    })
+  })
+
   describe('triggerMemoryExtraction', () => {
     let mockExtract: ReturnType<typeof vi.fn>
 

@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { GenericProvider } from '../generic'
 import type { AIConfig } from '../../../../../shared/types/ai'
+import { TOOL_PERMISSION_PREFIX } from '../../../../../shared/types/toolPermissions'
+import { TOOL_QUESTION_PREFIX } from '../../../../../shared/types/toolQuestions'
 
 const { executeMock } = vi.hoisted(() => ({
   executeMock: vi.fn(),
@@ -151,6 +153,88 @@ describe('GenericProvider runtime behavior', () => {
     ).toBe(true)
   })
 
+  it('should stop non-stream tool loop after permission request', async () => {
+    executeMock.mockResolvedValueOnce(
+      `${TOOL_PERMISSION_PREFIX}${JSON.stringify({
+        kind: 'permission_request',
+        toolName: 'Read',
+        toolCallId: 'perm_call_1',
+      })}`
+    )
+
+    fetchMock.mockResolvedValueOnce(
+      createJsonResponse({
+        choices: [
+          {
+            message: {
+              content: 'need permission',
+              tool_calls: [
+                {
+                  id: 'perm_call_1',
+                  function: {
+                    name: 'Read',
+                    arguments: '{"path":"/tmp/demo.txt"}',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      })
+    )
+
+    const result = await provider.sendMessage(
+      [{ role: 'user', content: 'run tool' }],
+      baseConfig
+    )
+
+    expect(result).toBe('need permission')
+    expect(executeMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('should stop non-stream tool loop after question request', async () => {
+    executeMock.mockResolvedValueOnce(
+      `${TOOL_QUESTION_PREFIX}${JSON.stringify({
+        kind: 'question_request',
+        toolCallId: 'question_call_1',
+        question: 'Which environment should we deploy to?',
+        choices: ['staging', 'production'],
+      })}`
+    )
+
+    fetchMock.mockResolvedValueOnce(
+      createJsonResponse({
+        choices: [
+          {
+            message: {
+              content: 'need answer',
+              tool_calls: [
+                {
+                  id: 'question_call_1',
+                  function: {
+                    name: 'Question',
+                    arguments:
+                      '{"question":"Which environment should we deploy to?"}',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      })
+    )
+
+    const result = await provider.sendMessage(
+      [{ role: 'user', content: 'run tool' }],
+      baseConfig
+    )
+
+    expect(result).toBe('need answer')
+    expect(executeMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+
   it('should stream chunks and emit final usage summary', async () => {
     fetchMock.mockResolvedValueOnce(
       createStreamResponse([
@@ -210,6 +294,76 @@ describe('GenericProvider runtime behavior', () => {
         outputTokens: 5,
       },
     })
+  })
+
+  it('should stop stream tool loop after permission request', async () => {
+    executeMock.mockResolvedValueOnce(
+      `${TOOL_PERMISSION_PREFIX}${JSON.stringify({
+        kind: 'permission_request',
+        toolName: 'Read',
+        toolCallId: 'perm_stream_1',
+      })}`
+    )
+
+    fetchMock.mockResolvedValueOnce(
+      createStreamResponse([
+        'data: {"choices":[{"delta":{"tool_calls":[{"index":0,"id":"perm_stream_1","function":{"name":"Read","arguments":"{\\"path\\":\\"/tmp/a.txt\\"}"}}]}}]}\n',
+        'data: [DONE]\n',
+      ])
+    )
+
+    const onChunk = vi.fn()
+    const result = await provider.sendMessage(
+      [{ role: 'user', content: 'use tool' }],
+      baseConfig,
+      onChunk
+    )
+
+    expect(result).toBe('')
+    expect(executeMock).toHaveBeenCalledTimes(1)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(onChunk).toHaveBeenCalledWith({
+      content: '',
+      done: false,
+      toolResult: {
+        toolCallId: 'perm_stream_1',
+        output: `${TOOL_PERMISSION_PREFIX}${JSON.stringify({
+          kind: 'permission_request',
+          toolName: 'Read',
+          toolCallId: 'perm_stream_1',
+        })}`,
+        isError: false,
+      },
+    })
+  })
+
+  it('should merge stream tool chunks by id when index is missing', async () => {
+    executeMock.mockResolvedValueOnce('tool output')
+    fetchMock
+      .mockResolvedValueOnce(
+        createStreamResponse([
+          'data: {"choices":[{"delta":{"tool_calls":[{"id":"no_index_call","function":{"name":"Read","arguments":"{\\"path\\":\\""}}]}}]}\n',
+          'data: {"choices":[{"delta":{"tool_calls":[{"id":"no_index_call","function":{"arguments":"/tmp/merged.txt\\"}"}}]}}]}\n',
+          'data: [DONE]\n',
+        ])
+      )
+      .mockResolvedValueOnce(createStreamResponse(['data: [DONE]\n']))
+
+    const result = await provider.sendMessage(
+      [{ role: 'user', content: 'use tool' }],
+      baseConfig,
+      () => {}
+    )
+
+    expect(result).toBe('')
+    expect(executeMock).toHaveBeenCalledTimes(1)
+    expect(executeMock).toHaveBeenCalledWith(
+      'Read',
+      { path: '/tmp/merged.txt' },
+      expect.objectContaining({
+        toolCallId: 'no_index_call',
+      })
+    )
   })
 
   it('should warn when thinking is enabled without anthropic format in stream mode', async () => {

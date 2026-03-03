@@ -8,8 +8,8 @@ describe('Tool Definitions', () => {
       expect(fileSystemTools.length).toBeGreaterThan(0)
     })
 
-    it('should have 16 file system tools', () => {
-      expect(fileSystemTools).toHaveLength(16)
+    it('should have 17 file system tools', () => {
+      expect(fileSystemTools).toHaveLength(17)
     })
 
     it('should include expected tool names', () => {
@@ -31,6 +31,7 @@ describe('Tool Definitions', () => {
         'GitCheckout',
         'WebFetch',
         'WebSearch',
+        'Question',
       ])
     })
 

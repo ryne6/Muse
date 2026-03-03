@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { OpenAIProvider } from '../openai'
 import type { AIConfig } from '../../../../../shared/types/ai'
+import { TOOL_PERMISSION_PREFIX } from '../../../../../shared/types/toolPermissions'
 
 const { createMock, executeMock, constructorMock } = vi.hoisted(() => ({
   createMock: vi.fn(),
@@ -178,6 +179,44 @@ describe('OpenAIProvider runtime', () => {
     ).toBe(true)
   })
 
+  it('should stop simple tool loop after permission request', async () => {
+    executeMock.mockResolvedValueOnce(
+      `${TOOL_PERMISSION_PREFIX}${JSON.stringify({
+        kind: 'permission_request',
+        toolName: 'Read',
+        toolCallId: 'perm_call_1',
+      })}`
+    )
+    createMock.mockResolvedValueOnce({
+      choices: [
+        {
+          message: {
+            content: 'need permission',
+            tool_calls: [
+              {
+                id: 'perm_call_1',
+                type: 'function',
+                function: {
+                  name: 'Read',
+                  arguments: '{"path":"/tmp/a.txt"}',
+                },
+              },
+            ],
+          },
+        },
+      ],
+    })
+
+    const result = await provider.sendMessage(
+      [{ role: 'user', content: 'run tool' }],
+      baseConfig
+    )
+
+    expect(result).toBe('need permission')
+    expect(executeMock).toHaveBeenCalledTimes(1)
+    expect(createMock).toHaveBeenCalledTimes(1)
+  })
+
   it('should use reasoning_effort for reasoning models in simple mode', async () => {
     createMock.mockResolvedValueOnce({
       choices: [{ message: { content: 'reasoned result' } }],
@@ -324,6 +363,48 @@ describe('OpenAIProvider runtime', () => {
         (msg: any) => msg.role === 'tool' && msg.content === 'file content'
       )
     ).toBe(true)
+  })
+
+  it('should stop streaming tool loop after permission request', async () => {
+    executeMock.mockResolvedValueOnce(
+      `${TOOL_PERMISSION_PREFIX}${JSON.stringify({
+        kind: 'permission_request',
+        toolName: 'Read',
+        toolCallId: 'perm_stream_1',
+      })}`
+    )
+    createMock.mockResolvedValueOnce(
+      toAsyncIterable([
+        {
+          choices: [
+            {
+              delta: {
+                tool_calls: [
+                  {
+                    index: 0,
+                    id: 'perm_stream_1',
+                    function: {
+                      name: 'Read',
+                      arguments: '{"path":"/tmp/b.txt"}',
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      ])
+    )
+
+    const result = await provider.sendMessage(
+      [{ role: 'user', content: 'run tool' }],
+      baseConfig,
+      () => {}
+    )
+
+    expect(result).toBe('')
+    expect(executeMock).toHaveBeenCalledTimes(1)
+    expect(createMock).toHaveBeenCalledTimes(1)
   })
 
   it('should use reasoning_effort for reasoning models in stream mode', async () => {

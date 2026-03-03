@@ -17,6 +17,8 @@ import type {
   MessageContent,
   AIRequestOptions,
 } from '../../../../shared/types/ai'
+import { TOOL_PERMISSION_PREFIX } from '../../../../shared/types/toolPermissions'
+import { TOOL_QUESTION_PREFIX } from '../../../../shared/types/toolQuestions'
 import { getAllTools } from '../tools/definitions'
 import { ToolExecutor } from '../tools/executor'
 
@@ -108,7 +110,8 @@ export class ClaudeProvider extends BaseAIProvider {
       return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
         ? (parsed as Record<string, unknown>)
         : {}
-    } catch {
+    } catch (error) {
+      console.error('Failed to parse tool input:', error)
       return {}
     }
   }
@@ -268,6 +271,7 @@ export class ClaudeProvider extends BaseAIProvider {
 
       // Execute tools and continue conversation
       const toolResults: ToolResultBlockParam[] = []
+      let shouldPauseForPermission = false
       for (const toolUse of toolUses) {
         // Send tool call info
         onChunk({
@@ -306,6 +310,15 @@ export class ClaudeProvider extends BaseAIProvider {
             isError: false,
           },
         })
+
+        if (this.isBlockingToolResult(result)) {
+          shouldPauseForPermission = true
+          break
+        }
+      }
+
+      if (shouldPauseForPermission) {
+        break
       }
 
       // Add assistant message with tool uses and user message with tool results
@@ -400,6 +413,7 @@ export class ClaudeProvider extends BaseAIProvider {
 
       // Execute tools
       const toolResults: ToolResultBlockParam[] = []
+      let shouldPauseForPermission = false
       for (const toolUse of toolUses) {
         const toolInput =
           toolUse.input &&
@@ -426,6 +440,15 @@ export class ClaudeProvider extends BaseAIProvider {
           tool_use_id: toolUse.id,
           content: result,
         })
+
+        if (this.isBlockingToolResult(result)) {
+          shouldPauseForPermission = true
+          break
+        }
+      }
+
+      if (shouldPauseForPermission) {
+        break
       }
 
       // Continue conversation
@@ -445,5 +468,12 @@ export class ClaudeProvider extends BaseAIProvider {
 
   getDefaultModel(): string {
     return 'claude-3-5-sonnet-20241022'
+  }
+
+  private isBlockingToolResult(result: string): boolean {
+    return (
+      result.startsWith(TOOL_PERMISSION_PREFIX) ||
+      result.startsWith(TOOL_QUESTION_PREFIX)
+    )
   }
 }

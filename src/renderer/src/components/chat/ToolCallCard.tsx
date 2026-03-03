@@ -5,6 +5,7 @@ import {
   FileEdit,
   Folder,
   Wrench,
+  HelpCircle,
   CheckCircle2,
   XCircle,
   Loader2,
@@ -20,6 +21,8 @@ import type {
   ApprovalScope,
 } from '~shared/types/toolPermissions'
 import { TOOL_PERMISSION_PREFIX } from '~shared/types/toolPermissions'
+import type { QuestionRequestPayload } from '~shared/types/toolQuestions'
+import { TOOL_QUESTION_PREFIX } from '~shared/types/toolQuestions'
 import { cn } from '~/utils/cn'
 import { ScrollArea } from '@lobehub/ui'
 import { useChatStore } from '~/stores/chatStore'
@@ -44,6 +47,23 @@ function parsePermissionRequest(
   return null
 }
 
+function parseQuestionRequest(output?: string): QuestionRequestPayload | null {
+  if (!output?.startsWith(TOOL_QUESTION_PREFIX)) return null
+  const raw = output.slice(TOOL_QUESTION_PREFIX.length)
+  try {
+    const parsed = JSON.parse(raw) as QuestionRequestPayload
+    if (
+      parsed?.kind === 'question_request' &&
+      typeof parsed.question === 'string'
+    ) {
+      return parsed
+    }
+  } catch {
+    return null
+  }
+  return null
+}
+
 interface ToolCallCardProps {
   toolCall: ToolCall
   toolResult?: ToolResult
@@ -56,14 +76,19 @@ const TOOL_ICONS: Record<string, React.ReactNode> = {
   LS: <Folder className="w-4 h-4" />,
   Bash: <Terminal className="w-4 h-4" />,
   TodoWrite: <ListTodo className="w-4 h-4" />,
+  Question: <HelpCircle className="w-4 h-4" />,
 }
 
 type ApprovalStatus = 'idle' | 'loading' | 'approved' | 'approvedAll' | 'denied'
+type QuestionStatus = 'idle' | 'loading' | 'answered' | 'skipped'
 
 export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const approveToolCall = useChatStore(state => state.approveToolCall)
   const denyToolCall = useChatStore(state => state.denyToolCall)
+  const submitQuestionAnswer = useChatStore(
+    state => state.submitQuestionAnswer
+  )
   const currentConversationId = useConversationStore(
     state => state.currentConversationId
   )
@@ -72,15 +97,23 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
     toolResult?.output?.startsWith(TOOL_PERMISSION_PREFIX) ?? false
   const permissionRequest = parsePermissionRequest(toolResult?.output)
   const isPermissionRequest = rawPermissionRequest
+  const rawQuestionRequest =
+    toolResult?.output?.startsWith(TOOL_QUESTION_PREFIX) ?? false
+  const questionRequest = parseQuestionRequest(toolResult?.output)
+  const isQuestionRequest = rawQuestionRequest
 
   const isTodoWrite = toolCall.name === 'TodoWrite'
 
   // Task 1: Collapse state - permission requests default to expanded, TodoWrite always collapsed
   const [isCollapsed, setIsCollapsed] = useState(
-    !isPermissionRequest || isTodoWrite
+    (!isPermissionRequest && !isQuestionRequest) || isTodoWrite
   )
   // Task 6: Approval button status
   const [approvalStatus, setApprovalStatus] = useState<ApprovalStatus>('idle')
+  const [questionStatus, setQuestionStatus] = useState<QuestionStatus>('idle')
+  const [questionAnswer, setQuestionAnswer] = useState('')
+  const [selectedChoice, setSelectedChoice] = useState<string | null>(null)
+  const [submittedAnswer, setSubmittedAnswer] = useState('')
   // P0: Dropdown and deny input state
   const [showApproveMenu, setShowApproveMenu] = useState(false)
   const [showDenyInput, setShowDenyInput] = useState(false)
@@ -88,10 +121,18 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
 
   // Fix: re-expand when permission request arrives after mount
   useEffect(() => {
-    if (isPermissionRequest) {
+    if (isPermissionRequest || isQuestionRequest) {
       setIsCollapsed(false)
     }
-  }, [isPermissionRequest])
+  }, [isPermissionRequest, isQuestionRequest])
+
+  useEffect(() => {
+    if (!isQuestionRequest) return
+    setQuestionStatus('idle')
+    setQuestionAnswer('')
+    setSelectedChoice(null)
+    setSubmittedAnswer('')
+  }, [isQuestionRequest, toolCall.id])
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -101,10 +142,15 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
     return () => document.removeEventListener('click', handleClickOutside)
   }, [showApproveMenu])
 
+  const isQuestionResolved =
+    questionStatus === 'answered' || questionStatus === 'skipped'
+
   const status: 'pending' | 'success' | 'error' = !toolResult
     ? 'pending'
     : isPermissionRequest
       ? 'pending'
+      : isQuestionRequest && !isQuestionResolved
+        ? 'pending'
       : toolResult.isError
         ? 'error'
         : 'success'
@@ -118,13 +164,19 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
   }[status]
 
   const borderColor = {
-    pending: 'border-border',
+    pending:
+      isQuestionRequest && !isQuestionResolved
+        ? 'border-blue-300/70'
+        : 'border-border',
     success: 'border-border',
     error: 'border-destructive/50',
   }[status]
 
   const bgColor = {
-    pending: 'bg-background',
+    pending:
+      isQuestionRequest && !isQuestionResolved
+        ? 'bg-blue-50/40'
+        : 'bg-background',
     success: 'bg-background',
     error: 'bg-destructive/5',
   }[status]
@@ -146,6 +198,158 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
   // 格式化输出结果
   const renderOutput = () => {
     if (!toolResult) return null
+
+    if (isQuestionRequest) {
+      const canAnswer = Boolean(currentConversationId && questionRequest)
+      const isLoading = questionStatus === 'loading'
+      const isResolved =
+        questionStatus === 'answered' || questionStatus === 'skipped'
+      const required = questionRequest?.required ?? true
+      const allowFreeText = questionRequest?.allowFreeText ?? true
+      const choices = questionRequest?.choices ?? []
+      const resolvedAnswer =
+        questionStatus === 'answered' ? submittedAnswer : undefined
+      const draftAnswer = (questionAnswer || selectedChoice || '').trim()
+      const canSubmit =
+        !isLoading && !isResolved && canAnswer && draftAnswer.length > 0
+      const canSkip = !required && !isLoading && !isResolved && canAnswer
+
+      const handleSubmit = async () => {
+        if (!canSubmit || !currentConversationId || !questionRequest) return
+        setQuestionStatus('loading')
+        try {
+          await submitQuestionAnswer(
+            currentConversationId,
+            toolCall.name,
+            toolCall.id,
+            questionRequest.question,
+            draftAnswer
+          )
+          setSubmittedAnswer(draftAnswer)
+          setQuestionStatus('answered')
+        } catch {
+          setQuestionStatus('idle')
+        }
+      }
+
+      const handleSkip = async () => {
+        if (!canSkip || !currentConversationId || !questionRequest) return
+        setQuestionStatus('loading')
+        try {
+          await submitQuestionAnswer(
+            currentConversationId,
+            toolCall.name,
+            toolCall.id,
+            questionRequest.question,
+            '',
+            true
+          )
+          setQuestionStatus('skipped')
+        } catch {
+          setQuestionStatus('idle')
+        }
+      }
+
+      return (
+        <div className="space-y-2">
+          <div className="text-sm leading-relaxed break-words">
+            {questionRequest?.question || 'Question unavailable'}
+          </div>
+          {questionRequest?.description && (
+            <div className="text-xs text-muted-foreground break-words">
+              {questionRequest.description}
+            </div>
+          )}
+
+          {!isResolved && choices.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {choices.map(choice => (
+                <button
+                  key={choice}
+                  type="button"
+                  disabled={isLoading}
+                  onClick={() => {
+                    setSelectedChoice(choice)
+                    if (!allowFreeText) {
+                      setQuestionAnswer(choice)
+                    }
+                  }}
+                  className={cn(
+                    'text-xs px-2 py-1 rounded border transition-colors',
+                    selectedChoice === choice || questionAnswer === choice
+                      ? 'border-primary bg-primary/10 text-foreground'
+                      : 'border-border hover:bg-accent/40',
+                    isLoading && 'opacity-60 cursor-not-allowed'
+                  )}
+                >
+                  {choice}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {!isResolved && allowFreeText && (
+            <input
+              type="text"
+              value={questionAnswer}
+              onChange={e => {
+                setQuestionAnswer(e.target.value)
+                if (selectedChoice) setSelectedChoice(null)
+              }}
+              placeholder={questionRequest?.placeholder || 'Type your answer'}
+              className="w-full text-xs px-2 py-1 rounded border border-border bg-background"
+              disabled={isLoading}
+              onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+            />
+          )}
+
+          {!isResolved && (
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={handleSubmit}
+                disabled={!canSubmit}
+                className={cn(
+                  'text-xs px-2.5 py-1 rounded transition-colors',
+                  canSubmit
+                    ? 'bg-primary text-primary-foreground hover:opacity-90'
+                    : 'bg-[hsl(var(--surface-2))] text-muted-foreground cursor-not-allowed'
+                )}
+              >
+                {isLoading ? 'Sending...' : questionRequest?.submitLabel || 'Send Answer'}
+              </button>
+              {canSkip && (
+                <button
+                  type="button"
+                  onClick={handleSkip}
+                  className="text-xs px-2.5 py-1 rounded text-muted-foreground hover:text-foreground"
+                >
+                  {questionRequest?.skipLabel || 'Skip'}
+                </button>
+              )}
+            </div>
+          )}
+
+          {isResolved && (
+            <div className="flex items-center gap-1.5 text-xs">
+              {questionStatus === 'skipped' ? (
+                <>
+                  <XCircle className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-muted-foreground">Skipped</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                  <span className="text-green-600 break-words">
+                    You answered: {resolvedAnswer}
+                  </span>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      )
+    }
 
     if (isPermissionRequest) {
       const canApprove = Boolean(currentConversationId)
@@ -347,8 +551,12 @@ export function ToolCallCard({ toolCall, toolResult }: ToolCallCardProps) {
         {statusIcon}
         <span className="text-xs text-muted-foreground">
           {status === 'pending' &&
-            (isPermissionRequest ? '需要权限' : 'Running...')}
-          {status === 'success' && 'Success'}
+            (isPermissionRequest
+              ? '需要权限'
+              : isQuestionRequest
+                ? 'Waiting for answer'
+                : 'Running...')}
+          {status === 'success' && (isQuestionRequest ? 'Answered' : 'Success')}
           {status === 'error' && 'Error'}
         </span>
       </div>

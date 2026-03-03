@@ -1,6 +1,10 @@
 import axios from 'axios'
 import { TOOL_PERMISSION_PREFIX } from '~shared/types/toolPermissions'
 import type { PermissionRule, HooksConfig } from '~shared/types/toolPermissions'
+import {
+  TOOL_QUESTION_PREFIX,
+  type QuestionRequestPayload,
+} from '~shared/types/toolQuestions'
 import { PermissionEngine } from '~shared/permissions/engine'
 
 // Lazy-loaded MCP manager to avoid SDK side effects at import time
@@ -44,6 +48,17 @@ interface TodoInput {
   status: string
   title?: string
   notes?: string
+}
+
+interface QuestionInput {
+  question?: string
+  description?: string
+  choices?: string[]
+  allowFreeText?: boolean
+  required?: boolean
+  placeholder?: string
+  submitLabel?: string
+  skipLabel?: string
 }
 
 interface GrepResult {
@@ -207,6 +222,9 @@ export class ToolExecutor {
 
         case 'WebSearch':
           return await this.webSearch(input, options.webSearchEngine)
+
+        case 'Question':
+          return this.createQuestionRequest(input, options.toolCallId)
 
         default:
           throw new Error(`Unknown tool: ${toolName}`)
@@ -489,5 +507,43 @@ export class ToolExecutor {
   ): number | undefined {
     const value = input[key]
     return typeof value === 'number' ? value : undefined
+  }
+
+  private createQuestionRequest(
+    input: Record<string, unknown>,
+    toolCallId?: string
+  ): string {
+    const questionInput = input as QuestionInput
+    const question = this.getStringValue(input, 'question').trim()
+    if (!question) {
+      throw new Error('Question tool requires a non-empty "question" field')
+    }
+
+    const rawChoices = Array.isArray(questionInput.choices)
+      ? questionInput.choices
+      : []
+    const choices = rawChoices
+      .filter(choice => typeof choice === 'string')
+      .map(choice => choice.trim())
+      .filter(Boolean)
+
+    const allowFreeText =
+      this.getOptionalBooleanValue(input, 'allowFreeText') ?? true
+    const required = this.getOptionalBooleanValue(input, 'required') ?? true
+
+    const payload: QuestionRequestPayload = {
+      kind: 'question_request',
+      toolCallId,
+      question,
+      description: this.getOptionalStringValue(input, 'description'),
+      choices: choices.length > 0 ? choices : undefined,
+      allowFreeText,
+      required,
+      placeholder: this.getOptionalStringValue(input, 'placeholder'),
+      submitLabel: this.getOptionalStringValue(input, 'submitLabel'),
+      skipLabel: this.getOptionalStringValue(input, 'skipLabel'),
+    }
+
+    return `${TOOL_QUESTION_PREFIX}${JSON.stringify(payload)}`
   }
 }

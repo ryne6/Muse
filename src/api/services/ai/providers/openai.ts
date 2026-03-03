@@ -7,6 +7,8 @@ import type {
   MessageContent,
   AIRequestOptions,
 } from '../../../../shared/types/ai'
+import { TOOL_PERMISSION_PREFIX } from '../../../../shared/types/toolPermissions'
+import { TOOL_QUESTION_PREFIX } from '../../../../shared/types/toolQuestions'
 import { getAllTools } from '../tools/definitions'
 import { ToolExecutor } from '../tools/executor'
 
@@ -202,6 +204,7 @@ export class OpenAIProvider extends BaseAIProvider {
         tool_calls: toolCalls,
       })
 
+      let shouldPauseForPermission = false
       for (const toolCall of toolCalls) {
         if (toolCall.type !== 'function') continue
 
@@ -236,6 +239,15 @@ export class OpenAIProvider extends BaseAIProvider {
           content: `[Tool result: ${result.slice(0, 100)}...]\n\n`,
           done: false,
         })
+
+        if (this.isBlockingToolResult(result)) {
+          shouldPauseForPermission = true
+          break
+        }
+      }
+
+      if (shouldPauseForPermission) {
+        break
       }
     }
 
@@ -301,6 +313,7 @@ export class OpenAIProvider extends BaseAIProvider {
         tool_calls: message.tool_calls,
       })
 
+      let shouldPauseForPermission = false
       for (const toolCall of message.tool_calls) {
         if (toolCall.type !== 'function') continue
 
@@ -325,6 +338,15 @@ export class OpenAIProvider extends BaseAIProvider {
           tool_call_id: toolCall.id,
           content: result,
         })
+
+        if (this.isBlockingToolResult(result)) {
+          shouldPauseForPermission = true
+          break
+        }
+      }
+
+      if (shouldPauseForPermission) {
+        break
       }
     }
 
@@ -351,6 +373,13 @@ export class OpenAIProvider extends BaseAIProvider {
     } catch {
       return {}
     }
+  }
+
+  private isBlockingToolResult(result: string): boolean {
+    return (
+      result.startsWith(TOOL_PERMISSION_PREFIX) ||
+      result.startsWith(TOOL_QUESTION_PREFIX)
+    )
   }
 
   getDefaultModel(): string {

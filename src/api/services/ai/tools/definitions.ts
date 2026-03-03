@@ -300,6 +300,50 @@ export const fileSystemTools = [
       required: ['query'],
     },
   },
+  {
+    name: 'Question',
+    description:
+      'Ask the user a follow-up question and wait for their answer before continuing.',
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        question: {
+          type: 'string',
+          description: 'Question text shown to the user',
+        },
+        description: {
+          type: 'string',
+          description: 'Optional hint or extra context for the question',
+        },
+        choices: {
+          type: 'array',
+          items: { type: 'string' },
+          description: 'Optional quick choice options',
+        },
+        allowFreeText: {
+          type: 'boolean',
+          description: 'Whether user can type a custom answer',
+        },
+        required: {
+          type: 'boolean',
+          description: 'Whether answering is required',
+        },
+        placeholder: {
+          type: 'string',
+          description: 'Input placeholder when free text is enabled',
+        },
+        submitLabel: {
+          type: 'string',
+          description: 'Custom submit button text',
+        },
+        skipLabel: {
+          type: 'string',
+          description: 'Custom skip button text',
+        },
+      },
+      required: ['question'],
+    },
+  },
 ]
 
 // Lazy-loaded MCP manager to avoid SDK side effects at import time

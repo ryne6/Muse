@@ -5,6 +5,8 @@ import type {
   AIStreamChunk,
   AIRequestOptions,
 } from '../../../../shared/types/ai'
+import { TOOL_PERMISSION_PREFIX } from '../../../../shared/types/toolPermissions'
+import { TOOL_QUESTION_PREFIX } from '../../../../shared/types/toolQuestions'
 import { getStrategy } from './strategies'
 import { ToolExecutor } from '../tools/executor'
 
@@ -104,6 +106,7 @@ export class GenericProvider extends BaseAIProvider {
       let buffer = ''
       let currentContent = ''
       const toolCalls: StreamToolCallBuffer[] = []
+      let lastResolvedToolIndex: number | null = null
 
       try {
         while (true) {
@@ -137,10 +140,38 @@ export class GenericProvider extends BaseAIProvider {
                 }
                 if (result?.toolCalls) {
                   for (const tc of result.toolCalls) {
-                    const index = tc.index ?? toolCalls.length
+                    let index =
+                      typeof tc.index === 'number' ? tc.index : undefined
+
+                    if (index === undefined && tc.id) {
+                      const existingIndex = toolCalls.findIndex(
+                        call => call?.id === tc.id
+                      )
+                      if (existingIndex >= 0) {
+                        index = existingIndex
+                      }
+                    }
+
+                    // Some OpenAI-compatible gateways omit index for delta chunks.
+                    // If this chunk only carries argument continuation, attach it
+                    // to the last resolved tool call instead of creating duplicates.
+                    if (
+                      index === undefined &&
+                      lastResolvedToolIndex !== null &&
+                      !tc.id &&
+                      !tc.function?.name &&
+                      tc.function?.arguments
+                    ) {
+                      index = lastResolvedToolIndex
+                    }
+
+                    if (index === undefined) {
+                      index = toolCalls.length
+                    }
+
                     if (!toolCalls[index]) {
                       toolCalls[index] = {
-                        id: tc.id || '',
+                        id: tc.id || `tool_call_${index}`,
                         name: tc.function?.name || '',
                         arguments: tc.function?.arguments || '',
                       }
@@ -152,6 +183,8 @@ export class GenericProvider extends BaseAIProvider {
                       if (tc.function?.arguments)
                         toolCalls[index].arguments += tc.function.arguments
                     }
+
+                    lastResolvedToolIndex = index
                   }
                 }
                 if (
@@ -188,8 +221,9 @@ export class GenericProvider extends BaseAIProvider {
         content: currentContent || '',
       })
 
+      let shouldPauseForPermission = false
       for (const toolCall of toolCalls.filter(Boolean)) {
-        const functionArgs = JSON.parse(toolCall.arguments || '{}')
+        const functionArgs = this.parseToolArguments(toolCall.arguments)
         onChunk({
           content: '',
           done: false,
@@ -225,6 +259,15 @@ export class GenericProvider extends BaseAIProvider {
           role: 'user',
           content: `Tool ${toolCall.name} result: ${result}`,
         })
+
+        if (this.isBlockingToolResult(result)) {
+          shouldPauseForPermission = true
+          break
+        }
+      }
+
+      if (shouldPauseForPermission) {
+        break
       }
     }
 
@@ -280,8 +323,11 @@ export class GenericProvider extends BaseAIProvider {
 
       conversationMessages.push({ role: 'assistant', content: content || '' })
 
+      let shouldPauseForPermission = false
       for (const toolCall of toolCalls) {
-        const functionArgs = JSON.parse(toolCall.function?.arguments || '{}')
+        const functionArgs = this.parseToolArguments(
+          toolCall.function?.arguments
+        )
         const toolResult = await toolExecutor.execute(
           toolCall.function?.name,
           functionArgs,
@@ -300,10 +346,37 @@ export class GenericProvider extends BaseAIProvider {
           role: 'user',
           content: `Tool ${toolCall.function?.name} result: ${toolResult}`,
         })
+
+        if (this.isBlockingToolResult(toolResult)) {
+          shouldPauseForPermission = true
+          break
+        }
+      }
+
+      if (shouldPauseForPermission) {
+        break
       }
     }
 
     return finalText
+  }
+
+  private parseToolArguments(rawArgs?: string): Record<string, unknown> {
+    try {
+      const parsed: unknown = JSON.parse(rawArgs || '{}')
+      return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+        ? (parsed as Record<string, unknown>)
+        : {}
+    } catch {
+      return {}
+    }
+  }
+
+  private isBlockingToolResult(result: string): boolean {
+    return (
+      result.startsWith(TOOL_PERMISSION_PREFIX) ||
+      result.startsWith(TOOL_QUESTION_PREFIX)
+    )
   }
 
   validateConfig(config: AIConfig): boolean {

@@ -1,11 +1,12 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { ToolCallCard } from '../ToolCallCard'
 import type { ToolCall, ToolResult } from '~shared/types/conversation'
 import { TOOL_PERMISSION_PREFIX } from '~shared/types/toolPermissions'
+import { TOOL_QUESTION_PREFIX } from '~shared/types/toolQuestions'
 
 vi.mock('lucide-react', () => {
   const make = (name: string) => {
@@ -20,6 +21,7 @@ vi.mock('lucide-react', () => {
     FileEdit: make('FileEdit'),
     Folder: make('Folder'),
     Wrench: make('Wrench'),
+    HelpCircle: make('HelpCircle'),
     CheckCircle2: make('CheckCircle2'),
     XCircle: make('XCircle'),
     Loader2: make('Loader2'),
@@ -37,10 +39,16 @@ vi.mock('@lobehub/ui', () => ({
 }))
 
 const mockApproveToolCall = vi.fn()
+const mockDenyToolCall = vi.fn()
+const mockSubmitQuestionAnswer = vi.fn()
 
 vi.mock('~/stores/chatStore', () => ({
   useChatStore: (selector: any) =>
-    selector({ approveToolCall: mockApproveToolCall }),
+    selector({
+      approveToolCall: mockApproveToolCall,
+      denyToolCall: mockDenyToolCall,
+      submitQuestionAnswer: mockSubmitQuestionAnswer,
+    }),
 }))
 
 vi.mock('~/stores/conversationStore', () => ({
@@ -55,6 +63,15 @@ const renderCard = (name: string) => {
 }
 
 describe('ToolCallCard', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('renders Question icon', () => {
+    renderCard('Question')
+    expect(screen.getByTestId('HelpCircle')).toBeTruthy()
+  })
+
   it('renders Read icon', () => {
     renderCard('Read')
     expect(screen.getByTestId('FileText')).toBeTruthy()
@@ -100,5 +117,46 @@ describe('ToolCallCard', () => {
 
     expect(screen.getByText('允许')).toBeTruthy()
     expect(screen.getByText('拒绝')).toBeTruthy()
+  })
+
+  it('renders question prompt and submits selected answer', async () => {
+    mockSubmitQuestionAnswer.mockResolvedValue(undefined)
+    const toolCall: ToolCall = {
+      id: 'tool-q-1',
+      name: 'Question',
+      input: {
+        question: 'Which environment should we deploy to?',
+      },
+    }
+    const toolResult: ToolResult = {
+      toolCallId: 'tool-q-1',
+      output: `${TOOL_QUESTION_PREFIX}${JSON.stringify({
+        kind: 'question_request',
+        toolCallId: 'tool-q-1',
+        question: 'Which environment should we deploy to?',
+        choices: ['staging', 'production'],
+        allowFreeText: false,
+        required: true,
+        submitLabel: 'Send Answer',
+      })}`,
+    }
+
+    render(<ToolCallCard toolCall={toolCall} toolResult={toolResult} />)
+
+    expect(
+      screen.getByText('Which environment should we deploy to?')
+    ).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: 'staging' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Send Answer' }))
+
+    await waitFor(() => {
+      expect(mockSubmitQuestionAnswer).toHaveBeenCalledWith(
+        'conv-1',
+        'Question',
+        'tool-q-1',
+        'Which environment should we deploy to?',
+        'staging'
+      )
+    })
   })
 })

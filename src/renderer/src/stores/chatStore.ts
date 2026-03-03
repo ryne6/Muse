@@ -240,6 +240,14 @@ interface ChatStore {
     toolCallId: string,
     reason?: string
   ) => Promise<void>
+  submitQuestionAnswer: (
+    conversationId: string,
+    toolName: string,
+    toolCallId: string,
+    question: string,
+    answer: string,
+    skipped?: boolean
+  ) => Promise<void>
   getSessionApprovedTools: (conversationId: string) => string[]
   enqueueMessage: (
     content: string,
@@ -1050,6 +1058,35 @@ Current workspace: ${workspacePath || 'Not set'}`
       provider.type,
       aiConfig
     )
+  },
+
+  submitQuestionAnswer: async (
+    conversationId,
+    toolName,
+    toolCallId,
+    question,
+    answer,
+    skipped = false
+  ) => {
+    const settingsState = useSettingsStore.getState()
+    const provider = settingsState.getCurrentProvider()
+    const model = settingsState.getCurrentModel()
+
+    if (!provider || !model) {
+      set({ error: 'No provider or model selected' })
+      return
+    }
+    if (!hasConfiguredProviderCredentials(provider)) {
+      set({ error: 'Provider auth missing' })
+      return
+    }
+
+    const message = skipped
+      ? `[Question Skipped] The user skipped a question from tool "${toolName}" (ID: ${toolCallId}). Original question: ${question}. Continue with available context or ask a narrower follow-up if needed.`
+      : `[Question Answer] The user answered a question from tool "${toolName}" (ID: ${toolCallId}). Question: ${question}. Answer: ${answer}. Continue using this answer.`
+
+    const aiConfig = await buildAIConfig(provider, model, settingsState)
+    await get().sendMessage(conversationId, message, provider.type, aiConfig)
   },
 
   getSessionApprovedTools: (conversationId: string) => {

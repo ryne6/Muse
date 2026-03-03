@@ -22,6 +22,7 @@ describe('classifyTool', () => {
       'WebFetch',
       'WebSearch',
       'TodoWrite',
+      'Question',
     ]
     it.each(safeTools)('%s → safe', tool => {
       expect(classifyTool(tool)).toBe('safe')

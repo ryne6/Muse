@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { ToolExecutor } from '../executor'
 import axios from 'axios'
 import { TOOL_PERMISSION_PREFIX } from '~shared/types/toolPermissions'
+import { TOOL_QUESTION_PREFIX } from '~shared/types/toolQuestions'
 
 // Mock axios
 vi.mock('axios')
@@ -291,6 +292,30 @@ describe('ToolExecutor', () => {
           engine: 'bing',
         }
       )
+    })
+
+    it('should return question request payload for Question tool', async () => {
+      const result = await executor.execute(
+        'Question',
+        {
+          question: 'Which env should I use?',
+          choices: ['staging', 'production'],
+          allowFreeText: false,
+          required: true,
+        },
+        { toolCallId: 'q-1' }
+      )
+
+      expect(result.startsWith(TOOL_QUESTION_PREFIX)).toBe(true)
+      const payload = JSON.parse(result.slice(TOOL_QUESTION_PREFIX.length))
+      expect(payload).toMatchObject({
+        kind: 'question_request',
+        toolCallId: 'q-1',
+        question: 'Which env should I use?',
+        choices: ['staging', 'production'],
+        allowFreeText: false,
+        required: true,
+      })
     })
 
     it('should return permission request for unknown tool (classified as moderate)', async () => {

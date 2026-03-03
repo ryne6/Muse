@@ -18,6 +18,7 @@ const STATIC_TOOL_LEVELS: Record<string, ToolRiskLevel> = {
   WebFetch: 'safe',
   WebSearch: 'safe',
   TodoWrite: 'safe',
+  Question: 'safe',
 
   // Moderate — 需要审批，可被规则覆盖
   Write: 'moderate',

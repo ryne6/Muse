@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { ClaudeProvider } from '../claude'
 import type { AIConfig } from '../../../../../shared/types/ai'
+import { TOOL_PERMISSION_PREFIX } from '../../../../../shared/types/toolPermissions'
 
 const { createMock, executeMock, constructorMock } = vi.hoisted(() => ({
   createMock: vi.fn(),
@@ -174,6 +175,36 @@ describe('ClaudeProvider runtime', () => {
           )
       )
     ).toBe(true)
+  })
+
+  it('should stop simple tool loop after permission request', async () => {
+    executeMock.mockResolvedValueOnce(
+      `${TOOL_PERMISSION_PREFIX}${JSON.stringify({
+        kind: 'permission_request',
+        toolName: 'Read',
+        toolCallId: 'perm_tool_1',
+      })}`
+    )
+    createMock.mockResolvedValueOnce({
+      content: [
+        { type: 'text', text: 'need permission' },
+        {
+          type: 'tool_use',
+          id: 'perm_tool_1',
+          name: 'Read',
+          input: { path: '/tmp/a.txt' },
+        },
+      ],
+    })
+
+    const result = await provider.sendMessage(
+      [{ role: 'user', content: 'run tool' }],
+      baseConfig
+    )
+
+    expect(result).toBe('need permission')
+    expect(executeMock).toHaveBeenCalledTimes(1)
+    expect(createMock).toHaveBeenCalledTimes(1)
   })
 
   it('should apply thinking config in simple mode when enabled', async () => {
@@ -351,6 +382,49 @@ describe('ClaudeProvider runtime', () => {
           )
       )
     ).toBe(true)
+  })
+
+  it('should stop streamed tool loop after permission request', async () => {
+    executeMock.mockResolvedValueOnce(
+      `${TOOL_PERMISSION_PREFIX}${JSON.stringify({
+        kind: 'permission_request',
+        toolName: 'Read',
+        toolCallId: 'perm_stream_1',
+      })}`
+    )
+    createMock.mockResolvedValueOnce(
+      toAsyncIterable([
+        {
+          type: 'content_block_start',
+          content_block: {
+            type: 'tool_use',
+            id: 'perm_stream_1',
+            name: 'Read',
+          },
+        },
+        {
+          type: 'content_block_delta',
+          delta: { type: 'input_json_delta', partial_json: '{"path":"' },
+        },
+        {
+          type: 'content_block_delta',
+          delta: { type: 'input_json_delta', partial_json: '/tmp/b.txt"}' },
+        },
+        {
+          type: 'message_stop',
+        },
+      ])
+    )
+
+    const result = await provider.sendMessage(
+      [{ role: 'user', content: 'run tool' }],
+      baseConfig,
+      () => {}
+    )
+
+    expect(result).toBe('')
+    expect(executeMock).toHaveBeenCalledTimes(1)
+    expect(createMock).toHaveBeenCalledTimes(1)
   })
 
   it('should continue when streamed tool input JSON is invalid', async () => {
